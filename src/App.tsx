@@ -1,6 +1,7 @@
 import './App.css'
 import Header from './components/layout/Header'
 import Hero from './components/sections/Hero'
+import AboutUs from './components/sections/about-us'
 import PopularCourses from './components/sections/popular-courses'
 
 function App() {
@@ -13,6 +14,9 @@ function App() {
       <main className="main-content">
         {/* Hero Section */}
         <Hero />
+        
+        {/* About Us Section */}
+        <AboutUs />
         
         {/* Popular Courses Section */}
         <PopularCourses />
