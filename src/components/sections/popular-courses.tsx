@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   IconBook, 
   IconClock, 
@@ -6,7 +6,13 @@ import {
   IconUsers, 
   IconTrendingUp, 
   IconStar,
-  IconArrowRight 
+  IconArrowRight,
+  IconChevronLeft,
+  IconChevronRight,
+  IconCode,
+  IconBrandGoogle,
+  IconPalette,
+  IconBrush
 } from '@tabler/icons-react';
 import type { Course, CourseCategory } from '../../types';
 import { courseService, categoryService } from '../../services';
@@ -17,6 +23,8 @@ const PopularCourses: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -59,6 +67,37 @@ const PopularCourses: React.FC = () => {
 
   const handleCategoryChange = (categoryId: string) => {
     setActiveCategory(categoryId);
+  };
+
+  // Slider navigation functions
+  const nextSlide = () => {
+    const maxSlide = Math.max(0, categories.length - 4); // Show 4 categories at a time
+    setCurrentSlide(prev => Math.min(prev + 1, maxSlide));
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide(prev => Math.max(prev - 1, 0));
+  };
+
+  const canGoNext = currentSlide < Math.max(0, categories.length - 4);
+  const canGoPrev = currentSlide > 0;
+
+  // Function to render category icons
+  const renderCategoryIcon = (iconName: string, size: number = 24) => {
+    const iconProps = { size, strokeWidth: 1.5 };
+    
+    switch (iconName) {
+      case 'IconCode':
+        return <IconCode {...iconProps} />;
+      case 'IconBrandGoogle':
+        return <IconBrandGoogle {...iconProps} />;
+      case 'IconPalette':
+        return <IconPalette {...iconProps} />;
+      case 'IconBrush':
+        return <IconBrush {...iconProps} />;
+      default:
+        return <IconBook {...iconProps} />;
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -152,7 +191,7 @@ const PopularCourses: React.FC = () => {
     <section 
       className="space py-20 overflow-hidden relative"
       style={{
-        backgroundImage: 'url("/assets/img/bg/course_bg_2.png")',
+        backgroundImage: 'url("/assets/img/course/course_bg_2.png")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
@@ -177,43 +216,81 @@ const PopularCourses: React.FC = () => {
           </h2>
         </div>
 
-        {/* Course Categories */}
+        {/* Course Categories Slider */}
         <div className="course-tab-1 mb-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {categories.map((category) => (
-              <div key={category.id} className="col-span-1">
-                <button
-                  className={`tab-btn w-full p-4 lg:p-6 rounded-lg border-2 transition-all duration-300 hover:shadow-lg ${
-                    activeCategory === category.id
-                      ? 'border-blue-600 bg-blue-50 shadow-lg'
-                      : 'border-gray-200 bg-white hover:border-blue-300'
-                  }`}
-                  onClick={() => handleCategoryChange(category.id)}
-                >
-                  <div className="flex items-center gap-4">
-                    <span className="icon flex-shrink-0">
-                      <img 
-                        src={category.icon} 
-                        alt={category.name}
-                        className="w-12 h-12 object-contain"
-                      />
-                    </span>
-                    <div className="details text-left">
-                      <span 
-                        className={`box-title block text-lg font-semibold mb-1 ${
-                          activeCategory === category.id ? 'text-blue-600' : 'text-gray-800'
-                        }`}
-                      >
-                        {category.name}
-                      </span>
-                      <span className="text text-sm text-gray-600">
-                        {category.courseCount} Courses
-                      </span>
-                    </div>
+          <div className="relative">
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevSlide}
+              disabled={!canGoPrev}
+              className={`absolute -left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                canGoPrev 
+                  ? 'bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-800 shadow-sm hover:shadow-md' 
+                  : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+              }`}
+            >
+              <IconChevronLeft size={18} />
+            </button>
+
+            <button
+              onClick={nextSlide}
+              disabled={!canGoNext}
+              className={`absolute -right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 ${
+                canGoNext 
+                  ? 'bg-white text-gray-600 hover:bg-gray-50 hover:text-gray-800 shadow-sm hover:shadow-md' 
+                  : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+              }`}
+            >
+              <IconChevronRight size={18} />
+            </button>
+
+            {/* Categories Slider Container */}
+            <div className="overflow-hidden mx-20">
+              <div 
+                ref={sliderRef}
+                className="flex transition-transform duration-500 ease-in-out gap-6"
+                style={{ 
+                  transform: `translateX(-${currentSlide * 25}%)` // 25% = 100% / 4 categories
+                }}
+              >
+                {categories.map((category) => (
+                  <div key={category.id} className="flex-shrink-0 w-1/4">
+                    <button
+                      className={`tab-btn w-full p-5 rounded-lg transition-all duration-300 group ${
+                        activeCategory === category.id
+                          ? 'bg-blue-600 text-white shadow-lg'
+                          : 'bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm'
+                      }`}
+                      onClick={() => handleCategoryChange(category.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`icon flex-shrink-0 p-2 rounded-md transition-all duration-300 ${
+                          activeCategory === category.id 
+                            ? 'bg-white/20 text-white' 
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {renderCategoryIcon(category.icon, 20)}
+                        </span>
+                        <div className="details text-left flex-1">
+                          <span 
+                            className={`box-title block text-base font-medium mb-0.5 transition-colors duration-300 ${
+                              activeCategory === category.id ? 'text-white' : 'text-gray-900 group-hover:text-gray-700'
+                            }`}
+                          >
+                            {category.name}
+                          </span>
+                          <span className={`text text-xs transition-colors duration-300 ${
+                            activeCategory === category.id ? 'text-blue-100' : 'text-gray-500'
+                          }`}>
+                            {category.courseCount} Courses
+                          </span>
+                        </div>
+                      </div>
+                    </button>
                   </div>
-                </button>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
