@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   IconBook, 
-  IconClock, 
   IconFile, 
   IconUsers, 
-  IconTrendingUp, 
   IconStar,
   IconArrowRight,
   IconChevronLeft,
@@ -143,13 +141,13 @@ const PopularCourses: React.FC = () => {
         <div className="course-meta flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4 text-xs sm:text-sm text-gray-600">
           <div className="flex items-center gap-1">
             <IconFile size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">{course.lessons} Lessons</span>
-            <span className="sm:hidden">{course.lessons}L</span>
+            <span className="hidden sm:inline">{course.totalLessons} Lessons</span>
+            <span className="sm:hidden">{course.totalLessons}L</span>
           </div>
           <div className="flex items-center gap-1">
             <IconUsers size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">{course.students}+ Students</span>
-            <span className="sm:hidden">{course.students}+</span>
+            <span className="hidden sm:inline">{course.totalStudents}+ Students</span>
+            <span className="sm:hidden">{course.totalStudents}+</span>
           </div>
         </div>
         
@@ -166,7 +164,7 @@ const PopularCourses: React.FC = () => {
             {renderStars(course.rating)}
           </div>
           <span className="text-xs sm:text-sm text-gray-600">
-            ({course.rating}) <span className="hidden sm:inline">{course.reviews} Reviews</span>
+            ({course.rating}) <span className="hidden sm:inline">{course.ratingCount} Reviews</span>
           </span>
         </div>
         
