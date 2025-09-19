@@ -20,6 +20,7 @@ import {
   IconX
 } from '@tabler/icons-react';
 import { useState } from 'react';
+import { Link } from 'react-router';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -102,9 +103,13 @@ const Header = () => {
                       </div>
                     </div>
                   </li>
-                  <li className="hidden lg:flex items-center space-x-2">
+                  <li className="hidden lg:flex items-center space-x-3">
                     <IconUser size={16} />
-                    <a href="#" className="hover:opacity-60 transition-opacity">Login / Register</a>
+                    <div className="flex items-center space-x-2">
+                      <Link to="/login" className="hover:opacity-60 transition-opacity">Login</Link>
+                      <span className="text-white/40">/</span>
+                      <Link to="/register" className="hover:opacity-60 transition-opacity">Register</Link>
+                    </div>
                   </li>
                 </ul>
               </div>
@@ -137,7 +142,7 @@ const Header = () => {
             <div className="flex items-center justify-between w-full">
               {/* Logo */}
               <div className="header-logo py-3 lg:py-5 -mt-4 lg:-mt-7 xl:mt-0">
-                <a href="#" className="flex items-center space-x-2 lg:space-x-3">
+                <Link to="/" className="flex items-center space-x-2 lg:space-x-3">
                   <div 
                     className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center text-white"
                     style={{ backgroundColor: 'var(--color-primary)' }}
@@ -149,16 +154,16 @@ const Header = () => {
                   >
                     ASKYOURTUTOR
                   </span>
-                </a>
+                </Link>
               </div>
 
               {/* Main Navigation (Desktop) */}
               <nav className="main-menu hidden lg:inline-block ml-15">
                 <ul className="flex items-center">
                   <li className="menu-item-has-children relative group mx-3">
-                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-8 uppercase text-base">
+                    <Link to="/" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-8 uppercase text-base">
                       <span>Home</span>
-                    </a>
+                    </Link>
                   </li>
                   <li className="menu-item-has-children relative group mx-3">
                     <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-8 uppercase text-base">
@@ -296,9 +301,9 @@ const Header = () => {
             <nav className="mobile-nav mb-4">
               <ul className="space-y-2">
                 <li>
-                  <a href="#" onClick={toggleMobileMenu} className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
+                  <Link to="/" onClick={toggleMobileMenu} className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
                     Home
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <a href="#" onClick={toggleMobileMenu} className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
@@ -360,14 +365,24 @@ const Header = () => {
                 </button>
               </div>
 
-              {/* Mobile Login */}
-              <a 
-                href="#" 
-                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                <IconUser size={18} />
-                <span className="font-medium">Login</span>
-              </a>
+              {/* Mobile Login/Register */}
+              <div className="flex items-center space-x-4">
+                <Link 
+                  to="/login" 
+                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                  onClick={toggleMobileMenu}
+                >
+                  <IconUser size={18} />
+                  <span className="font-medium">Login</span>
+                </Link>
+                <Link 
+                  to="/register" 
+                  className="text-sm text-blue-600 hover:text-blue-800 transition-colors font-medium"
+                  onClick={toggleMobileMenu}
+                >
+                  Register
+                </Link>
+              </div>
             </div>
           </div>
         </div>
