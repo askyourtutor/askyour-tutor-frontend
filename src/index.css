@@ -115,6 +115,20 @@
   --color-accent: var(--color-accent-500);
 }
 
+/* Global styles */
+button, [role="button"], input[type="submit"], input[type="button"], .btn {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+input[type="submit"][disabled],
+input[type="button"][disabled],
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Base styles */
 * {
   box-sizing: border-box;
@@ -147,10 +161,17 @@ p {
   line-height: 1.6;
 }
 
-/* Focus styles for accessibility */
-:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+/* Focus styles are handled per-component with Tailwind classes (blue/red rings). */
+
+/* Disable global blue outline for invalid inputs so only per-field red ring shows */
+input[aria-invalid="true"]:focus,
+input[aria-invalid="true"]:focus-visible,
+textarea[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus-visible,
+select[aria-invalid="true"]:focus,
+select[aria-invalid="true"]:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 /* Smooth transitions for interactive elements */

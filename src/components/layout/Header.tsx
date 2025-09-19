@@ -21,9 +21,12 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const { user, logout } = useAuth();
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -38,7 +41,7 @@ const Header = () => {
       
       {/* Header Top */}
       <div 
-        className="header-top relative z-30 px-4 sm:px-6 xl:pl-[300px] xl:pr-[88px] py-2"
+        className="header-top relative z-30 px-4 sm:px-6 xl:pl-[300px] xl:pr-[88px] py-1"
         style={{ 
           backgroundColor: 'var(--color-primary)', 
           color: 'white'
@@ -103,13 +106,43 @@ const Header = () => {
                       </div>
                     </div>
                   </li>
-                  <li className="hidden lg:flex items-center space-x-3">
-                    <IconUser size={16} />
-                    <div className="flex items-center space-x-2">
-                      <Link to="/login" className="hover:opacity-60 transition-opacity">Login</Link>
-                      <span className="text-white/40">/</span>
-                      <Link to="/register" className="hover:opacity-60 transition-opacity">Register</Link>
-                    </div>
+                  <li className="hidden lg:flex items-center space-x-3 relative">
+                    {!user ? (
+                      <>
+                        <IconUser size={16} />
+                        <div className="flex items-center space-x-2">
+                          <Link to="/login" className="hover:opacity-60 transition-opacity">Login</Link>
+                          <span className="text-white/40">/</span>
+                          <Link to="/register" className="hover:opacity-60 transition-opacity">Register</Link>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="relative">
+                        <button
+                          type="button"
+                          className="flex items-center gap-2 rounded-full px-3 py-1 hover:bg-white/10"
+                          onClick={() => setUserMenuOpen((v) => !v)}
+                        >
+                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
+                            <IconUser size={14} />
+                          </span>
+                          <span className="text-sm max-w-[180px] truncate">{user.email}</span>
+                          <IconChevronDown size={14} />
+                        </button>
+                        {userMenuOpen && (
+                          <div className="absolute right-0 mt-2 w-48 rounded-md bg-white py-1 text-gray-700 shadow-lg ring-1 ring-black/5">
+                            <Link to="/profile" className="block px-3 py-2 text-sm hover:bg-gray-50">Profile</Link>
+                            <button
+                              type="button"
+                              onClick={logout}
+                              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                            >
+                              Logout
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </li>
                 </ul>
               </div>
@@ -141,16 +174,16 @@ const Header = () => {
           <div className="container-fluid px-0">
             <div className="flex items-center justify-between w-full">
               {/* Logo */}
-              <div className="header-logo py-3 lg:py-5 -mt-4 lg:-mt-7 xl:mt-0">
+              <div className="header-logo py-2 lg:py-3 -mt-3 lg:-mt-5 xl:mt-0">
                 <Link to="/" className="flex items-center space-x-2 lg:space-x-3">
                   <div 
-                    className="w-10 h-10 lg:w-12 lg:h-12 rounded-lg flex items-center justify-center text-white"
+                    className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center text-white"
                     style={{ backgroundColor: 'var(--color-primary)' }}
                   >
-                    <IconSchool size={24} className="lg:w-7 lg:h-7" />
+                    <IconSchool size={20} className="lg:w-6 lg:h-6" />
                   </div>
                   <span 
-                    className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-800 xl:text-white"
+                    className="text-base lg:text-lg xl:text-xl font-bold text-gray-800 xl:text-white"
                   >
                     ASKYOURTUTOR
                   </span>
@@ -161,32 +194,32 @@ const Header = () => {
               <nav className="main-menu hidden lg:inline-block ml-15">
                 <ul className="flex items-center">
                   <li className="menu-item-has-children relative group mx-3">
-                    <Link to="/" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-8 uppercase text-base">
+                    <Link to="/" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
                       <span>Home</span>
                     </Link>
                   </li>
                   <li className="menu-item-has-children relative group mx-3">
-                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-8 uppercase text-base">
+                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
                       <span>Courses</span>
                     </a>
                   </li>
                   <li className="menu-item-has-children relative group mx-3">
-                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-8 uppercase text-base">
+                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
                       <span>Teachers</span>
                     </a>
                   </li>
                   <li className="menu-item-has-children relative group mx-3">
-                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-8 uppercase text-base">
+                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
                       <span>Pages</span>
                     </a>
                   </li>
                   <li className="menu-item-has-children relative group mx-3">
-                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-8 uppercase text-base">
+                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
                       <span>Blog</span>
                     </a>
                   </li>
                   <li className="mx-3">
-                    <a href="#" className="font-medium text-white hover:opacity-80 transition-colors py-8 uppercase text-base">
+                    <a href="#" className="font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
                       Contact
                     </a>
                   </li>
@@ -200,11 +233,11 @@ const Header = () => {
                     {/* Categories Menu with Search */}
                     <div className="category-menu-wrap mr-3 lg:mr-5 relative flex border border-gray-300 rounded-md">
                       <a 
-                        className="menu-expand flex items-center space-x-2 px-3 lg:px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors border-r border-gray-300 min-w-[120px] lg:min-w-[160px]" 
+                        className="menu-expand flex items-center space-x-2 px-3 lg:px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors border-r border-gray-300 min-w-[120px] lg:min-w-[160px]" 
                         href="#"
                       >
                         <IconGrid3x3 size={16} className="lg:w-[18px] lg:h-[18px]" />
-                        <span className="font-normal text-sm lg:text-base hidden xl:inline">Categories</span>
+                        <span className="font-normal text-xs lg:text-sm hidden xl:inline">Categories</span>
                         <IconChevronDown size={14} className="lg:w-4 lg:h-4 ml-auto" />
                       </a>
                       
@@ -213,11 +246,11 @@ const Header = () => {
                         <input 
                           type="text" 
                           placeholder="Search..." 
-                          className="w-32 lg:w-48 xl:w-64 px-3 lg:px-4 py-3 border-0 bg-transparent focus:outline-none text-gray-600 placeholder-gray-400 text-sm lg:text-base"
+                          className="w-32 lg:w-48 xl:w-64 px-3 lg:px-4 py-2 border-0 bg-transparent focus:outline-none text-gray-600 placeholder-gray-400 text-sm lg:text-base"
                         />
                         <button 
                           type="submit" 
-                          className="px-3 lg:px-4 py-3 text-gray-600 hover:text-gray-800 transition-colors bg-transparent border-0"
+                          className="px-3 lg:px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors bg-transparent border-0"
                         >
                           <IconSearch size={16} className="lg:w-[18px] lg:h-[18px]" />
                         </button>
@@ -227,11 +260,11 @@ const Header = () => {
                     {/* Wishlist */}
                     <a 
                       href="#" 
-                      className="icon-btn relative w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
+                      className="icon-btn relative w-8 h-8 lg:w-9 lg:h-9 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
                     >
-                      <IconHeart size={16} className="lg:w-5 lg:h-5" />
+                      <IconHeart size={14} className="lg:w-4 lg:h-4" />
                       <span 
-                        className="badge absolute -top-1 -right-1 w-4 h-4 lg:w-5 lg:h-5 rounded-full text-xs font-bold text-white flex items-center justify-center"
+                        className="badge absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
                         style={{ backgroundColor: 'var(--color-accent)' }}
                       >
                         3
@@ -241,11 +274,11 @@ const Header = () => {
                     {/* Shopping Cart */}
                     <button 
                       type="button" 
-                      className="icon-btn relative w-9 h-9 lg:w-11 lg:h-11 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
+                      className="icon-btn relative w-8 h-8 lg:w-9 lg:h-9 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
                     >
-                      <IconShoppingCart size={16} className="lg:w-5 lg:h-5" />
+                      <IconShoppingCart size={14} className="lg:w-4 lg:h-4" />
                       <span 
-                        className="badge absolute -top-1 -right-1 w-4 h-4 lg:w-5 lg:h-5 rounded-full text-xs font-bold text-white flex items-center justify-center"
+                        className="badge absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
                         style={{ backgroundColor: 'var(--color-accent)' }}
                       >
                         5
@@ -255,12 +288,12 @@ const Header = () => {
                     {/* Contact Us Button */}
                     <a 
                       href="#" 
-                      className="th-btn ml-3 lg:ml-5 px-4 lg:px-7 py-3 lg:py-4 rounded-lg font-semibold text-white hover:opacity-90 transition-all flex items-center space-x-2 text-sm lg:text-base"
+                      className="th-btn ml-3 lg:ml-5 px-4 lg:px-6 py-2 lg:py-2.5 rounded-sm font-semibold text-white hover:opacity-90 transition-all flex items-center space-x-2 text-sm"
                       style={{ backgroundColor: 'var(--color-primary)' }}
                     >
                       <span className="hidden xl:inline">Contact Us</span>
                       <span className="xl:hidden">Contact</span>
-                      <IconArrowRight size={14} className="lg:w-4 lg:h-4" />
+                      <IconArrowRight size={13} className="lg:w-4 lg:h-4" />
                     </a>
                   </div>
                 </div>

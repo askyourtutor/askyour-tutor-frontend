@@ -132,12 +132,12 @@ export const getColorWithOpacity = (color: string, opacity: number): string => {
 
 export const isDarkColor = (color: string): boolean => {
   // Simple check for dark colors (you can enhance this)
-  const darkColors = [
+  const darkColors: string[] = [
     colors.neutral[700],
     colors.neutral[800], 
     colors.neutral[900],
     colors.primary[800],
     colors.primary[900],
   ];
-  return darkColors.includes(color as any);
+  return darkColors.includes(color);
 };
