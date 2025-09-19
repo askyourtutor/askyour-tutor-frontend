@@ -22,7 +22,7 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
       />
       
       <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 xl:gap-16 items-center py-8 lg:py-12" style={{ minHeight: 'calc(100vh - 120px)' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 xl:gap-16 items-end lg:items-center py-4 lg:py-8" style={{ minHeight: 'calc(100vh - 120px)' }}>
           {/* Content Section */}
           <div className="order-2 lg:order-1 lg:col-span-2 text-center lg:text-left">
             <div className="hero-content space-y-6 lg:space-y-8 max-w-lg lg:max-w-none mx-auto lg:mx-0">
@@ -120,15 +120,15 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
           </div>
 
           {/* Hero Image Section */}
-          <div className="order-1 lg:order-2 lg:col-span-3 flex justify-center lg:justify-end">
-            <div className="hero-img-container relative w-full max-w-3xl lg:max-w-5xl xl:max-w-7xl 2xl:max-w-full">
+          <div className="order-1 lg:order-2 lg:col-span-3 flex justify-center lg:justify-end items-end h-full">
+            <div className="hero-img-container relative w-full max-w-5xl lg:max-w-7xl xl:max-w-none 2xl:max-w-none mb-0 lg:-mb-8">
               {/* Main Hero Image */}
-              <div className="hero-image relative rounded-xl overflow-hidden aspect-[4/3] w-full">
+              <div className="hero-image relative rounded-xl lg:rounded-b-none overflow-hidden w-full">
                 {/* Tutor Image */}
                 <img 
                   src="/assets/img/hero/tutor-2.png" 
                   alt="Online tutor teaching students" 
-                  className="w-full h-full object-cover"
+                  className="w-full min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] xl:min-h-[800px] object-cover object-center scale-110"
                 />
                 
                 {/* Statistics Counters */}
