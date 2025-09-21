@@ -306,7 +306,7 @@ const PopularCourses: React.FC = () => {
               <p className="text-red-600 text-base sm:text-lg mb-4">{error}</p>
               <button 
                 onClick={() => window.location.reload()} 
-                className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors text-sm sm:text-base"
               >
                 Retry
               </button>
@@ -324,7 +324,7 @@ const PopularCourses: React.FC = () => {
         <div className="text-center px-4">
           <a 
             href="/courses" 
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-300 hover:shadow-lg group text-sm sm:text-base"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-sm font-semibold hover:bg-blue-700 transition-all duration-300 hover:shadow-lg group text-sm sm:text-base"
           >
             VIEW ALL COURSES
             <IconArrowRight size={18} className="group-hover:translate-x-1 transition-transform duration-300" />

@@ -95,7 +95,7 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
               <div className="btn-group flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <a 
                   href="#courses" 
-                  className="th-btn inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-lg font-semibold text-white uppercase tracking-wide transition-all duration-300 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  className="th-btn inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-sm font-semibold text-white uppercase tracking-wide transition-all duration-300 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
                   style={{ 
                     backgroundColor: 'var(--color-primary)'
                   }}
@@ -106,7 +106,7 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
                 </a>
                 <a 
                   href="#courses" 
-                  className="th-btn-outline inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-lg font-semibold text-white uppercase tracking-wide transition-all duration-300 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  className="th-btn-outline inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-sm font-semibold text-white uppercase tracking-wide transition-all duration-300 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
                   style={{ 
                     backgroundColor: '#374151'
                   }}

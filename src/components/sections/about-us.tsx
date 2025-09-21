@@ -108,7 +108,7 @@ const AboutUs: React.FC = () => {
             <div className="flex justify-center xl:justify-start">
               <a 
                 href="/about" 
-                className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded font-semibold hover:bg-blue-700 transition-all duration-300 hover:shadow-lg group text-sm sm:text-base"
+                className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-sm font-semibold hover:bg-blue-700 transition-all duration-300 hover:shadow-lg group text-sm sm:text-base"
               >
                 ABOUT MORE
                 <IconArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
