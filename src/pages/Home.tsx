@@ -4,6 +4,7 @@ import VideoSection from '../components/sections/VideoSection';
 import TeamSection from '../components/sections/TeamSection';
 import PopularCourses from '../components/sections/popular-courses';
 import BannerCTA from '../components/sections/banner-cta';
+import Footer from '../components/layout/footer';
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <PopularCourses />
       <BannerCTA />
       <TeamSection />
+      <Footer/>
     </main>
   );
 }
