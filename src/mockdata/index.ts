@@ -3,3 +3,4 @@ export * from './courses';
 export * from './users';
 export * from './reviews';
 export * from './stats';
+export * from './team';

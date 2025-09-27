@@ -1,6 +1,7 @@
 import Hero from '../components/sections/Hero';
 import AboutUs from '../components/sections/about-us';
 import VideoSection from '../components/sections/VideoSection';
+import TeamSection from '../components/sections/TeamSection';
 import PopularCourses from '../components/sections/popular-courses';
 import BannerCTA from '../components/sections/banner-cta';
 
@@ -9,9 +10,10 @@ export default function Home() {
     <main className="main-content min-h-[60vh]">
       <Hero />
       <AboutUs />
+      <VideoSection />
       <PopularCourses />
       <BannerCTA />
-      <VideoSection />
+      <TeamSection />
     </main>
   );
 }

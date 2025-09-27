@@ -1,10 +1,44 @@
 import { IconArrowRight, IconUsers, IconVideo } from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
+import { statsService, contentService } from '../../services';
 
 interface HeroProps {
   className?: string;
 }
 
 const Hero: React.FC<HeroProps> = ({ className = '' }) => {
+  const [heroStats, setHeroStats] = useState({
+    activeStudents: 16500,
+    onlineCourses: 7500
+  });
+  const [heroContent, setHeroContent] = useState({
+    title: 'Online Education',
+    subtitle: 'Feels Like Real Classroom',
+    description: 'Transform your learning experience with our interactive online platform. Get access to expert instructors, hands-on projects, and industry-recognized certifications that will advance your career.',
+    features: [
+      { text: 'Get Certified', color: 'var(--color-primary)' },
+      { text: 'Gain Job-ready Skills', color: '#ef4444' },
+      { text: 'Great Life', color: '#6b7280' }
+    ]
+  });
+
+  useEffect(() => {
+    const fetchHeroData = async () => {
+      try {
+        const [stats, content] = await Promise.all([
+          statsService.getHeroStats(),
+          contentService.getHeroContent()
+        ]);
+        setHeroStats(stats);
+        setHeroContent(content);
+      } catch (error) {
+        console.error('Error fetching hero data:', error);
+        // Keep default values on error
+      }
+    };
+
+    fetchHeroData();
+  }, []);
   return (
     <section 
       className={`th-hero-wrapper hero-2 relative overflow-hidden bg-blue-50 ${className}`}
@@ -32,61 +66,39 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
                   className="hero-title text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight whitespace-nowrap"
                   style={{ color: 'var(--color-primary)' }}
                 >
-                  Online Education
+                  {heroContent.title}
                 </h1>
                 <h2 
                   className="hero-subtitle-large text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-medium leading-tight"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
-                  Feels Like Real Classroom
+                  {heroContent.subtitle}
                 </h2>
               </div>
 
               {/* Description Paragraph */}
               <div className="hero-description">
                 <p className="text-lg lg:text-xl leading-relaxed" style={{ color: 'var(--color-text-secondary)' }}>
-                  Transform your learning experience with our interactive online platform. 
-                  Get access to expert instructors, hands-on projects, and industry-recognized 
-                  certifications that will advance your career.
+                  {heroContent.description}
                 </p>
               </div>
 
               {/* Features Checklist with Checkmarks */}
               <div className="checklist">
                 <ul className="flex flex-wrap justify-center lg:justify-start gap-4 lg:gap-6">
-                  <li className="flex items-center space-x-2 text-base lg:text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                    <div 
-                      className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: 'var(--color-primary)' }}
-                    >
-                      <svg width="12" height="9" viewBox="0 0 12 9" fill="none" className="text-white">
-                        <path d="M1 4.5L4 7.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <span>Get Certified</span>
-                  </li>
-                  <li className="flex items-center space-x-2 text-base lg:text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                    <div 
-                      className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: '#ef4444' }}
-                    >
-                      <svg width="12" height="9" viewBox="0 0 12 9" fill="none" className="text-white">
-                        <path d="M1 4.5L4 7.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <span>Gain Job-ready Skills</span>
-                  </li>
-                  <li className="flex items-center space-x-2 text-base lg:text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                    <div 
-                      className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{ backgroundColor: '#6b7280' }}
-                    >
-                      <svg width="12" height="9" viewBox="0 0 12 9" fill="none" className="text-white">
-                        <path d="M1 4.5L4 7.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <span>Great Life</span>
-                  </li>
+                  {heroContent.features.map((feature, index) => (
+                    <li key={index} className="flex items-center space-x-2 text-base lg:text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                      <div 
+                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: feature.color }}
+                      >
+                        <svg width="12" height="9" viewBox="0 0 12 9" fill="none" className="text-white">
+                          <path d="M1 4.5L4 7.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <span>{feature.text}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
@@ -149,7 +161,7 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
                         className="counter-number text-lg lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold leading-none"
                         style={{ color: 'var(--color-primary)' }}
                       >
-                        <span style={{ color: 'var(--color-text-primary)' }}>16500</span>+
+                        <span style={{ color: 'var(--color-text-primary)' }}>{heroStats.activeStudents.toLocaleString()}</span>+
                       </div>
                       <p 
                         className="counter-text text-xs lg:text-sm xl:text-base font-normal leading-tight"
@@ -176,7 +188,7 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
                         className="counter-number text-lg lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold leading-none"
                         style={{ color: 'var(--color-secondary)' }}
                       >
-                        <span style={{ color: 'var(--color-text-primary)' }}>7500</span>+
+                        <span style={{ color: 'var(--color-text-primary)' }}>{heroStats.onlineCourses.toLocaleString()}</span>+
                       </div>
                       <p 
                         className="counter-text text-xs lg:text-sm xl:text-base font-normal leading-tight"

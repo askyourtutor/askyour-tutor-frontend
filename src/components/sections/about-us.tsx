@@ -1,11 +1,51 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   IconBook, 
   IconCheck, 
   IconArrowRight
 } from '@tabler/icons-react';
+import { contentService } from '../../services';
 
 const AboutUs: React.FC = () => {
+  const [aboutContent, setAboutContent] = useState({
+    title: 'Dive into our Online Courses and Ignite Your Learning!',
+    subtitle: 'Get to Know About Us',
+    description: 'Transform your learning experience with our comprehensive online platform. We provide expert-led courses, interactive learning materials, and personalized support to help you achieve your educational goals.',
+    features: [
+      'Access to 100K+ high-quality online courses',
+      'Learn from industry experts and certified instructors',
+      'Gain job-ready skills with hands-on projects'
+    ]
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAboutContent = async () => {
+      try {
+        const content = await contentService.getAboutContent();
+        setAboutContent(content);
+      } catch (error) {
+        console.error('Error fetching about content:', error);
+        // Keep default values on error
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAboutContent();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="overflow-hidden py-12 sm:py-16 lg:py-20 bg-gray-50 relative" id="about-sec">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
   return (
     <section 
       className="overflow-hidden py-12 sm:py-16 lg:py-20 bg-gray-50 relative"
@@ -60,47 +100,31 @@ const AboutUs: React.FC = () => {
             <div className="mb-8">
               <span className="inline-flex items-center gap-2 text-blue-600 font-medium text-sm uppercase tracking-wide mb-4">
                 <IconBook size={16} />
-                Get to Know About Us
+                {aboutContent.subtitle}
               </span>
               <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-6">
-                Dive into our Online Courses and Ignite Your Learning!
+                {aboutContent.title}
               </h2>
             </div>
 
             {/* Description */}
             <p className="text-gray-600 text-base sm:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto xl:mx-0">
-              Collaboratively simplify user friendly networks after principle centered coordinate 
-              effective methods of empowerment distributed niche markets pursue market positioning 
-              web-readiness after resource sucking applications.
+              {aboutContent.description}
             </p>
 
             {/* Features List */}
             <div className="mb-8 sm:mb-10">
               <ul className="space-y-3 sm:space-y-4 max-w-2xl mx-auto xl:mx-0">
-                <li className="flex items-start gap-3 text-left">
-                  <div className="flex-shrink-0 w-5 h-5 bg-blue-600 rounded-sm flex items-center justify-center mt-0.5">
-                    <IconCheck size={12} className="text-white" />
-                  </div>
-                  <span className="text-gray-700 font-medium text-sm sm:text-base">
-                    Dramatically re-engineer value added systems via mission
-                  </span>
-                </li>
-                <li className="flex items-start gap-3 text-left">
-                  <div className="flex-shrink-0 w-5 h-5 bg-blue-600 rounded-sm flex items-center justify-center mt-0.5">
-                    <IconCheck size={12} className="text-white" />
-                  </div>
-                  <span className="text-gray-700 font-medium text-sm sm:text-base">
-                    Access more than 100K online courses
-                  </span>
-                </li>
-                <li className="flex items-start gap-3 text-left">
-                  <div className="flex-shrink-0 w-5 h-5 bg-blue-600 rounded-sm flex items-center justify-center mt-0.5">
-                    <IconCheck size={12} className="text-white" />
-                  </div>
-                  <span className="text-gray-700 font-medium text-sm sm:text-base">
-                    Learn the high-impact skills that top companies want
-                  </span>
-                </li>
+                {aboutContent.features.map((feature, index) => (
+                  <li key={index} className="flex items-start gap-3 text-left">
+                    <div className="flex-shrink-0 w-5 h-5 bg-blue-600 rounded-sm flex items-center justify-center mt-0.5">
+                      <IconCheck size={12} className="text-white" />
+                    </div>
+                    <span className="text-gray-700 font-medium text-sm sm:text-base">
+                      {feature}
+                    </span>
+                  </li>
+                ))}
               </ul>
             </div>
 

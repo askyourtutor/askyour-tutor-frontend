@@ -1,10 +1,36 @@
 import { IconBook, IconArrowRight } from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
+import { contentService } from '../../services';
 
 interface BannerCTAProps {
   className?: string;
 }
 
 const BannerCTA: React.FC<BannerCTAProps> = ({ className = '' }) => {
+  const [ctaContent, setCtaContent] = useState({
+    badge: 'Join In Your Favorite Courses Today',
+    title: 'Courses Taught By Tutors Around The World',
+    description: 'Build skills with courses, certificates, and degrees online from world-class universities and companies.',
+    buttonText: 'Apply Now',
+    buttonLink: '/courses'
+  });
+
+  useEffect(() => {
+    const fetchCTAContent = async () => {
+      try {
+        // In a real app, you'd have a specific CTA content endpoint
+        const content = await contentService.getPageContent('banner-cta');
+        if (content && 'badge' in content) {
+          setCtaContent(content as typeof ctaContent);
+        }
+      } catch (error) {
+        console.error('Error fetching CTA content:', error);
+        // Keep default values on error
+      }
+    };
+
+    fetchCTAContent();
+  }, []);
   return (
     <section 
       className={`relative overflow-hidden bg-cover bg-center bg-no-repeat ${className}`}
@@ -29,7 +55,7 @@ const BannerCTA: React.FC<BannerCTAProps> = ({ className = '' }) => {
                   style={{ color: 'var(--color-primary-300)' }}
                 >
                   <IconBook size={16} style={{ color: 'var(--color-primary-300)' }} />
-                  <span>Join In Your Favorite Courses Today</span>
+                  <span>{ctaContent.badge}</span>
                 </div>
 
                 {/* Main Heading */}
@@ -37,9 +63,7 @@ const BannerCTA: React.FC<BannerCTAProps> = ({ className = '' }) => {
                   className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight"
                   style={{ color: '#ffffff' }}
                 >
-                  Courses Taught By{' '}
-                  <span style={{ color: 'var(--color-primary-300)' }}>Tutors</span>{' '}
-                  Around The World
+                  {ctaContent.title}
                 </h2>
 
                 {/* Description */}
@@ -47,16 +71,16 @@ const BannerCTA: React.FC<BannerCTAProps> = ({ className = '' }) => {
                   className="text-base sm:text-lg leading-relaxed max-w-xl mx-auto lg:mx-0"
                   style={{ color: '#ffffff' }}
                 >
-                  Build skills with courses, certificates, and degrees online from world-class universities and companies.
+                  {ctaContent.description}
                 </p>
 
                 {/* CTA Button */}
                 <div className="pt-2">
                   <a 
-                    href="/courses" 
+                    href={ctaContent.buttonLink} 
                     className="inline-flex items-center gap-2 bg-white text-slate-900 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300"
                   >
-                    <span>Apply Now</span>
+                    <span>{ctaContent.buttonText}</span>
                     <IconArrowRight size={18} />
                   </a>
                 </div>
