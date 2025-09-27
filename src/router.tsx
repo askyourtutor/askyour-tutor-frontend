@@ -8,11 +8,14 @@ import GuestRoute from './components/GuestRoute';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import RouteError from './routes/RouteError';
+import NotFound from './pages/NotFound';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    errorElement: <RouteError />,
     children: [
       { index: true, element: <Home /> },
       {
@@ -28,10 +31,9 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          // Add protected routes here
-          // { path: 'profile', element: <Profile /> },
         ],
       },
+      { path: '*', element: <NotFound /> },
     ],
   },
 ]);

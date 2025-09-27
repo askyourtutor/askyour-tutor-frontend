@@ -1,17 +1,16 @@
-import type { Course } from '../types';
-import { 
-  mockCourses, 
-  getCoursesByCategory, 
-  getFeaturedCourses, 
-  getFreeCourses, 
-  getCoursesByInstructor, 
-  searchCourses 
+import {
+  getCoursesByCategory,
+  getCoursesByInstructor,
+  getFeaturedCourses,
+  getFreeCourses,
+  mockCourses,
+  searchCourses
 } from '../mockdata/courses';
 
 // Course Service - Handles all course-related API calls
 export class CourseService {
 
-  // Get all courses with pagination
+  // Get all courses with pagination  
   async getCourses(params?: {
     page?: number;
     limit?: number;
