@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { Outlet } from 'react-router';
-import Header from '../shared/components/layout/Header';
+import Header from '../../shared/components/layout/Header';
 
 export default function RootLayout() {
   return (
