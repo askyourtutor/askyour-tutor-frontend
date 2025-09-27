@@ -10,6 +10,9 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import RouteError from './routes/RouteError';
 import NotFound from './pages/NotFound';
+import RoleRoute from './components/RoleRoute';
+import StudentProfile from './pages/StudentProfile';
+import TutorProfile from './pages/TutorProfile';
 
 const router = createBrowserRouter([
   {
@@ -31,6 +34,16 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
+          { path: 'student/profile', element: (
+            <RoleRoute allowed={['STUDENT']}>
+              <StudentProfile />
+            </RoleRoute>
+          ) },
+          { path: 'tutor/profile', element: (
+            <RoleRoute allowed={['TUTOR']}>
+              <TutorProfile />
+            </RoleRoute>
+          ) },
         ],
       },
       { path: '*', element: <NotFound /> },
