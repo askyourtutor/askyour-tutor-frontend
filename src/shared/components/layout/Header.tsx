@@ -19,7 +19,7 @@ import {
   IconGrid3x3,
   IconX
 } from '@tabler/icons-react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -27,9 +27,52 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { user, logout } = useAuth();
+  const userBtnRef = useRef<HTMLButtonElement | null>(null);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const hoverTimerRef = useRef<number | null>(null);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  // Close user dropdown on outside click or Escape
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (userMenuRef.current && userBtnRef.current) {
+        if (!userMenuRef.current.contains(target) && !userBtnRef.current.contains(target)) {
+          setUserMenuOpen(false);
+        }
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setUserMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [userMenuOpen]);
+
+  const handleUserHoverEnter = () => {
+    if (hoverTimerRef.current) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setUserMenuOpen(true);
+  };
+
+  const handleUserHoverLeave = () => {
+    if (hoverTimerRef.current) {
+      window.clearTimeout(hoverTimerRef.current);
+    }
+    hoverTimerRef.current = window.setTimeout(() => {
+      setUserMenuOpen(false);
+      hoverTimerRef.current = null;
+    }, 120);
   };
   return (
     <header className="th-header header-layout-default relative z-40">
@@ -119,11 +162,18 @@ const Header = () => {
                         </div>
                       </>
                     ) : (
-                      <div className="relative">
+                      <div
+                        className="relative"
+                        onMouseEnter={handleUserHoverEnter}
+                        onMouseLeave={handleUserHoverLeave}
+                      >
                         <button
                           type="button"
-                          className="flex items-center gap-2 rounded-full px-3 py-1 hover:bg-white/10"
+                          className="flex items-center gap-2 rounded-full px-3 py-1 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                           onClick={() => setUserMenuOpen((v) => !v)}
+                          aria-haspopup="menu"
+                          aria-expanded={userMenuOpen}
+                          ref={userBtnRef}
                         >
                           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
                             <IconUser size={14} />
@@ -132,22 +182,41 @@ const Header = () => {
                           <IconChevronDown size={14} />
                         </button>
                         {userMenuOpen && (
-                          <div className="absolute right-0 mt-2 w-48 rounded-md bg-white py-1 text-gray-700 shadow-lg ring-1 ring-black/5">
-                            {(() => {
-                              const profilePath = user?.role === 'TUTOR' ? '/tutor/profile' : '/student/profile';
-                              return (
-                                <Link to={profilePath} className="block px-3 py-2 text-sm hover:bg-gray-50">
-                                  Profile
-                                </Link>
-                              );
-                            })()}
-                            <button
-                              type="button"
-                              onClick={logout}
-                              className="block w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
-                            >
-                              Logout
-                            </button>
+                          <div
+                            ref={userMenuRef}
+                            className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/95 backdrop-blur shadow-xl ring-1 ring-black/5 border border-gray-100 animate-[fadeIn_120ms_ease-out]"
+                            role="menu"
+                          >
+                            <div className="px-3 py-2 border-b border-gray-100">
+                              <div className="text-xs text-gray-500">Signed in as</div>
+                              <div className="truncate text-sm font-medium text-gray-800">{user.email}</div>
+                            </div>
+                            <div className="py-1">
+                              {(() => {
+                                const profilePath = user?.role === 'TUTOR' ? '/tutor/profile' : '/student/profile';
+                                return (
+                                  <Link
+                                    to={profilePath}
+                                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    role="menuitem"
+                                    onClick={() => setUserMenuOpen(false)}
+                                  >
+                                    <IconUser size={16} />
+                                    <span>Profile</span>
+                                  </Link>
+                                );
+                              })()}
+                              <div className="my-1 h-px bg-gray-100" />
+                              <button
+                                type="button"
+                                onClick={() => { setUserMenuOpen(false); logout(); }}
+                                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                                role="menuitem"
+                              >
+                                <IconArrowRight size={16} className="rotate-180" />
+                                <span>Logout</span>
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>

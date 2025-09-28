@@ -35,6 +35,7 @@ const TutorProfilePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [verifyStatus, setVerifyStatus] = useState<'PENDING' | 'VERIFIED' | null>(null);
   const [serverCompletion, setServerCompletion] = useState<number | null>(null);
+  const displayCompletion = serverCompletion ?? profileCompletion;
 
   const watchedSubjects = watch('subjects') || [];
   const watchedCourseCodes = watch('courseCodes') || [];
@@ -192,7 +193,7 @@ const TutorProfilePage = () => {
           profileImage={profileImage}
           fullName={watch('fullName')}
           professionalTitle={watch('professionalTitle')}
-          profileCompletion={profileCompletion}
+          profileCompletion={displayCompletion}
           subjects={watchedSubjects}
           showImageUpload={false}
         />
@@ -220,8 +221,8 @@ const TutorProfilePage = () => {
                   {verifyStatus === 'VERIFIED' ? 'Your profile is verified and fully active.' : 'Complete all required fields to verify your profile and unlock all features.'}
                 </span>
               </div>
-              {typeof serverCompletion === 'number' && (
-                <div className="text-xs sm:text-sm text-slate-600">Completion: {serverCompletion}%</div>
+              {typeof displayCompletion === 'number' && (
+                <div className="text-xs sm:text-sm text-slate-600">Remaining: {Math.max(0, 100 - displayCompletion)}%</div>
               )}
             </div>
           </div>
