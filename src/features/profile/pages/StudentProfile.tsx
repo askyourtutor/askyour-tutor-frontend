@@ -225,7 +225,7 @@ const StudentProfile = () => {
                   </>
                 ) : (
                   <>
-                    <IconDeviceFloppy className="mr-2" size={16} className="sm:w-5 sm:h-5" />
+                    <IconDeviceFloppy className="mr-2 sm:w-5 sm:h-5" size={16} />
                     Save Profile
                   </>
                 )}
