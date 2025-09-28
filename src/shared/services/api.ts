@@ -13,6 +13,10 @@ export const setAccessToken = (token: string | null) => {
   accessToken = token;
 };
 
+export const UsersAPI = {
+  getProfile: () => apiFetch<{ user: { id: string; email: string; role: 'STUDENT'|'TUTOR'|'ADMIN'; status: string; emailVerified: boolean; createdAt: string; profile: unknown; profileCompletion?: number; profileVerify?: 'PENDING' | 'VERIFIED' } }>('/users/profile'),
+};
+
 const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api';
 
 async function refreshAccessToken(): Promise<string | null> {

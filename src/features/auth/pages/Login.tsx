@@ -1,5 +1,6 @@
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../../../shared/contexts/AuthContext';
+import { AuthAPI } from '../../../shared/services/api';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -16,6 +17,7 @@ type FormValues = z.infer<typeof schema>;
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation() as { state?: { from?: { pathname?: string } } };
   const [error, setError] = useState<string | null>(null);
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -26,7 +28,21 @@ export default function Login() {
     setError(null);
     try {
       await login(values.email, values.password, values.rememberMe);
-      navigate('/');
+      // Fetch fresh user to decide redirect based on profile completeness
+      const me = await AuthAPI.me();
+      const user = me.user;
+      const fromPath = location.state?.from?.pathname;
+      if (user) {
+        const role = user.role;
+        const needsStudentSetup = !user.studentProfile || !user.studentProfile.university || !user.studentProfile.yearOfStudy;
+        const needsTutorSetup = !user.tutorProfile || !user.tutorProfile.qualifications || !user.tutorProfile.subjectSpecializations;
+        const needsSetup = (role === 'STUDENT' && needsStudentSetup) || (role === 'TUTOR' && needsTutorSetup);
+        if (needsSetup) {
+          navigate(role === 'STUDENT' ? '/student/profile' : '/tutor/profile', { replace: true });
+          return;
+        }
+      }
+      navigate(fromPath || '/', { replace: true });
     } catch (e: unknown) {
       const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message?: string }).message) : 'Login failed';
       setError(msg);

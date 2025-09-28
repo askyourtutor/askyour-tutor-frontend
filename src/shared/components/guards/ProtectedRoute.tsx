@@ -17,5 +17,15 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
+  // Determine if user's profile needs setup and where to send them
+  const profileTarget = user.role === 'STUDENT' ? '/student/profile' : '/tutor/profile';
+  const completion = typeof user.profileCompletion === 'number' ? user.profileCompletion : 0;
+  const needsSetup = completion < 100;
+
+  // If profile is incomplete and user is navigating elsewhere, force redirect to setup page
+  if (needsSetup && location.pathname !== profileTarget) {
+    return <Navigate to={profileTarget} replace />;
+  }
+
   return <Outlet />;
 }

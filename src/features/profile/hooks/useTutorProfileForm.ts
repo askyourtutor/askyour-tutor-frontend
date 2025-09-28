@@ -30,7 +30,9 @@ export const useTutorProfileForm = () => {
   const methods = useForm<TutorProfileFormValues>({
     resolver: zodResolver(tutorProfileSchema),
     defaultValues: tutorProfileDefaultValues,
-    mode: 'onBlur'
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+    criteriaMode: 'all'
   });
 
   const watchedValues = methods.watch(completionKeys);

@@ -19,16 +19,16 @@ const completionKeys: (keyof StudentProfileFormValues)[] = [
   'subjectsOfInterest',
   'learningStyle',
   'sessionPreferences',
-  'languages',
-  'timezone',
-  'emergencyContact'
+  'languages'
 ];
 
 export const useStudentProfileForm = () => {
   const methods = useForm<StudentProfileFormValues>({
     resolver: zodResolver(studentProfileSchema),
     defaultValues: studentProfileDefaultValues,
-    mode: 'onBlur'
+    mode: 'onChange',
+    reValidateMode: 'onChange',
+    criteriaMode: 'all'
   });
 
   const watchedValues = methods.watch(completionKeys);

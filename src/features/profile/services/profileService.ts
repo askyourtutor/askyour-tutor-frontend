@@ -1,124 +1,171 @@
-// Enhanced profile service with security validations and error handling
-
+// Profile service wired to backend APIs with validation & mapping
+import { apiFetch } from '../../../shared/services/api';
 import type { TutorProfileFormValues, StudentProfileFormValues } from '../schemas/profileSchemas';
 
 type ProfileFormValues = TutorProfileFormValues | StudentProfileFormValues;
 
 interface ProfileFiles {
   profileImage?: string | null;
-  credentialsFile?: File | null;
+  credentialsFile?: File | null; // placeholder (MVP: not uploaded yet)
 }
 
-interface SaveProfileResponse {
+export interface SaveProfileResponse {
   success: boolean;
-  data?: {
-    id: string;
-    status: 'pending' | 'approved' | 'rejected';
-    uploaded: boolean;
-    hasImage: boolean;
-  };
+  profile?: unknown;
   error?: string;
 }
 
-// Security validation for files
-const validateProfileImage = (imageData: string): boolean => {
-  // Check if it's a valid base64 image
-  const base64Pattern = /^data:image\/(jpeg|jpg|png|gif);base64,/;
-  return base64Pattern.test(imageData);
+const isTutorProfile = (p: ProfileFormValues): p is TutorProfileFormValues => 'professionalTitle' in p;
+
+const validateRequiredFields = (p: ProfileFormValues) => {
+  const req = (fields: string[]) => fields.forEach((f) => {
+    const v = (p as Record<string, unknown>)[f];
+    if (typeof v === 'string' && !v.trim()) throw new Error(`${f} is required`);
+  });
+  if (isTutorProfile(p)) req(['fullName', 'email', 'phone', 'professionalTitle']);
+  else req(['fullName', 'email', 'phone', 'institution', 'program']);
 };
 
-const validateCredentialsFile = (file: File): boolean => {
-  // Validate file type and size
-  if (file.type !== 'application/pdf') return false;
-  if (file.size > 10 * 1024 * 1024) return false; // 10MB limit
-  if (!/^[a-zA-Z0-9._-]+\.(pdf)$/i.test(file.name)) return false;
-  return true;
+const splitName = (full?: string) => {
+  const s = (full ?? '').trim();
+  if (!s) return { firstName: '', lastName: '' };
+  const parts = s.split(/\s+/);
+  return { firstName: parts[0] ?? '', lastName: parts.slice(1).join(' ') || '' };
 };
 
-// Rate limiting simulation
-let lastRequestTime = 0;
-const RATE_LIMIT_MS = 1000; // 1 second between requests
-
-const isTutorProfile = (profileData: ProfileFormValues): profileData is TutorProfileFormValues =>
-  'professionalTitle' in profileData;
-
-const validateRequiredFields = (profileData: ProfileFormValues) => {
-  if (isTutorProfile(profileData)) {
-    const requiredFields: (keyof TutorProfileFormValues)[] = ['fullName', 'email', 'phone', 'professionalTitle'];
-    for (const field of requiredFields) {
-      const value = profileData[field];
-      if (typeof value === 'string') {
-        if (!value.trim()) {
-          throw new Error(`${field} is required`);
-        }
-      }
-    }
-  } else {
-    const requiredFields: (keyof StudentProfileFormValues)[] = ['fullName', 'email', 'phone', 'institution', 'program'];
-    for (const field of requiredFields) {
-      const value = profileData[field];
-      if (typeof value === 'string') {
-        if (!value.trim()) {
-          throw new Error(`${field} is required`);
-        }
-      }
-    }
-  }
+type TutorPayload = {
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string | null;
+  professionalTitle: string | null;
+  institution: string | null;
+  department: string | null;
+  degree: string | null;
+  specialization: string | null;
+  qualifications: string[];
+  teachingExperience: number;
+  subjects: string[];
+  courseCodes: string[];
+  hourlyRate: number;
+  availability: Record<string, unknown> | null;
+  bio: string | null;
+  languages: string[];
+  sessionTypes: string[];
+  timezone: string | null;
+  profileImage: string | null;
+  credentialsFile: string | null; // URL (upload not implemented yet)
 };
 
-export async function saveProfile(
-  profileData: ProfileFormValues, 
-  files?: ProfileFiles
-): Promise<SaveProfileResponse> {
+type StudentPayload = {
+  firstName: string;
+  lastName: string;
+  email: string | null;
+  phone: string | null;
+  institution: string | null;
+  program: string | null;
+  yearOfStudy: number | null;
+  academicGoals: string | null;
+  profileImage: string | null;
+  subjectsOfInterest: string[];
+  learningStyle: string[];
+  sessionPreferences: string[];
+  languages: string[];
+};
+
+export async function saveProfile(profileData: ProfileFormValues, files?: ProfileFiles): Promise<SaveProfileResponse> {
   try {
-    // Rate limiting
-    const now = Date.now();
-    if (now - lastRequestTime < RATE_LIMIT_MS) {
-      throw new Error('Please wait before submitting again');
-    }
-    lastRequestTime = now;
-
-    // Basic validation
-    if (!profileData) {
-      throw new Error('No profile data provided');
-    }
-
-    // Validate required fields specific to profile type
+    if (!profileData) throw new Error('No profile data provided');
     validateRequiredFields(profileData);
 
-    // Validate files if provided
-    if (files?.profileImage && !validateProfileImage(files.profileImage)) {
-      throw new Error('Invalid profile image format');
+    const imageBase64 = files?.profileImage ?? null; // MVP: send as base64 string
+
+    if (isTutorProfile(profileData)) {
+      const tutor = profileData as TutorProfileFormValues;
+      const { firstName, lastName } = splitName(tutor.fullName as unknown as string);
+      // Normalize arrays
+      const subjectsArr: string[] = Array.isArray(tutor.subjects) ? tutor.subjects : [];
+      const courseCodesArr: string[] = Array.isArray(tutor.courseCodes) ? tutor.courseCodes : [];
+      const languagesArr: string[] = Array.isArray(tutor.languages) ? tutor.languages : [];
+      const sessionTypesArr: string[] = Array.isArray(tutor.sessionTypes) ? tutor.sessionTypes : [];
+      const qualificationsArr: string[] = tutor.qualifications
+        ? String(tutor.qualifications).split(/\r?\n|,/).map(s => s.trim()).filter(Boolean)
+        : [];
+
+      const payload: TutorPayload = {
+        firstName,
+        lastName,
+        email: tutor.email ?? null,
+        phone: tutor.phone ?? null,
+        professionalTitle: tutor.professionalTitle ?? null,
+        institution: tutor.institution ?? null,
+        department: tutor.department ?? null,
+        degree: tutor.degree ?? null,
+        specialization: tutor.specialization ?? null,
+        qualifications: qualificationsArr,
+        teachingExperience: Number(tutor.teachingExperience ?? 0),
+        subjects: subjectsArr,
+        courseCodes: courseCodesArr,
+        hourlyRate: Number(tutor.hourlyRate ?? 0),
+        availability: (() => {
+          const av: unknown = (tutor as unknown as { availability?: unknown }).availability;
+          return av && typeof av === 'object' ? (av as Record<string, unknown>) : null;
+        })(),
+        bio: tutor.bio ?? null,
+        languages: languagesArr,
+        sessionTypes: sessionTypesArr,
+        timezone: tutor.timezone ?? null,
+        profileImage: imageBase64,
+        credentialsFile: null,
+      };
+
+      const res = await apiFetch<{ success: boolean; profile: unknown }>(
+        '/users/profile/tutor',
+        { method: 'PUT', body: JSON.stringify(payload) }
+      );
+      return { success: true, profile: (res as { success: boolean; profile: unknown }).profile };
     }
 
-    if (files?.credentialsFile && !validateCredentialsFile(files.credentialsFile)) {
-      throw new Error('Invalid credentials file');
-    }
-
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    // Simulate random errors for testing (remove in production)
-    if (Math.random() < 0.1) {
-      throw new Error('Network error occurred');
-    }
-
-    // Success response
-    return {
-      success: true,
-      data: {
-        id: `profile_${Date.now()}`,
-        status: 'pending',
-        uploaded: !!files?.credentialsFile,
-        hasImage: !!files?.profileImage
+    // Student
+    const student = profileData as StudentProfileFormValues;
+    const { firstName, lastName } = splitName(student.fullName as string);
+    const mapYearToNumber = (v?: string | null): number | null => {
+      const val = (v ?? '').toLowerCase();
+      switch (val) {
+        case 'freshman': return 1;
+        case 'sophomore': return 2;
+        case 'junior': return 3;
+        case 'senior': return 4;
+        case 'graduate': return 5;
+        case 'postgraduate': return 6;
+        case 'other': return 7;
+        default: return null;
       }
     };
-  } catch (error) {
-    console.error('Profile save error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    const payload: StudentPayload = {
+      firstName,
+      lastName,
+      email: student.email ?? null,
+      phone: student.phone ?? null,
+      institution: student.institution ?? null,
+      program: student.program ?? null,
+      yearOfStudy: mapYearToNumber(student.yearOfStudy),
+      academicGoals: student.academicGoals ?? null,
+      profileImage: imageBase64,
+      subjectsOfInterest: Array.isArray(student.subjectsOfInterest) ? student.subjectsOfInterest : [],
+      learningStyle: Array.isArray(student.learningStyle) ? student.learningStyle : [],
+      sessionPreferences: Array.isArray(student.sessionPreferences) ? student.sessionPreferences : [],
+      languages: Array.isArray(student.languages) ? student.languages : [],
     };
+
+    const res = await apiFetch<{ success: boolean; profile: unknown }>(
+      '/users/profile/student',
+      { method: 'PUT', body: JSON.stringify(payload) }
+    );
+    return { success: true, profile: (res as { success: boolean; profile: unknown }).profile };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Failed to save profile';
+    return { success: false, error: msg };
   }
 }
 

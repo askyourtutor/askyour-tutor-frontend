@@ -31,6 +31,8 @@ export type User = {
   emailVerified: boolean;
   createdAt?: string;
   lastLogin?: string;
+  profileCompletion?: number;
+  profileVerify?: 'PENDING' | 'VERIFIED';
   studentProfile?: StudentProfile | null;
   tutorProfile?: TutorProfile | null;
 };
@@ -133,8 +135,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const register = useCallback(async (payload: { email: string; password: string; firstName: string; lastName: string; role: 'STUDENT' | 'TUTOR'; acceptTerms: boolean; }) => {
-    await AuthAPI.register(payload);
-    // User must verify email before login
+    try {
+      await AuthAPI.register(payload);
+    } catch (e) {
+      const msg = (e as Error)?.message ?? '';
+      if (msg.toLowerCase().includes('already exists')) {
+        throw new Error('An account with this email already exists. Please log in instead.');
+      }
+      throw e;
+    }
+    // Auto-login after register; server may allow immediate session
+    try {
+      const { accessToken, user } = await AuthAPI.login({ email: payload.email, password: payload.password, rememberMe: false });
+      setAccessToken(accessToken);
+      persistUser(user, { preferLocal: false });
+    } catch {
+      // If login not allowed immediately (e.g., requires email verification), silently ignore
+    }
   }, []);
 
   const logout = useCallback(async () => {

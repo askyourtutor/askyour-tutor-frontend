@@ -41,7 +41,7 @@ const Header = () => {
       
       {/* Header Top */}
       <div 
-        className="header-top relative z-30 px-4 sm:px-6 xl:pl-[300px] xl:pr-[88px] py-1"
+        className="header-top relative z-30 px-2 xs:px-3 sm:px-4 lg:px-6 xl:pl-[300px] xl:pr-[88px] py-1"
         style={{ 
           backgroundColor: 'var(--color-primary)', 
           color: 'white'
@@ -58,50 +58,52 @@ const Header = () => {
         
         <div className="container-fluid px-0">
           <div className="flex justify-between items-center">
-            {/* Left side - Contact info (hidden on mobile) */}
-            <div className="hidden lg:block">
+            {/* Left side - Contact info (responsive) */}
+            <div className="hidden sm:block">
               <div className="header-links">
-                <ul className="flex items-center space-x-6 text-sm">
-                  <li className="flex items-center space-x-2 relative pr-5 mr-4">
-                    <IconPhone size={16} />
-                    <a href="tel:+11156456825" className="hover:opacity-80 transition-opacity">+111 (564) 568 25</a>
-                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-4 bg-white bg-opacity-20"></div>
+                <ul className="flex items-center space-x-2 sm:space-x-4 lg:space-x-6 text-xs sm:text-sm">
+                  <li className="flex items-center space-x-1 sm:space-x-2 relative pr-2 sm:pr-3 lg:pr-5 mr-2 sm:mr-3 lg:mr-4">
+                    <IconPhone size={14} className="sm:w-4 sm:h-4" />
+                    <a href="tel:+11156456825" className="hover:opacity-80 transition-opacity whitespace-nowrap">
+                      +111 (564) 568 25
+                    </a>
+                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-3 sm:h-4 bg-white bg-opacity-20"></div>
                   </li>
-                  <li className="hidden xl:flex items-center space-x-2 relative pr-5 mr-4">
+                  <li className="hidden lg:flex items-center space-x-2 relative pr-5 mr-4">
                     <IconMail size={16} />
                     <a href="mailto:info@askyourtutor.com" className="hover:opacity-80 transition-opacity">info@askyourtutor.com</a>
                     <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-4 bg-white bg-opacity-20"></div>
                   </li>
-                  <li className="flex items-center space-x-2">
-                    <IconClock size={16} />
-                    <span>Mon - Sat: 8:00 - 15:00</span>
+                  <li className="flex items-center space-x-1 sm:space-x-2">
+                    <IconClock size={14} className="sm:w-4 sm:h-4" />
+                    <span className="whitespace-nowrap">Mon - Sat: 8:00 - 15:00</span>
                   </li>
                 </ul>
               </div>
             </div>
 
             {/* Right side - Social links and mobile toggle */}
-            <div className="flex items-center justify-between lg:justify-end w-full lg:w-auto">
+            <div className="flex items-center justify-between lg:justify-end w-full sm:w-auto">
               <div className="header-links header-right">
-                <ul className="flex items-center space-x-4">
+                <ul className="flex items-center space-x-2 sm:space-x-4">
                   <li>
-                    <div className="header-social flex items-center space-x-3">
-                      <span className="social-title text-xs sm:text-sm font-normal">Follow Us:</span>
-                      <div className="flex items-center space-x-3">
+                    <div className="header-social flex items-center space-x-2 sm:space-x-3">
+                      <span className="social-title text-xs sm:text-sm font-normal hidden sm:inline">Follow Us:</span>
+                      <div className="flex items-center space-x-2 sm:space-x-3">
                         <a href="https://www.facebook.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandFacebook size={14} />
+                          <IconBrandFacebook size={12} className="sm:w-3.5 sm:h-3.5" />
                         </a>
                         <a href="https://www.twitter.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandTwitter size={14} />
+                          <IconBrandTwitter size={12} className="sm:w-3.5 sm:h-3.5" />
                         </a>
                         <a href="https://www.linkedin.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandLinkedin size={14} />
+                          <IconBrandLinkedin size={12} className="sm:w-3.5 sm:h-3.5" />
                         </a>
                         <a href="https://www.youtube.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandYoutube size={14} />
+                          <IconBrandYoutube size={12} className="sm:w-3.5 sm:h-3.5" />
                         </a>
                         <a href="https://www.instagram.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandSkype size={14} />
+                          <IconBrandSkype size={12} className="sm:w-3.5 sm:h-3.5" />
                         </a>
                       </div>
                     </div>
@@ -157,14 +159,14 @@ const Header = () => {
               {/* Mobile Menu Toggle - In Blue Header */}
               <button
                 type="button"
-                className="th-menu-toggle block lg:hidden p-2 text-white hover:opacity-80 transition-opacity ml-4"
+                className="th-menu-toggle block lg:hidden p-1.5 sm:p-2 text-white hover:opacity-80 transition-opacity ml-2 sm:ml-4"
                 aria-label="Toggle mobile menu"
                 onClick={toggleMobileMenu}
               >
                 {isMobileMenuOpen ? (
-                  <IconX size={20} />
+                  <IconX size={18} className="sm:w-5 sm:h-5" />
                 ) : (
-                  <IconMenu2 size={20} />
+                  <IconMenu2 size={18} className="sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>
@@ -176,21 +178,21 @@ const Header = () => {
       <div className="sticky-wrapper">
         {/* Main Menu Area */}
         <div 
-          className="menu-area bg-white relative z-20 px-4 sm:px-6 xl:pl-[30px] xl:pr-[88px]"
+          className="menu-area bg-white relative z-20 px-2 xs:px-3 sm:px-4 lg:px-6 xl:pl-[30px] xl:pr-[88px] overflow-hidden"
         >
           <div className="container-fluid px-0">
             <div className="flex items-center justify-between w-full">
               {/* Logo */}
-              <div className="header-logo py-2 lg:py-3 -mt-3 lg:-mt-5 xl:mt-0">
-                <Link to="/" className="flex items-center space-x-2 lg:space-x-3">
+              <div className="header-logo py-2 lg:py-3 -mt-3 lg:-mt-5 xl:mt-0 flex-shrink-0">
+                <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3">
                   <div 
-                    className="w-8 h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center text-white"
+                    className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center text-white"
                     style={{ backgroundColor: 'var(--color-primary)' }}
                   >
-                    <IconSchool size={20} className="lg:w-6 lg:h-6" />
+                    <IconSchool size={16} className="sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
                   </div>
                   <span 
-                    className="text-base lg:text-lg xl:text-xl font-bold text-gray-800 xl:text-white"
+                    className="text-sm sm:text-base lg:text-lg xl:text-xl font-bold text-gray-800 xl:text-white whitespace-nowrap"
                   >
                     ASKYOURTUTOR
                   </span>
@@ -234,32 +236,32 @@ const Header = () => {
               </nav>
 
               {/* Right Section - Header Actions */}
-              <div className="hidden lg:block">
-                <div className="flex items-center">
-                  <div className="header-button flex items-center space-x-4 h-full">
+              <div className="hidden lg:block flex-1 max-w-none">
+                <div className="flex items-center justify-end">
+                  <div className="header-button flex items-center space-x-2 xl:space-x-4 h-full">
                     {/* Categories Menu with Search */}
-                    <div className="category-menu-wrap mr-3 lg:mr-5 relative flex border border-gray-300 rounded-md">
+                    <div className="category-menu-wrap mr-2 xl:mr-3 relative flex border border-gray-300 rounded-md overflow-hidden max-w-sm xl:max-w-none">
                       <a 
-                        className="menu-expand flex items-center space-x-2 px-3 lg:px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors border-r border-gray-300 min-w-[120px] lg:min-w-[160px]" 
+                        className="menu-expand flex items-center space-x-1 xl:space-x-2 px-2 xl:px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors border-r border-gray-300 min-w-[100px] xl:min-w-[160px] flex-shrink-0" 
                         href="#"
                       >
-                        <IconGrid3x3 size={16} className="lg:w-[18px] lg:h-[18px]" />
-                        <span className="font-normal text-xs lg:text-sm hidden xl:inline">Categories</span>
-                        <IconChevronDown size={14} className="lg:w-4 lg:h-4 ml-auto" />
+                        <IconGrid3x3 size={14} className="xl:w-[18px] xl:h-[18px]" />
+                        <span className="font-normal text-xs xl:text-sm hidden xl:inline">Categories</span>
+                        <IconChevronDown size={12} className="xl:w-4 xl:h-4 ml-auto" />
                       </a>
                       
                       {/* Search Form */}
-                      <form className="search-form flex items-center">
+                      <form className="search-form flex items-center flex-1">
                         <input 
                           type="text" 
                           placeholder="Search..." 
-                          className="w-32 lg:w-48 xl:w-64 px-3 lg:px-4 py-2 border-0 bg-transparent focus:outline-none text-gray-600 placeholder-gray-400 text-sm lg:text-base"
+                          className="w-full min-w-0 px-2 xl:px-4 py-2 border-0 bg-transparent focus:outline-none text-gray-600 placeholder-gray-400 text-xs xl:text-base"
                         />
                         <button 
                           type="submit" 
-                          className="px-3 lg:px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors bg-transparent border-0"
+                          className="px-2 xl:px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors bg-transparent border-0 flex-shrink-0"
                         >
-                          <IconSearch size={16} className="lg:w-[18px] lg:h-[18px]" />
+                          <IconSearch size={14} className="xl:w-[18px] xl:h-[18px]" />
                         </button>
                       </form>
                     </div>
@@ -267,11 +269,11 @@ const Header = () => {
                     {/* Wishlist */}
                     <a 
                       href="#" 
-                      className="icon-btn relative w-8 h-8 lg:w-9 lg:h-9 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
+                      className="icon-btn relative w-7 h-7 xl:w-9 xl:h-9 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors flex-shrink-0"
                     >
-                      <IconHeart size={14} className="lg:w-4 lg:h-4" />
+                      <IconHeart size={12} className="xl:w-4 xl:h-4" />
                       <span 
-                        className="badge absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
+                        className="badge absolute -top-0.5 -right-0.5 xl:-top-1 xl:-right-1 w-3.5 h-3.5 xl:w-4 xl:h-4 rounded-full text-[8px] xl:text-[10px] font-bold text-white flex items-center justify-center"
                         style={{ backgroundColor: 'var(--color-accent)' }}
                       >
                         3
@@ -281,11 +283,11 @@ const Header = () => {
                     {/* Shopping Cart */}
                     <button 
                       type="button" 
-                      className="icon-btn relative w-8 h-8 lg:w-9 lg:h-9 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
+                      className="icon-btn relative w-7 h-7 xl:w-9 xl:h-9 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors flex-shrink-0"
                     >
-                      <IconShoppingCart size={14} className="lg:w-4 lg:h-4" />
+                      <IconShoppingCart size={12} className="xl:w-4 xl:h-4" />
                       <span 
-                        className="badge absolute -top-1 -right-1 w-4 h-4 rounded-full text-[10px] font-bold text-white flex items-center justify-center"
+                        className="badge absolute -top-0.5 -right-0.5 xl:-top-1 xl:-right-1 w-3.5 h-3.5 xl:w-4 xl:h-4 rounded-full text-[8px] xl:text-[10px] font-bold text-white flex items-center justify-center"
                         style={{ backgroundColor: 'var(--color-accent)' }}
                       >
                         5
@@ -295,12 +297,12 @@ const Header = () => {
                     {/* Contact Us Button */}
                     <a 
                       href="#" 
-                      className="th-btn ml-3 lg:ml-5 px-4 lg:px-6 py-2 lg:py-2.5 rounded-sm font-semibold text-white hover:opacity-90 transition-all flex items-center space-x-2 text-sm"
+                      className="th-btn ml-2 xl:ml-3 px-3 xl:px-6 py-1.5 xl:py-2.5 rounded-sm font-semibold text-white hover:opacity-90 transition-all flex items-center space-x-1 xl:space-x-2 text-xs xl:text-sm whitespace-nowrap flex-shrink-0"
                       style={{ backgroundColor: 'var(--color-primary)' }}
                     >
                       <span className="hidden xl:inline">Contact Us</span>
                       <span className="xl:hidden">Contact</span>
-                      <IconArrowRight size={13} className="lg:w-4 lg:h-4" />
+                      <IconArrowRight size={12} className="xl:w-4 xl:h-4" />
                     </a>
                   </div>
                 </div>
@@ -316,57 +318,57 @@ const Header = () => {
         </div>
 
         {/* Mobile Navigation Menu */}
-        <div className={`mobile-menu lg:hidden bg-white border-t border-gray-200 shadow-lg transition-all duration-300 ${
+        <div className={`mobile-menu lg:hidden bg-white border-t border-gray-200 shadow-lg transition-all duration-300 overflow-hidden ${
           isMobileMenuOpen ? 'block' : 'hidden'
         }`}>
-          <div className="container mx-auto px-4 py-4">
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
             {/* Mobile Search */}
-            <div className="mb-4">
+            <div className="mb-3 sm:mb-4">
               <form className="search-form flex border border-gray-300 rounded-lg overflow-hidden">
                 <input 
                   type="text" 
                   placeholder="Search For Course..." 
-                  className="flex-1 px-4 py-3 border-0 bg-transparent focus:outline-none text-gray-600 placeholder-gray-400"
+                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-0 bg-transparent focus:outline-none text-gray-600 placeholder-gray-400 text-sm sm:text-base"
                 />
                 <button 
                   type="submit" 
-                  className="px-4 py-3 text-gray-600 hover:text-gray-800 transition-colors bg-gray-50"
+                  className="px-3 sm:px-4 py-2.5 sm:py-3 text-gray-600 hover:text-gray-800 transition-colors bg-gray-50 flex-shrink-0"
                 >
-                  <IconSearch size={18} />
+                  <IconSearch size={16} className="sm:w-[18px] sm:h-[18px]" />
                 </button>
               </form>
             </div>
 
             {/* Mobile Navigation Links */}
-            <nav className="mobile-nav mb-4">
-              <ul className="space-y-2">
+            <nav className="mobile-nav mb-3 sm:mb-4">
+              <ul className="space-y-1 sm:space-y-2">
                 <li>
-                  <Link to="/" onClick={toggleMobileMenu} className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
+                  <Link to="/" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                     Home
                   </Link>
                 </li>
                 <li>
-                  <a href="#" onClick={toggleMobileMenu} className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
+                  <a href="#" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                     Courses
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={toggleMobileMenu} className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
+                  <a href="#" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                     Teachers
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={toggleMobileMenu} className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
+                  <a href="#" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                     Pages
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={toggleMobileMenu} className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
+                  <a href="#" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                     Blog
                   </a>
                 </li>
                 <li>
-                  <a href="#" onClick={toggleMobileMenu} className="block py-3 px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
+                  <a href="#" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                     Contact
                   </a>
                 </li>
@@ -374,16 +376,16 @@ const Header = () => {
             </nav>
 
             {/* Mobile Actions */}
-            <div className="mobile-actions flex items-center justify-between pt-4 border-t border-gray-200">
-              <div className="flex items-center space-x-4">
+            <div className="mobile-actions flex items-center justify-between pt-3 sm:pt-4 border-t border-gray-200">
+              <div className="flex items-center space-x-3 sm:space-x-4">
                 {/* Mobile Wishlist */}
                 <a 
                   href="#" 
-                  className="icon-btn relative w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
+                  className="icon-btn relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
                 >
-                  <IconHeart size={18} />
+                  <IconHeart size={16} className="sm:w-[18px] sm:h-[18px]" />
                   <span 
-                    className="badge absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs font-bold text-white flex items-center justify-center"
+                    className="badge absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full text-[8px] sm:text-xs font-bold text-white flex items-center justify-center"
                     style={{ backgroundColor: 'var(--color-accent)' }}
                   >
                     3
@@ -393,11 +395,11 @@ const Header = () => {
                 {/* Mobile Shopping Cart */}
                 <button 
                   type="button" 
-                  className="icon-btn relative w-10 h-10 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
+                  className="icon-btn relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
                 >
-                  <IconShoppingCart size={18} />
+                  <IconShoppingCart size={16} className="sm:w-[18px] sm:h-[18px]" />
                   <span 
-                    className="badge absolute -top-1 -right-1 w-4 h-4 rounded-full text-xs font-bold text-white flex items-center justify-center"
+                    className="badge absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full text-[8px] sm:text-xs font-bold text-white flex items-center justify-center"
                     style={{ backgroundColor: 'var(--color-accent)' }}
                   >
                     5
@@ -406,23 +408,43 @@ const Header = () => {
               </div>
 
               {/* Mobile Login/Register */}
-              <div className="flex items-center space-x-4">
-                <Link 
-                  to="/login" 
-                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
-                  onClick={toggleMobileMenu}
-                >
-                  <IconUser size={18} />
-                  <span className="font-medium">Login</span>
-                </Link>
-                <Link 
-                  to="/register" 
-                  className="text-sm text-blue-600 hover:text-blue-800 transition-colors font-medium"
-                  onClick={toggleMobileMenu}
-                >
-                  Register
-                </Link>
-              </div>
+              {!user ? (
+                <div className="flex items-center space-x-3 sm:space-x-4">
+                  <Link 
+                    to="/login" 
+                    className="flex items-center space-x-1.5 sm:space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                    onClick={toggleMobileMenu}
+                  >
+                    <IconUser size={16} className="sm:w-[18px] sm:h-[18px]" />
+                    <span className="font-medium text-sm sm:text-base">Login</span>
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 transition-colors font-medium"
+                    onClick={toggleMobileMenu}
+                  >
+                    Register
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-3">
+                  <Link 
+                    to={user?.role === 'TUTOR' ? '/tutor/profile' : '/student/profile'}
+                    className="flex items-center space-x-1.5 text-gray-700 hover:text-blue-600 transition-colors"
+                    onClick={toggleMobileMenu}
+                  >
+                    <IconUser size={16} />
+                    <span className="font-medium text-sm">Profile</span>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => { logout(); toggleMobileMenu(); }}
+                    className="text-xs sm:text-sm text-red-600 hover:text-red-800 transition-colors font-medium"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

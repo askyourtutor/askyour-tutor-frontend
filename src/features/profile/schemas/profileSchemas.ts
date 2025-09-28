@@ -9,7 +9,6 @@ const validateNoScriptTags = (str: string) => !/<script[^>]*>.*?<\/script>/gi.te
 const namePattern = /^[a-zA-Z\s\-']+$/;
 const phonePattern = /^[+]?[1-9]\d{1,14}$/; // E.164 format
 const courseCodePattern = /^[A-Z]{2,4}\d{3,4}[A-Z]?$/i;
-const urlPattern = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/;
 
 // Year of study options for students
 export const yearOfStudyOptions = [
@@ -121,11 +120,6 @@ export const tutorProfileSchema = z.object({
     .min(0, 'Experience cannot be negative')
     .max(50, 'Teaching experience cannot exceed 50 years'),
     
-  researchExperience: z.number()
-    .int('Research experience must be a whole number')
-    .min(0, 'Research experience cannot be negative')
-    .max(50, 'Research experience cannot exceed 50 years'),
-    
   hourlyRate: z.number()
     .min(5, 'Minimum rate is $5/hour')
     .max(500, 'Maximum rate is $500/hour')
@@ -174,45 +168,6 @@ export const tutorProfileSchema = z.object({
   timezone: z.string()
     .min(1, 'Timezone is required')
     .refine((val: string) => /^UTC[+-]\d{1,2}(:30)?$/.test(val), 'Invalid timezone format'),
-    
-  whatsappNumber: z.string()
-    .transform(sanitizeString)
-    .refine((val: string) => val === '' || phonePattern.test(val), 'Invalid WhatsApp number format')
-    .optional(),
-    
-  linkedinProfile: z.string()
-    .transform(sanitizeString)
-    .refine((val: string) => val === '' || (urlPattern.test(val) && val.includes('linkedin.com')), 'Invalid LinkedIn URL')
-    .optional().or(z.literal('')),
-    
-  researchGateProfile: z.string()
-    .transform(sanitizeString)
-    .refine((val: string) => val === '' || (urlPattern.test(val) && val.includes('researchgate.net')), 'Invalid ResearchGate URL')
-    .optional().or(z.literal('')),
-    
-  googleScholarProfile: z.string()
-    .transform(sanitizeString)
-    .refine((val: string) => val === '' || (urlPattern.test(val) && val.includes('scholar.google.com')), 'Invalid Google Scholar URL')
-    .optional().or(z.literal('')),
-    
-  introVideoUrl: z.string()
-    .transform(sanitizeString)
-    .refine((val: string) => val === '' || (urlPattern.test(val) && (val.includes('youtube.com') || val.includes('youtu.be') || val.includes('vimeo.com'))), 'Only YouTube and Vimeo URLs are allowed')
-    .optional().or(z.literal('')),
-    
-  achievements: z.string()
-    .max(1000, 'Achievements cannot exceed 1000 characters')
-    .transform(sanitizeString)
-    .transform(removeHtmlTags)
-    .refine(validateNoScriptTags, 'Invalid characters detected')
-    .optional(),
-    
-  publications: z.string()
-    .max(1000, 'Publications cannot exceed 1000 characters')
-    .transform(sanitizeString)
-    .transform(removeHtmlTags)
-    .refine(validateNoScriptTags, 'Invalid characters detected')
-    .optional()
 });
 
 // Student Profile Schema - simplified version for students
@@ -289,47 +244,7 @@ export const studentProfileSchema = z.object({
       .refine(validateNoScriptTags, 'Invalid characters in language')
   ).min(1, 'At least one language is required')
    .max(10, 'Maximum 10 languages allowed'),
-   
-  timezone: z.string()
-    .min(1, 'Timezone is required')
-    .refine((val: string) => /^UTC[+-]\d{1,2}(:30)?$/.test(val), 'Invalid timezone format'),
-    
-  availability: availabilitySchema,
   
-  whatsappNumber: z.string()
-    .transform(sanitizeString)
-    .refine((val: string) => val === '' || phonePattern.test(val), 'Invalid WhatsApp number format')
-    .optional(),
-    
-  linkedinProfile: z.string()
-    .transform(sanitizeString)
-    .refine((val: string) => val === '' || (urlPattern.test(val) && val.includes('linkedin.com')), 'Invalid LinkedIn URL')
-    .optional().or(z.literal('')),
-    
-  emergencyContact: z.object({
-    name: z.string()
-      .min(2, 'Emergency contact name is required')
-      .max(100, 'Name cannot exceed 100 characters')
-      .transform(sanitizeString)
-      .transform(removeHtmlTags)
-      .refine(validateNoScriptTags, 'Invalid characters detected'),
-    phone: z.string()
-      .min(10, 'Phone number must be at least 10 digits')
-      .max(15, 'Phone number cannot exceed 15 digits')
-      .transform(sanitizeString)
-      .refine((val: string) => phonePattern.test(val), 'Invalid phone number format'),
-    relationship: z.string()
-      .min(2, 'Relationship is required')
-      .max(50, 'Relationship cannot exceed 50 characters')
-      .transform(sanitizeString)
-  }),
-  
-  specialNeeds: z.string()
-    .max(500, 'Special needs cannot exceed 500 characters')
-    .transform(sanitizeString)
-    .transform(removeHtmlTags)
-    .refine(validateNoScriptTags, 'Invalid characters detected')
-    .optional()
 });
 
 export type TutorProfileFormValues = z.infer<typeof tutorProfileSchema>;
@@ -346,7 +261,6 @@ export const tutorProfileDefaultValues: TutorProfileFormValues = {
   specialization: '',
   qualifications: '',
   teachingExperience: 0,
-  researchExperience: 0,
   hourlyRate: 25,
   bio: '',
   subjects: [],
@@ -362,14 +276,7 @@ export const tutorProfileDefaultValues: TutorProfileFormValues = {
   },
   sessionTypes: [],
   languages: [],
-  timezone: '',
-  whatsappNumber: '',
-  linkedinProfile: '',
-  researchGateProfile: '',
-  googleScholarProfile: '',
-  introVideoUrl: '',
-  achievements: '',
-  publications: ''
+  timezone: ''
 };
 
 export const studentProfileDefaultValues: StudentProfileFormValues = {
@@ -384,24 +291,7 @@ export const studentProfileDefaultValues: StudentProfileFormValues = {
   learningStyle: [],
   sessionPreferences: [],
   languages: [],
-  timezone: '',
-  availability: {
-    monday: [],
-    tuesday: [],
-    wednesday: [],
-    thursday: [],
-    friday: [],
-    saturday: [],
-    sunday: []
-  },
-  whatsappNumber: '',
-  linkedinProfile: '',
-  emergencyContact: {
-    name: '',
-    phone: '',
-    relationship: ''
-  },
-  specialNeeds: ''
+  
 };
 
 // Learning style options for students

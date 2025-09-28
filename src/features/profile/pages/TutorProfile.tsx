@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormProvider } from 'react-hook-form';
 import {
   IconUser,
@@ -21,21 +21,96 @@ import { FileUploadCard } from '../components/FileUploadCard';
 import { saveProfile } from '../services/profileService';
 import { degreeOptions, timezoneOptions } from '../constants/formOptions';
 import type { TutorProfileFormValues } from '../schemas/profileSchemas';
+import { UsersAPI } from '../../../shared/services/api';
 
 const TutorProfilePage = () => {
   const { methods, profileCompletion, addListItem, removeListItem, toggleSessionType } = useTutorProfileForm();
-  const { handleSubmit, watch, formState: { errors } } = methods;
+  const { handleSubmit, watch, formState: { errors }, setFocus } = methods;
 
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [credentialsFile, setCredentialsFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [verifyStatus, setVerifyStatus] = useState<'PENDING' | 'VERIFIED' | null>(null);
+  const [serverCompletion, setServerCompletion] = useState<number | null>(null);
 
   const watchedSubjects = watch('subjects') || [];
   const watchedCourseCodes = watch('courseCodes') || [];
   const watchedLanguages = watch('languages') || [];
   const watchedSessionTypes = watch('sessionTypes') || [];
+
+  // Load existing profile from API and prefill form
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await UsersAPI.getProfile();
+        if (cancelled) return;
+        const u = res.user;
+        if (u?.role === 'TUTOR' && u.profile) {
+          const p = u.profile as {
+            firstName?: string; lastName?: string;
+            professionalTitle?: string | null;
+            university?: string | null;
+            department?: string | null;
+            degree?: string | null;
+            specialization?: string | null;
+            qualifications?: string; // JSON string
+            teachingExperience?: number;
+            subjects?: string; // JSON string
+            courseCodes?: string; // JSON string
+            hourlyRate?: number;
+            availability?: string; // JSON object string
+            bio?: string | null;
+            languages?: string; // JSON string
+            sessionTypes?: string; // JSON string
+            timezone?: string | null;
+            profilePicture?: string | null;
+          };
+          const fullName = [p.firstName || '', p.lastName || ''].filter(Boolean).join(' ');
+          // Parse JSON arrays safely
+          const parseArr = (s?: string): string[] => {
+            try { return s ? JSON.parse(s) : []; } catch { return []; }
+          };
+          const qualsArr = parseArr(p.qualifications);
+          const subjectsArr = parseArr(p.subjects);
+          const codesArr = parseArr(p.courseCodes);
+          const langsArr = parseArr(p.languages);
+          const sessArr = parseArr(p.sessionTypes);
+
+          methods.reset({
+            ...methods.getValues(),
+            fullName: fullName || methods.getValues('fullName'),
+            email: u.email || methods.getValues('email'),
+            professionalTitle: p.professionalTitle ?? '',
+            institution: p.university ?? '',
+            department: p.department ?? '',
+            degree: p.degree ?? '',
+            specialization: p.specialization ?? '',
+            qualifications: qualsArr.join('\n'),
+            subjects: subjectsArr,
+            courseCodes: codesArr,
+            teachingExperience: p.teachingExperience ?? (methods.getValues('teachingExperience') as number | undefined),
+            hourlyRate: p.hourlyRate ?? (methods.getValues('hourlyRate') as number | undefined),
+            bio: p.bio ?? '',
+            languages: langsArr,
+            sessionTypes: sessArr as TutorProfileFormValues['sessionTypes'],
+            timezone: p.timezone ?? methods.getValues('timezone'),
+          }, { keepDefaultValues: true });
+          if (p.profilePicture) setProfileImage(p.profilePicture);
+        }
+        if (typeof u.profileCompletion === 'number') setServerCompletion(u.profileCompletion);
+        if (u.profileVerify === 'PENDING' || u.profileVerify === 'VERIFIED') setVerifyStatus(u.profileVerify);
+      } catch {
+        // ignore load errors; form stays empty
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [methods]);
 
   // Handle profile image upload
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,9 +170,23 @@ const TutorProfilePage = () => {
     }
   };
 
+  const onInvalid = (formErrors: typeof errors) => {
+    const firstKey = Object.keys(formErrors)[0];
+    if (firstKey) {
+      setTimeout(() => setFocus(firstKey as keyof TutorProfileFormValues, { shouldSelect: true }), 0);
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[name="${firstKey}"]`) as HTMLElement | null;
+        if (el?.scrollIntoView) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-4 sm:py-6 lg:py-8">
       <div className="max-w-7xl mx-auto px-2 xs:px-4 sm:px-6 lg:px-8">
+        {isLoading && (
+          <div className="mb-3 text-slate-600">Loading your profile...</div>
+        )}
         {/* Header / Hero using shared component */}
         <ProfileHero
           profileImage={profileImage}
@@ -119,9 +208,42 @@ const TutorProfilePage = () => {
           </div>
         )}
 
+        {/* Status Banner */}
+        {verifyStatus && (
+          <div className={`rounded-lg sm:rounded-xl p-3 sm:p-4 mb-3 sm:mb-4 ${verifyStatus === 'VERIFIED' ? 'bg-emerald-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200'}`}>
+            <div className="flex items-center justify-between">
+              <div className="text-sm sm:text-base">
+                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold mr-2 ${verifyStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                  {verifyStatus === 'VERIFIED' ? 'Verified' : 'Pending Verification'}
+                </span>
+                <span className="text-slate-700">
+                  {verifyStatus === 'VERIFIED' ? 'Your profile is verified and fully active.' : 'Complete all required fields to verify your profile and unlock all features.'}
+                </span>
+              </div>
+              {typeof serverCompletion === 'number' && (
+                <div className="text-xs sm:text-sm text-slate-600">Completion: {serverCompletion}%</div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Main Form */}
         <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6 lg:space-y-8">
+          {Object.keys(errors).length > 0 && (
+            <div className="mb-3 sm:mb-4 bg-red-50 border border-red-200 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+              <p className="text-red-700 text-sm sm:text-base font-medium">Please fix the highlighted fields before submitting.</p>
+            </div>
+          )}
+          <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="relative space-y-4 sm:space-y-6 lg:space-y-8">
+          {isSubmitting && (
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10">
+              <div className="flex items-center space-x-3 text-gray-700">
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-blue-600" />
+                <span className="font-medium">Submitting...</span>
+              </div>
+            </div>
+          )}
+          <fieldset disabled={isSubmitting} className="contents">
           
           {/* Personal Information Section */}
           <ProfileSectionCard title="Personal Information" icon={<IconUser size={20} className="sm:w-6 sm:h-6" />}>
@@ -186,13 +308,6 @@ const TutorProfilePage = () => {
                   required 
                 />
                 
-                <FormInputField 
-                  name="whatsappNumber" 
-                  label="WhatsApp Number (Optional)" 
-                  type="tel" 
-                  placeholder="+1234567890" 
-                  helpText="For quick student communication" 
-                />
                 
                 <FormInputField 
                   name="professionalTitle" 
@@ -249,21 +364,10 @@ const TutorProfilePage = () => {
                 />
 
                 {/* Experience & Rate */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <FormInputField 
                     name="teachingExperience" 
                     label="Teaching Experience" 
-                    type="number" 
-                    min={0} 
-                    max={50} 
-                    placeholder="0" 
-                    helpText="years" 
-                    required 
-                  />
-
-                  <FormInputField 
-                    name="researchExperience" 
-                    label="Research Experience" 
                     type="number" 
                     min={0} 
                     max={50} 
@@ -387,29 +491,12 @@ const TutorProfilePage = () => {
                   required 
                 />
 
-                <FormInputField 
-                  name="linkedinProfile" 
-                  label="LinkedIn Profile (Optional)" 
-                  type="url" 
-                  placeholder="https://linkedin.com/in/yourprofile" 
-                />
+                {/* Only fields from the plan are kept */}
               </div>
 
               {/* Right Column */}
               <div className="space-y-4 sm:space-y-6">
-                <FormInputField 
-                  name="researchGateProfile" 
-                  label="ResearchGate Profile (Optional)" 
-                  type="url" 
-                  placeholder="https://researchgate.net/profile/yourprofile" 
-                />
-
-                <FormInputField 
-                  name="googleScholarProfile" 
-                  label="Google Scholar Profile (Optional)" 
-                  type="url" 
-                  placeholder="https://scholar.google.com/citations?user=yourprofile" 
-                />
+                {/* Removed optional social links per plan */}
               </div>
             </div>
           </ProfileSectionCard>
@@ -433,11 +520,11 @@ const TutorProfilePage = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className={`w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg font-medium flex items-center justify-center space-x-2 transition-all text-sm sm:text-base ${
-                    isSubmitting 
-                      ? 'opacity-50 cursor-not-allowed' 
-                      : 'hover:bg-blue-700 hover:shadow-lg'
+                  disabled={isSubmitting || !methods.formState.isValid}
+                  className={`w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-lg font-medium flex items-center justify-center space-x-2 transition-all text-sm sm:text-base ${
+                    (isSubmitting || !methods.formState.isValid)
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
                   }`}
                 >
                   {isSubmitting ? (
@@ -455,6 +542,7 @@ const TutorProfilePage = () => {
               </div>
             </div>
           </div>
+          </fieldset>
           </form>
         </FormProvider>
       </div>
