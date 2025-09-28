@@ -1,0 +1,22 @@
+export const subjects: string[] = [
+  'Physics',
+  'Chemistry',
+  'Mathematics',
+  'Biology',
+  'Computer Science',
+  'Electrical Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Data Science',
+  'Statistics',
+  'Machine Learning',
+  'Artificial Intelligence',
+  'Organic Chemistry',
+  'Physical Chemistry',
+  'Quantum Mechanics',
+  'Linear Algebra',
+  'Calculus',
+  'Differential Equations',
+  'Genetics',
+  'Microbiology'
+];
