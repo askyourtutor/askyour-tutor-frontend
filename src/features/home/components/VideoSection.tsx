@@ -22,7 +22,7 @@ export default function VideoSection() {
               <div className="video-wrap relative mb-8 bg-white rounded-xl p-6 sm:p-8 lg:p-12 shadow-[0px_4px_50px_0px_rgba(179,193,211,0.30)]">
                 <div className="relative overflow-hidden rounded-lg">
                   <img 
-                    src="/assets/img/normal/video1.png" 
+                    src="/assets/img/normal/video2.jpg" 
                     alt="Video Class Interface"
                     className="w-full h-64 sm:h-80 lg:h-96 xl:h-[490px] object-cover rounded-lg"
                   />

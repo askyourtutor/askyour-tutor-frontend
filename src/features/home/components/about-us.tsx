@@ -72,19 +72,27 @@ const AboutUs: React.FC = () => {
           
           {/* Left Side - Images */}
           <div className="relative mb-8 sm:mb-12 xl:mb-0 order-2 xl:order-1">
-            <div className="relative max-w-lg mx-auto xl:mx-0">
+            <div className="relative max-w-2xl mx-auto xl:mx-0">
               {/* Main Large Image */}
-              <div className="relative">
-                <div className="bg-gray-300 rounded-lg w-full h-64 sm:h-80 lg:h-96 flex items-center justify-center text-4xl sm:text-6xl lg:text-7xl font-bold text-gray-600">
-                  714X447
-                </div>
+              <div className="relative overflow-hidden rounded-lg shadow-md">
+                <img 
+                  src="/assets/img/about/main3.jpg" 
+                  alt="Students learning online"
+                  className="w-full h-72 sm:h-96 lg:h-[450px] object-cover"
+                  loading="lazy"
+                />
               </div>
-              
+
               {/* Secondary Smaller Image */}
               <div className="absolute right-0 bottom-0 transform -translate-x-4 translate-y-4 sm:translate-x-6 sm:translate-y-6 lg:translate-x-10 lg:translate-y-10 z-10">
                 <div className="relative">
-                  <div className="bg-gray-400 rounded-lg w-36 h-24 sm:w-52 sm:h-32 lg:w-64 lg:h-40 flex items-center justify-center text-sm sm:text-2xl lg:text-3xl font-bold text-gray-700 shadow-lg">
-                    <span className="text-center">340X265</span>
+                  <div className="overflow-hidden rounded-lg shadow-lg w-36 h-24 sm:w-52 sm:h-32 lg:w-64 lg:h-40">
+                    <img
+                      src="/assets/img/about/main4.jpg"
+                      alt="Collaborative study group"
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
                   </div>
                   {/* White background effect */}
                   <div className="absolute -left-2 -top-2 sm:-left-3 sm:-top-3 lg:-left-4 lg:-top-4 bg-white rounded-lg w-full h-full -z-10"></div>
