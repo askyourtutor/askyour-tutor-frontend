@@ -9,7 +9,7 @@ import {
   IconPalette,
   IconBrush
 } from '@tabler/icons-react';
-import type { Course, CategorySummary } from '../../../shared/types';
+import type { CourseSummary, CategorySummary } from '../../../shared/types';
 import { courseService, categoryService } from '../../../shared/services';
 import { CourseCard } from '../../../shared/components/cards';
 import { ErrorState, EmptyState } from '../../../shared/components/ui';
@@ -18,7 +18,7 @@ import { CourseSkeletonGrid } from '../../../shared/components/skeletons';
 const PopularCourses: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [categories, setCategories] = useState<CategorySummary[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<CourseSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentSlide, setCurrentSlide] = useState<number>(0);
@@ -55,7 +55,7 @@ const PopularCourses: React.FC = () => {
         console.log('Fetching courses for category:', activeCategory);
         const coursesData = await courseService.getCoursesByCategory(activeCategory);
         console.log('Courses data received:', coursesData);
-        setCourses(coursesData.data || []);
+        setCourses((coursesData.data ?? []) as CourseSummary[]);
       } catch (err) {
         setError('Failed to load courses');
         console.error('Error fetching courses:', err);
@@ -227,7 +227,7 @@ const PopularCourses: React.FC = () => {
                 // Refetch courses for current category
                 if (activeCategory) {
                   courseService.getCoursesByCategory(activeCategory)
-                    .then(data => setCourses(data.data || []))
+                    .then(data => setCourses((data.data ?? []) as CourseSummary[]))
                     .catch(() => setError('Failed to load courses'))
                     .finally(() => setLoading(false));
                 }

@@ -14,6 +14,20 @@ export interface CategorySummary {
   courseCount: number;
 }
 
+// Minimal course shape returned by /courses/category/:id for cards
+export interface CourseSummary {
+  id: string;
+  title: string;
+  image?: string | null;
+  duration?: string; // formatted label like '60m' or '2h'
+  totalLessons?: number;
+  totalStudents?: number;
+  rating?: number;
+  instructor?: { name?: string; avatar?: string | null };
+  isFree: boolean;
+  price: number;
+}
+
 export interface PaginationParams {
   page: number;
   limit: number;
@@ -178,7 +192,7 @@ export interface SearchParams extends PaginationParams {
 
 // ===== COMPONENT PROPS TYPES =====
 export interface CourseCardProps {
-  course: Course;
+  course: CourseSummary;
   variant?: 'default' | 'compact' | 'featured';
   showInstructor?: boolean;
   showCategory?: boolean;

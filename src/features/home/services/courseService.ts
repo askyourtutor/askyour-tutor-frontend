@@ -1,4 +1,5 @@
 import { apiFetch } from '../../../shared/services/api';
+import type { CourseSummary, PaginatedResponse } from '../../../shared/types';
 
 // Course Service - Handles all course-related API calls
 export class CourseService {
@@ -21,7 +22,7 @@ export class CourseService {
       if (params?.isFree !== undefined) qs.set('isFree', String(params.isFree));
       if (params?.search) qs.set('search', params.search);
 
-      return await apiFetch<{ data: any[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(`/courses${qs.toString() ? `?${qs.toString()}` : ''}`);
+      return await apiFetch<PaginatedResponse<CourseSummary>>(`/courses${qs.toString() ? `?${qs.toString()}` : ''}`);
     } catch (error) {
       console.error('Error fetching courses:', error);
       throw new Error('Failed to fetch courses');
@@ -31,7 +32,7 @@ export class CourseService {
   // Get course by ID
   async getCourseById(id: string) {
     try {
-      return await apiFetch<{ data: any }>(`/courses/${id}`);
+      return await apiFetch<{ data: unknown }>(`/courses/${id}`);
     } catch (error) {
       console.error('Error fetching course:', error);
       throw new Error('Failed to fetch course');
@@ -41,7 +42,7 @@ export class CourseService {
   // Get courses by category
   async getCoursesByCategory(categoryId: string) {
     try {
-      return await apiFetch<{ data: any[] }>(`/courses/category/${categoryId}`);
+      return await apiFetch<{ data: CourseSummary[] }>(`/courses/category/${categoryId}`);
     } catch (error) {
       console.error('Error fetching courses by category:', error);
       throw new Error('Failed to fetch courses by category');
@@ -51,7 +52,7 @@ export class CourseService {
   // Get featured courses
   async getFeaturedCourses() {
     try {
-      return await apiFetch<{ data: any[] }>(`/courses/featured`);
+      return await apiFetch<{ data: CourseSummary[] }>(`/courses/featured`);
     } catch (error) {
       console.error('Error fetching featured courses:', error);
       throw new Error('Failed to fetch featured courses');
@@ -61,7 +62,7 @@ export class CourseService {
   // Get free courses
   async getFreeCourses() {
     try {
-      return await apiFetch<{ data: any[] }>(`/courses/free`);
+      return await apiFetch<{ data: CourseSummary[] }>(`/courses/free`);
     } catch (error) {
       console.error('Error fetching free courses:', error);
       throw new Error('Failed to fetch free courses');
@@ -71,7 +72,7 @@ export class CourseService {
   // Get courses by instructor
   async getCoursesByInstructor(instructorId: string) {
     try {
-      return await apiFetch<{ data: any[] }>(`/courses/instructor/${instructorId}`);
+      return await apiFetch<{ data: CourseSummary[] }>(`/courses/instructor/${instructorId}`);
     } catch (error) {
       console.error('Error fetching courses by instructor:', error);
       throw new Error('Failed to fetch courses by instructor');
@@ -82,7 +83,7 @@ export class CourseService {
   async searchCourses(query: string) {
     try {
       const qs = new URLSearchParams({ q: query });
-      return await apiFetch<{ data: any[] }>(`/courses/search?${qs.toString()}`);
+      return await apiFetch<{ data: CourseSummary[] }>(`/courses/search?${qs.toString()}`);
     } catch (error) {
       console.error('Error searching courses:', error);
       throw new Error('Failed to search courses');

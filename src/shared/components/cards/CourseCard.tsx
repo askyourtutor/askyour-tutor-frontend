@@ -1,18 +1,6 @@
 import React, { useState } from 'react';
 import { IconFile, IconUsers, IconStar, IconClock } from '@tabler/icons-react';
-import type { Course } from '../../types';
-
-// Extended Course interface for additional properties
-interface ExtendedCourse extends Omit<Course, 'duration'> {
-  isFree?: boolean;
-  totalLessons?: number;
-  totalStudents?: number;
-  duration?: string;
-  instructor?: {
-    name?: string;
-    avatar?: string;
-  };
-}
+import type { CourseSummary } from '../../types';
 
 // Normalize URLs coming from API (e.g., "/uploads/..." should point to backend origin, not Vite dev server)
 function resolveAssetUrl(url?: string | null): string | undefined {
@@ -79,7 +67,7 @@ const getInitials = (text?: string) => {
 };
 
 export interface CourseCardProps {
-  course: Course;
+  course: CourseSummary;
 }
 
 export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
@@ -95,15 +83,14 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   }
   
   // Type-safe property access with proper defaults
-  const extendedCourse = course as ExtendedCourse;
-  const isFree = extendedCourse?.isFree ?? (Number(course.price) === 0);
+  const isFree = Boolean(course.isFree || Number(course.price) === 0);
   const priceLabel = formatPrice(Number(course.price), isFree);
   const displayRating = Math.max(0, Math.min(5, Number(course.rating ?? 0)));
-  const lessons = Number(extendedCourse?.totalLessons ?? 0);
-  const students = Number(extendedCourse?.totalStudents ?? 0);
-  const instructorName = extendedCourse?.instructor?.name || 'Tutor';
-  const instructorAvatar = resolveAssetUrl(extendedCourse?.instructor?.avatar) || '/assets/img/course/author.png';
-  const duration = extendedCourse?.duration;
+  const lessons = Number(course.totalLessons ?? 0);
+  const students = Number(course.totalStudents ?? 0);
+  const instructorName = course.instructor?.name || 'Tutor';
+  const instructorAvatar = resolveAssetUrl(course.instructor?.avatar) || '/assets/img/course/author.png';
+  const duration = course.duration;
 
   return (
     <div 
