@@ -1,4 +1,4 @@
-import { IconCamera, IconUser } from '@tabler/icons-react';
+import { IconCamera, IconUser, IconRosetteDiscountCheckFilled } from '@tabler/icons-react';
 import type { ChangeEvent } from 'react';
 
 interface ProfileHeroProps {
@@ -10,6 +10,7 @@ interface ProfileHeroProps {
   subjects: string[];
   imageError?: string | null;
   showImageUpload?: boolean;
+  isVerified?: boolean;
 }
 
 const completionClamp = (value: number) => Math.min(100, Math.max(0, value));
@@ -22,7 +23,8 @@ export const ProfileHero = ({
   profileCompletion,
   subjects,
   imageError,
-  showImageUpload = false
+  showImageUpload = false,
+  isVerified = false
 }: ProfileHeroProps) => {
   const completionValue = completionClamp(profileCompletion);
 
@@ -73,11 +75,18 @@ export const ProfileHero = ({
 
           {/* Name and Title - Centered on mobile */}
           <div className="text-center space-y-2">
-            <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold leading-tight text-gray-900">
+            <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold leading-tight text-gray-900 flex items-center justify-center gap-2">
               {fullName ? (
                 <span>{fullName}</span>
               ) : (
                 <span className="text-blue-400 italic font-medium">Your Name Here</span>
+              )}
+              {isVerified && (
+                <IconRosetteDiscountCheckFilled 
+                  size={24} 
+                  className="text-blue-600 flex-shrink-0" 
+                  title="Verified Tutor"
+                />
               )}
             </h1>
             <p className="text-base xs:text-lg sm:text-xl text-blue-600 font-semibold">
@@ -118,11 +127,18 @@ export const ProfileHero = ({
 
           <div className="flex-1 space-y-20">
             <div className="space-y-4">
-              <h1 className="text-3xl lg:text-4xl font-bold leading-tight -mt-16">
+              <h1 className="text-3xl lg:text-4xl font-bold leading-tight -mt-16 flex items-center gap-3">
                 {fullName ? (
                   <span className="text-white">{fullName}</span>
                 ) : (
                   <span className="text-blue-400 italic font-medium">Your Name Here</span>
+                )}
+                {isVerified && (
+                  <IconRosetteDiscountCheckFilled 
+                    size={36} 
+                    className="text-blue-400 flex-shrink-0" 
+                    title="Verified Tutor"
+                  />
                 )}
               </h1>
               <p className="text-xl text-blue-600 font-semibold">

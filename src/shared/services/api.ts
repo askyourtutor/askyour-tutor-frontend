@@ -17,7 +17,8 @@ export const UsersAPI = {
   getProfile: () => apiFetch<{ user: { id: string; email: string; role: 'STUDENT'|'TUTOR'|'ADMIN'; status: string; emailVerified: boolean; createdAt: string; profile: unknown; profileCompletion?: number; profileVerify?: 'PENDING' | 'VERIFIED' } }>('/users/profile'),
 };
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/api';
+// Use VITE_API_URL when provided; otherwise default to relative '/api' for best portability
+const API_BASE: string = (import.meta.env.VITE_API_URL as string) || '/api';
 
 async function refreshAccessToken(): Promise<string | null> {
   if (!refreshPromise) {

@@ -6,6 +6,14 @@ export interface ApiResponse<T> {
   status: number;
 }
 
+// Minimal category shape returned by /courses/categories
+export interface CategorySummary {
+  id: string;
+  name: string;
+  slug: string;
+  courseCount: number;
+}
+
 export interface PaginationParams {
   page: number;
   limit: number;

@@ -35,6 +35,7 @@ const TutorProfilePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [verifyStatus, setVerifyStatus] = useState<'PENDING' | 'VERIFIED' | null>(null);
   const [serverCompletion, setServerCompletion] = useState<number | null>(null);
+  const [loadedFullName, setLoadedFullName] = useState<string>('');
   const displayCompletion = serverCompletion ?? profileCompletion;
 
   const watchedSubjects = watch('subjects') || [];
@@ -69,8 +70,12 @@ const TutorProfilePage = () => {
             sessionTypes?: string; // JSON string
             timezone?: string | null;
             profilePicture?: string | null;
+            verificationStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
+            verificationNotes?: string | null;
+            verifiedAt?: string | null;
           };
           const fullName = [p.firstName || '', p.lastName || ''].filter(Boolean).join(' ');
+          setLoadedFullName(fullName);
           // Parse JSON arrays safely
           const parseArr = (s?: string): string[] => {
             try { return s ? JSON.parse(s) : []; } catch { return []; }
@@ -101,9 +106,20 @@ const TutorProfilePage = () => {
             timezone: p.timezone ?? methods.getValues('timezone'),
           }, { keepDefaultValues: true });
           if (p.profilePicture) setProfileImage(p.profilePicture);
+          
+          // Set verification status from tutor profile
+          if (p.verificationStatus === 'APPROVED') {
+            setVerifyStatus('VERIFIED');
+          } else if (p.verificationStatus === 'PENDING' || p.verificationStatus === 'REJECTED') {
+            setVerifyStatus('PENDING');
+          } else {
+            // Only use fallback if no tutor profile verification status
+            if (u.profileVerify === 'PENDING' || u.profileVerify === 'VERIFIED') {
+              setVerifyStatus(u.profileVerify);
+            }
+          }
         }
         if (typeof u.profileCompletion === 'number') setServerCompletion(u.profileCompletion);
-        if (u.profileVerify === 'PENDING' || u.profileVerify === 'VERIFIED') setVerifyStatus(u.profileVerify);
       } catch {
         // ignore load errors; form stays empty
       } finally {
@@ -191,11 +207,12 @@ const TutorProfilePage = () => {
         {/* Header / Hero using shared component */}
         <ProfileHero
           profileImage={profileImage}
-          fullName={watch('fullName')}
+          fullName={watch('fullName') || loadedFullName}
           professionalTitle={watch('professionalTitle')}
           profileCompletion={displayCompletion}
           subjects={watchedSubjects}
           showImageUpload={false}
+          isVerified={verifyStatus === 'VERIFIED'}
         />
 
         {/* Success Message */}

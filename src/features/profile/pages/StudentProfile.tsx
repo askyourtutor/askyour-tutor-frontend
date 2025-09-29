@@ -156,6 +156,7 @@ const StudentProfile = () => {
           profileCompletion={displayCompletion}
           subjects={watchedSubjects}
           showImageUpload={false}
+          isVerified={verifyStatus === 'VERIFIED'}
         />
 
         {submitSuccess && (
