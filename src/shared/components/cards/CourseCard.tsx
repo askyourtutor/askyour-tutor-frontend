@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { IconFile, IconUsers, IconStar, IconClock } from '@tabler/icons-react';
 import type { CourseSummary } from '../../types';
 
@@ -72,6 +73,7 @@ export interface CourseCardProps {
 
 export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   const [imageFailed, setImageFailed] = useState(false);
+  const navigate = useNavigate();
   
   const placeholderUrl = '/assets/img/course/course_1.jpg';
   const resolvedImage = resolveAssetUrl(course.image);
@@ -92,10 +94,23 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   const instructorAvatar = resolveAssetUrl(course.instructor?.avatar) || '/assets/img/course/author.png';
   const duration = course.duration;
 
+  const handleCardClick = () => {
+    navigate(`/course/${course.id}`);
+  };
+
   return (
     <div 
-      className="group bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden w-full" 
+      onClick={handleCardClick}
+      className="group bg-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5 transition-all duration-300 overflow-hidden w-full cursor-pointer" 
       aria-label={course.title}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
     >
       {/* Course Image Container */}
       <div className="relative overflow-hidden aspect-[3/2] sm:aspect-[4/3] lg:aspect-[16/10]">
@@ -160,10 +175,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         </div>
 
         {/* Course Title */}
-        <h3 className="text-sm lg:text-lg font-semibold text-gray-900 mb-2 lg:mb-3 line-clamp-2 leading-tight">
-          <a href={`/course/${course.id}`} className="hover:text-blue-600 transition-colors duration-200">
-            {course.title}
-          </a>
+        <h3 className="text-sm lg:text-lg font-semibold text-gray-900 mb-2 lg:mb-3 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors duration-200">
+          {course.title}
         </h3>
         
         {/* Rating */}
@@ -191,12 +204,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             }}
           />
           <div className="flex-1 min-w-0">
-            <a 
-              href="/instructor" 
-              className="text-xs lg:text-sm font-medium text-gray-700 hover:text-blue-600 truncate block transition-colors duration-200"
-            >
+            <span className="text-xs lg:text-sm font-medium text-gray-700 truncate block">
               {instructorName}
-            </a>
+            </span>
             <p className="text-[10px] lg:text-xs text-gray-500">Instructor</p>
           </div>
         </div>

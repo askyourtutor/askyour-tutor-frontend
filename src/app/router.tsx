@@ -13,6 +13,7 @@ import NotFound from '../features/home/pages/NotFound';
 import RoleRoute from '../shared/components/guards/RoleRoute';
 import StudentProfile from '../features/profile/pages/StudentProfile';
 import TutorProfile from '../features/profile/pages/TutorProfile';
+import CourseDetails from '../features/courses/pages/CourseDetails';
 
 const router = createBrowserRouter([
   {
@@ -21,6 +22,7 @@ const router = createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { index: true, element: <Home /> },
+      { path: 'course/:id', element: <CourseDetails /> },
       {
         element: <GuestRoute />,
         children: [
