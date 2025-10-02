@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router';
-import courseService, { type ApiCourse, type ApiLesson } from '../../../services/courseService';
 import {
   IconArrowLeft,
   IconStar,
@@ -20,7 +19,29 @@ import {
   IconVideo
 } from '@tabler/icons-react';
 
-// Types imported from courseService
+// API types (matches GET /api/courses/:id)
+interface ApiLesson {
+  id: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  duration: number | null;
+  orderIndex: number;
+  isPublished: boolean;
+}
+
+interface ApiCourse {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  code: string | null;
+  image: string | null;
+  price: number;
+  rating: number;
+  tutor: { id: string; name: string; avatar: string | null };
+  lessons: ApiLesson[];
+}
 
 const CourseDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,8 +60,12 @@ const CourseDetails: React.FC = () => {
     const load = async () => {
       try {
         setIsLoading(true);
-        const response = await courseService.getCourseById(id!);
-        const data: ApiCourse = response.data;
+        const base = (import.meta.env.VITE_API_URL as string) || '/api';
+        const url = new URL(`${base.replace(/\/$/, '')}/courses/${id}`, window.location.origin);
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error('Failed to load course');
+        const json = await res.json();
+        const data: ApiCourse = json.data;
         setCourse(data);
         if (data.lessons && data.lessons.length > 0) setActiveLessonId(data.lessons[0].id);
       } catch (e) {
