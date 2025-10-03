@@ -10,6 +10,15 @@ export interface ApiLesson {
   isPublished: boolean;
 }
 
+export interface CourseResource {
+  id: string;
+  title: string;
+  type: 'pdf' | 'doc' | 'slides' | 'image' | 'zip' | 'other';
+  sizeLabel?: string | null; // e.g., '2.4 MB'
+  url?: string | null; // download URL
+  duration?: number | null; // if a resource maps to a lesson duration
+}
+
 export interface ApiCourse {
   id: string;
   title: string;
@@ -33,6 +42,8 @@ export interface ApiCourse {
   reviewsCount?: number | null;
   reviewBreakdown?: Record<number, number> | null; // key: 1-5 star, value: percentage 0-100
   qna?: CourseQuestion[] | null;
+  certificateAvailable?: boolean | null;
+  resources?: CourseResource[] | null;
 }
 
 export interface CourseTutorBrief {

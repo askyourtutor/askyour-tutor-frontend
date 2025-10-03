@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconDownload, IconFileText, IconClock, IconLock } from '@tabler/icons-react';
+import type { CourseResource } from '../../../types/course.types';
 
 interface LessonLike {
   id: string;
@@ -9,6 +10,7 @@ interface LessonLike {
 
 interface CourseLike {
   lessons: LessonLike[];
+  resources?: CourseResource[] | null;
 }
 
 interface ResourcesTabProps {
@@ -19,6 +21,10 @@ interface ResourcesTabProps {
 }
 
 const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrolling, onEnroll }) => {
+  const list = (course.resources && course.resources.length > 0)
+    ? course.resources
+    : course.lessons.map((l) => ({ id: l.id, title: l.title, type: 'pdf' as const, sizeLabel: null, url: null, duration: l.duration ?? null }));
+
   return (
     <div className="space-y-4 animate-fadeIn">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
@@ -54,9 +60,9 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrol
 
       {isEnrolled && (
         <div className="grid gap-2.5 sm:gap-3">
-          {course.lessons.slice(0, 5).map((l) => (
+          {list.slice(0, 10).map((r) => (
             <div 
-              key={l.id} 
+              key={r.id} 
               className="flex items-center justify-between p-3 sm:p-4 md:p-5 border border-gray-200 rounded-sm hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:border-blue-300 transition-all duration-300 group cursor-pointer"
             >
               <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0">
@@ -64,15 +70,15 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrol
                   <IconFileText size={18} className="sm:w-6 sm:h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base line-clamp-1">{l.title}</h4>
+                  <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base line-clamp-1">{r.title}</h4>
                   <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 flex-wrap">
-                    {l.duration && (
+                    {r.duration && (
                       <span className="flex items-center gap-1">
                         <IconClock size={12} className="sm:w-[14px] sm:h-[14px]" />
-                        {l.duration}m
+                        {r.duration}m
                       </span>
                     )}
-                    <span className="font-medium">PDF • 2.4 MB</span>
+                    <span className="font-medium">{(r.type || 'file').toUpperCase()} {r.sizeLabel ? `• ${r.sizeLabel}` : ''}</span>
                   </div>
                 </div>
               </div>

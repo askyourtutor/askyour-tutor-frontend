@@ -65,8 +65,8 @@ const CourseDetails: React.FC = () => {
   // Handler functions are provided by the hook above
 
   const activeLesson: ApiLesson | undefined = course?.lessons.find(l => l.id === activeLessonId);
-  const videoSrc = '/assets/video/course-preview.mp4';
-  const videoThumb = course?.image || '/assets/img/course/course_1.jpg';
+  const videoSrc = course?.previewVideoUrl || undefined;
+  const videoThumb = course?.image || undefined;
   const totalDuration = course?.lessons.reduce((sum, lesson) => sum + (lesson.duration || 0), 0) || 0;
 
   if (isLoading) {
@@ -150,9 +150,11 @@ const CourseDetails: React.FC = () => {
                     {course.code}
                   </span>
                 )}
-                <span className="inline-flex items-center bg-green-50 text-green-600 text-xs font-medium px-2.5 py-1 rounded-sm">
-                  All Levels
-                </span>
+                {course.difficulty && (
+                  <span className="inline-flex items-center bg-green-50 text-green-600 text-xs font-medium px-2.5 py-1 rounded-sm">
+                    {course.difficulty}
+                  </span>
+                )}
               </div>
 
               {/* Title */}
@@ -178,15 +180,19 @@ const CourseDetails: React.FC = () => {
                   <IconClock size={14} className="sm:w-4 sm:h-4" />
                   <span>{totalDuration} Minutes</span>
                 </div>
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <IconUsers size={14} className="sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">1,234+ Students</span>
-                  <span className="sm:hidden">1.2k+ Students</span>
-                </div>
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  <IconTrophy size={14} className="sm:w-4 sm:h-4" />
-                  <span>Certificate</span>
-                </div>
+                {typeof course.studentsCount === 'number' && (
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <IconUsers size={14} className="sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">{course.studentsCount.toLocaleString()} Students</span>
+                    <span className="sm:hidden">{(Math.round((course.studentsCount / 100) )/10).toFixed(1)}k+ Students</span>
+                  </div>
+                )}
+                {course.certificateAvailable && (
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <IconTrophy size={14} className="sm:w-4 sm:h-4" />
+                    <span>Certificate</span>
+                  </div>
+                )}
               </div>
 
               {/* Tutor Profile */}
@@ -249,7 +255,7 @@ const CourseDetails: React.FC = () => {
                 )}
 
                 {activeTab === 'qna' && (
-                  <QnATab />
+                  <QnATab questions={course.qna || []} />
                 )}
 
                 {activeTab === 'syllabus' && (

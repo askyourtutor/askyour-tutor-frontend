@@ -19,7 +19,9 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ course, renderStars }) => {
             </div>
             <span>Student Reviews</span>
           </h3>
-          <p className="text-xs sm:text-sm text-gray-600">Based on 234 reviews</p>
+          {typeof course.reviewsCount === 'number' && (
+            <p className="text-xs sm:text-sm text-gray-600">Based on {course.reviewsCount} reviews</p>
+          )}
         </div>
         <button className="text-[10px] sm:text-xs md:text-sm text-blue-600 hover:text-blue-700 font-bold bg-blue-50 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 rounded-sm hover:bg-blue-100 transition-all border border-blue-200 self-start sm:self-auto">
           Write a Review
@@ -37,23 +39,25 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ course, renderStars }) => {
           </div>
 
           {/* Rating Breakdown */}
-          <div className="space-y-1.5 sm:space-y-2">
-            {[5, 4, 3, 2, 1].map((rating) => {
-              const percentage = rating === 5 ? 75 : rating === 4 ? 18 : rating === 3 ? 5 : rating === 2 ? 2 : 0;
-              return (
-                <div key={rating} className="flex items-center gap-2 sm:gap-3">
-                  <div className="flex items-center gap-0.5 sm:gap-1 w-12 sm:w-14 md:w-16">
-                    <span className="text-xs sm:text-sm font-semibold text-gray-700">{rating}</span>
-                    <IconStar size={12} className="sm:w-3.5 sm:h-3.5 text-amber-500 fill-amber-500" />
+          {course.reviewBreakdown && (
+            <div className="space-y-1.5 sm:space-y-2">
+              {[5, 4, 3, 2, 1].map((rating) => {
+                const percentage = course.reviewBreakdown?.[rating] ?? 0;
+                return (
+                  <div key={rating} className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex items-center gap-0.5 sm:gap-1 w-12 sm:w-14 md:w-16">
+                      <span className="text-xs sm:text-sm font-semibold text-gray-700">{rating}</span>
+                      <IconStar size={12} className="sm:w-3.5 sm:h-3.5 text-amber-500 fill-amber-500" />
+                    </div>
+                    <div className="flex-1 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-400" style={{ width: `${percentage}%` }} />
+                    </div>
+                    <span className="text-xs text-gray-600 font-medium w-8 text-right">{percentage}%</span>
                   </div>
-                  <div className="flex-1 h-1.5 sm:h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-400" style={{ width: `${percentage}%` }} />
-                  </div>
-                  <span className="text-xs text-gray-600 font-medium w-8 text-right">{percentage}%</span>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

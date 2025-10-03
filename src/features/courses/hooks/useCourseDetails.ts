@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ApiCourse } from '../types/course.types';
+import { getCourseById } from '../services/course.service';
 
 export function useCourseDetails(courseId: string | undefined) {
   const [course, setCourse] = useState<ApiCourse | null>(null);
@@ -16,15 +17,12 @@ export function useCourseDetails(courseId: string | undefined) {
     const load = async () => {
       try {
         setIsLoading(true);
-        const base = (import.meta.env.VITE_API_URL as string) || '/api';
-        const origin = typeof window !== 'undefined' ? window.location.origin : '';
-        const url = new URL(`${base.replace(/\/$/, '')}/courses/${courseId}`, origin);
-        const res = await fetch(url.toString());
-        if (!res.ok) throw new Error('Failed to load course');
-        const json = await res.json();
-        const data: ApiCourse = json.data;
-        setCourse(data);
-        if (data.lessons && data.lessons.length > 0) setActiveLessonId(data.lessons[0].id);
+        if (!courseId) return;
+        const data = await getCourseById(courseId);
+        if (data) {
+          setCourse(data);
+          if (data.lessons && data.lessons.length > 0) setActiveLessonId(data.lessons[0].id);
+        }
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error(e);
@@ -32,7 +30,7 @@ export function useCourseDetails(courseId: string | undefined) {
         setIsLoading(false);
       }
     };
-    if (courseId) load();
+    load();
   }, [courseId]);
 
   const renderStars = (rating: number) => {

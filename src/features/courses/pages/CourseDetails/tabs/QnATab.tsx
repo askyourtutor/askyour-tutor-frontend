@@ -1,7 +1,12 @@
 import React from 'react';
 import { IconChevronDown, IconChevronUp, IconMessageCircle } from '@tabler/icons-react';
+import type { CourseQuestion } from '../../../types/course.types';
 
-const QnATab: React.FC = () => {
+interface QnATabProps {
+  questions: CourseQuestion[];
+}
+
+const QnATab: React.FC<QnATabProps> = ({ questions }) => {
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Q&A Header */}
@@ -25,83 +30,60 @@ const QnATab: React.FC = () => {
         </div>
       </div>
 
-      {/* Questions List (static sample) */}
-      <div className="space-y-3">
-        {/* Question 1 */}
-        <div className="bg-white rounded-sm p-4 sm:p-5 border border-gray-200 hover:border-purple-200 transition-all">
-          <div className="flex gap-4">
-            {/* Vote Section */}
-            <div className="flex flex-col items-center gap-2 flex-shrink-0">
-              <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-sm bg-gray-100 hover:bg-purple-100 flex items-center justify-center transition-colors">
-                <IconChevronUp size={16} className="sm:w-[18px] sm:h-[18px] text-gray-600" />
-              </button>
-              <span className="text-lg font-bold text-gray-900">12</span>
-              <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-sm bg-gray-100 hover:bg-purple-100 flex items-center justify-center transition-colors">
-                <IconChevronDown size={16} className="sm:w-[18px] sm:h-[18px] text-gray-600" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <h4 className="font-bold text-gray-900 text-sm sm:text-base mb-1.5 hover:text-purple-600 cursor-pointer">
-                How do I balance redox reactions in acidic solution?
-              </h4>
-              <p className="text-sm text-gray-700 mb-3 leading-relaxed">
-                I'm having trouble balancing redox reactions in acidic conditions. Can someone explain the step-by-step process?
-              </p>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-gray-600">
-                  <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-sm font-semibold">General</span>
-                  <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-sm font-semibold">Electrochemistry</span>
+      {/* Questions List (API-driven) */}
+      {questions.length === 0 ? (
+        <div className="bg-white rounded-sm p-6 border border-gray-200 text-center text-gray-600">
+          No questions yet. Be the first to ask!
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {questions.map((q) => (
+            <div key={q.id} className="bg-white rounded-sm p-4 sm:p-5 border border-gray-200 hover:border-purple-200 transition-all">
+              <div className="flex gap-4">
+                {/* Vote Section */}
+                <div className="flex flex-col items-center gap-2 flex-shrink-0">
+                  <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-sm bg-gray-100 hover:bg-purple-100 flex items-center justify-center transition-colors">
+                    <IconChevronUp size={16} className="sm:w-[18px] sm:h-[18px] text-gray-600" />
+                  </button>
+                  <span className="text-lg font-bold text-gray-900">{q.votes ?? 0}</span>
+                  <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-sm bg-gray-100 hover:bg-purple-100 flex items-center justify-center transition-colors">
+                    <IconChevronDown size={16} className="sm:w-[18px] sm:h-[18px] text-gray-600" />
+                  </button>
                 </div>
-                <button className="text-[10px] sm:text-xs text-purple-600 hover:text-purple-700 font-semibold">
-                  View 2 answers →
-                </button>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
-                <button className="hover:text-purple-600 transition-colors font-medium text-[10px] sm:text-xs">
-                  <IconMessageCircle size={14} className="inline mr-1" />
-                  2 Answers
-                </button>
-                <button className="hover:text-purple-600 transition-colors font-medium text-[10px] sm:text-xs">Reply</button>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Question 2 */}
-        <div className="bg-white rounded-sm p-4 sm:p-5 border border-gray-200 hover:border-purple-200 transition-all">
-          <div className="flex gap-4">
-            {/* Vote Section */}
-            <div className="flex flex-col items-center gap-2 flex-shrink-0">
-              <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-sm bg-gray-100 hover:bg-purple-100 flex items-center justify-center transition-colors">
-                <IconChevronUp size={16} className="sm:w-[18px] sm:h-[18px] text-gray-600" />
-              </button>
-              <span className="text-lg font-bold text-gray-900">8</span>
-              <button className="w-7 h-7 sm:w-8 sm:h-8 rounded-sm bg-gray-100 hover:bg-purple-100 flex items-center justify-center transition-colors">
-                <IconChevronDown size={16} className="sm:w-[18px] sm:h-[18px] text-gray-600" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <h4 className="font-bold text_gray-900 text-sm sm:text-base mb-2 hover:text-purple-600 cursor-pointer">
-                Are the course materials downloadable?
-              </h4>
-              <p className="text-sm text-gray-700 mb-3 leading-relaxed">
-                I'd like to know if I can download the lecture notes and practice problems for offline study.
-              </p>
-              <div className="flex items-center gap-4 text-xs text-gray-500">
-                <button className="hover:text-purple-600 transition-colors font-medium text-[10px] sm:text-xs">
-                  <IconMessageCircle size={14} className="inline mr-1" />
-                  0 Answers
-                </button>
-                <button className="text-purple-600 hover:text-purple-700 font-bold text-[10px] sm:text-xs">Be the first to answer</button>
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-gray-900 text-sm sm:text-base mb-1.5 hover:text-purple-600 cursor-pointer">
+                    {q.title}
+                  </h4>
+                  {q.content && (
+                    <p className="text-sm text-gray-700 mb-3 leading-relaxed">{q.content}</p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      {q.tags?.map((t) => (
+                        <span key={t} className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-sm font-semibold">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                    <button className="text-[10px] sm:text-xs text-purple-600 hover:text-purple-700 font-semibold">
+                      View {q.answers?.length ?? 0} {q.answers && q.answers.length === 1 ? 'answer' : 'answers'} →
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                    <button className="hover:text-purple-600 transition-colors font-medium text-[10px] sm:text-xs">
+                      <IconMessageCircle size={14} className="inline mr-1" />
+                      {q.answers?.length ?? 0} {q.answers && q.answers.length === 1 ? 'Answer' : 'Answers'}
+                    </button>
+                    <button className="hover:text-purple-600 transition-colors font-medium text-[10px] sm:text-xs">Reply</button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Load More Button */}
       <div className="text-center pt-3 sm:pt-4">
