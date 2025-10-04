@@ -1,9 +1,8 @@
 import type { ApiCourse } from '../types/course.types';
+import { apiFetch } from '../../../shared/services/api';
 
-// Simple service with mock fallback. Later, swap to real API implementation.
+// Fetch a course by id (public)
 export async function getCourseById(courseId: string): Promise<ApiCourse | null> {
-  // Mock is disabled by product requirement. Always fetch from API.
-
   const base = (import.meta.env.VITE_API_URL as string) || '/api';
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const url = new URL(`${base.replace(/\/$/, '')}/courses/${courseId}`, origin);
@@ -12,15 +11,22 @@ export async function getCourseById(courseId: string): Promise<ApiCourse | null>
     const res = await fetch(url.toString());
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json: unknown = await res.json();
-    // Accept common response shapes: { data: {...} } | { course: {...} } | { ...courseFields }
     const obj = (json as Record<string, unknown>) || {};
     const candidate = (obj.data as unknown) ?? (obj.course as unknown) ?? json;
-    const course = isApiCourse(candidate) ? candidate : null;
-    return course;
+    return isApiCourse(candidate) ? (candidate as ApiCourse) : null;
   } catch {
-    // Do not use mock; surface absence
     return null;
   }
+}
+
+// Check enrollment (auth required)
+export async function checkEnrollment(courseId: string): Promise<{ enrolled: boolean; enrollment?: unknown | null }> {
+  return apiFetch<{ enrolled: boolean; enrollment?: unknown | null }>(`/courses/${courseId}/enrollment`, { method: 'GET' });
+}
+
+// Enroll (auth required, idempotent)
+export async function enrollInCourse(courseId: string): Promise<{ enrolled: boolean; sessionId: string }> {
+  return apiFetch<{ enrolled: boolean; sessionId: string }>(`/courses/${courseId}/enroll`, { method: 'POST' });
 }
 
 function isApiCourse(val: unknown): val is ApiCourse {

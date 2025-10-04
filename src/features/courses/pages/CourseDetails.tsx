@@ -255,7 +255,7 @@ const CourseDetails: React.FC = () => {
                 )}
 
                 {activeTab === 'qna' && (
-                  <QnATab questions={course.qna || []} />
+                  <QnATab questions={course.qna || []} courseId={course.id} />
                 )}
 
                 {activeTab === 'syllabus' && (

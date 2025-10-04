@@ -41,6 +41,7 @@ export interface ApiCourse {
   previewVideoUrl?: string | null;
   reviewsCount?: number | null;
   reviewBreakdown?: Record<number, number> | null; // key: 1-5 star, value: percentage 0-100
+  reviews?: CourseReview[] | null; // preview of recent reviews
   qna?: CourseQuestion[] | null;
   certificateAvailable?: boolean | null;
   resources?: CourseResource[] | null;
@@ -78,4 +79,22 @@ export interface CourseQuestion {
   answers?: CourseAnswer[];
   createdBy?: string;
   createdAt?: string;
+}
+
+export interface CourseReview {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentAvatar?: string | null;
+  rating: number; // 1-5
+  title?: string | null;
+  content?: string | null;
+  createdAt: string;
+  isVerified?: boolean; // if student actually enrolled
+}
+
+export interface CreateReviewRequest {
+  rating: number;
+  title?: string;
+  content?: string;
 }

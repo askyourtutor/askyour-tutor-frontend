@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
 import type { ApiCourse } from '../types/course.types';
-import { getCourseById } from '../services/course.service';
+import { getCourseById, checkEnrollment, enrollInCourse } from '../services/course.service';
+import { useAuth } from '../../../shared/contexts/AuthContext';
 
 export function useCourseDetails(courseId: string | undefined) {
   const [course, setCourse] = useState<ApiCourse | null>(null);
@@ -12,6 +14,8 @@ export function useCourseDetails(courseId: string | undefined) {
   const [isSaved, setIsSaved] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const load = async () => {
@@ -23,6 +27,17 @@ export function useCourseDetails(courseId: string | undefined) {
           setCourse(data);
           if (data.lessons && data.lessons.length > 0) setActiveLessonId(data.lessons[0].id);
         }
+        // If authenticated student, check enrollment
+        if (user && courseId) {
+          try {
+            const resp = await checkEnrollment(courseId);
+            setIsEnrolled(!!resp.enrolled);
+          } catch {
+            /* ignore */
+          }
+        } else {
+          setIsEnrolled(false);
+        }
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error(e);
@@ -30,8 +45,8 @@ export function useCourseDetails(courseId: string | undefined) {
         setIsLoading(false);
       }
     };
-    load();
-  }, [courseId]);
+    if (!authLoading) load();
+  }, [courseId, authLoading, user]);
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -61,14 +76,21 @@ export function useCourseDetails(courseId: string | undefined) {
   };
 
   const handleEnroll = async () => {
+    if (!courseId) return;
     if (isEnrolled) return;
+    if (!user) {
+      navigate('/login', { replace: false });
+      return;
+    }
     setIsEnrolling(true);
     try {
-      // TODO: POST /courses/:id/enroll
-      await new Promise((r) => setTimeout(r, 800));
+      await enrollInCourse(courseId);
       setIsEnrolled(true);
-    } catch {
-      // TODO: surface error to UI toast
+      // Optionally: switch to syllabus tab after enroll
+      setActiveTab('syllabus');
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
     } finally {
       setIsEnrolling(false);
     }
