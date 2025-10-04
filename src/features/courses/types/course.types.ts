@@ -79,3 +79,21 @@ export interface CourseQuestion {
   createdBy?: string;
   createdAt?: string;
 }
+
+// Reviews
+export interface CourseReview {
+  id: string;
+  courseId: string;
+  studentId: string;
+  rating: number; // 1-5
+  title?: string | null;
+  content?: string | null;
+  createdAt: string;
+  student?: { id: string; name?: string | null; avatar?: string | null } | null;
+}
+
+export interface CreateReviewRequest {
+  rating: number; // 1-5
+  title?: string;
+  content?: string;
+}
