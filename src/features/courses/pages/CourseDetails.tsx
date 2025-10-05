@@ -48,7 +48,6 @@ const CourseDetails: React.FC = () => {
     handleSaveToggle,
     handleShare,
     handleEnroll,
-    handleMessageTutor,
     handleBookSession,
   } = useCourseDetails(id);
 
@@ -212,13 +211,6 @@ const CourseDetails: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <button 
-                  onClick={handleMessageTutor}
-                  className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 border border-gray-300 text-gray-700 rounded-sm font-medium hover:bg-gray-100 transition-colors text-sm flex-shrink-0"
-                >
-                  <IconMessageCircle size={16} />
-                  Message
-                </button>
               </div>
             </div>
 
@@ -315,6 +307,11 @@ const CourseDetails: React.FC = () => {
       <style>{`
         /* Hide the main header navigation section */
         .th-header .sticky-wrapper {
+          display: none !important;
+        }
+        /* Hide decorative blue header backgrounds on this page */
+        .th-header .logo-bg-half,
+        .th-header .logo-bg {
           display: none !important;
         }
         

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { IconThumbUp, IconThumbDown, IconMessageCircle, IconChevronDown } from '@tabler/icons-react';
+import { IconMessageCircle, IconChevronDown, IconUser, IconClock, IconArrowRight } from '@tabler/icons-react';
 import type { CourseQuestion } from '../../../types/course.types';
-import { createQuestion, createAnswer, voteOnQuestion } from '../../../services/qna.service';
+import { createQuestion, createAnswer, listAllQuestions } from '../../../services/qna.service';
 
 interface QnATabProps {
   questions: CourseQuestion[];
@@ -16,12 +16,33 @@ const QnATab: React.FC<QnATabProps> = ({ questions, courseId }) => {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [localQuestions, setLocalQuestions] = useState<CourseQuestion[]>(questions);
-  const [userVotes, setUserVotes] = useState<Record<string, 1 | -1>>({}); // Track user's votes per question
+  const [visibleCount, setVisibleCount] = useState<number>(5);
+  // Removed voting; keep UI simple
 
   // Update local questions when props change
   React.useEffect(() => {
-    setLocalQuestions(questions);
-  }, [questions]);
+    let cancelled = false;
+    async function loadAll() {
+      try {
+        if (!courseId) return;
+        const res = await listAllQuestions(courseId);
+        if (!cancelled && res?.data && Array.isArray(res.data)) {
+          setLocalQuestions(res.data as CourseQuestion[]);
+          setVisibleCount(5);
+          return;
+        }
+      } catch {
+        /* ignore and fallback */
+      }
+      // fallback to preview questions prop
+      if (!cancelled) {
+        setLocalQuestions(questions);
+        setVisibleCount(5);
+      }
+    }
+    loadAll();
+    return () => { cancelled = true; };
+  }, [courseId, questions]);
 
   const handleAskQuestion = async () => {
     if (!newQuestion.title.trim() || !newQuestion.content.trim()) return;
@@ -39,11 +60,11 @@ const QnATab: React.FC<QnATabProps> = ({ questions, courseId }) => {
         title: response.data.title,
         content: response.data.content,
         tags: [],
-        votes: 0,
         answers: [],
         createdAt: response.data.createdAt,
       };
       setLocalQuestions([newQ, ...localQuestions]);
+      setVisibleCount((c) => Math.max(5, Math.min(c + 1, localQuestions.length + 1)));
       
       setNewQuestion({ title: '', content: '' });
       setShowAskForm(false);
@@ -55,47 +76,7 @@ const QnATab: React.FC<QnATabProps> = ({ questions, courseId }) => {
     }
   };
 
-  const handleVote = async (questionId: string, value: 1 | -1) => {
-    const currentVote = userVotes[questionId];
-    
-    // Determine the new vote state
-    let newVote: 1 | -1 | null = value;
-    let voteDelta = value;
-    
-    if (currentVote === value) {
-      // Clicking same vote again = remove vote
-      newVote = null;
-      voteDelta = (value === 1 ? -1 : 1) as 1 | -1; // Reverse the vote
-    } else if (currentVote) {
-      // Switching from upvote to downvote or vice versa
-      voteDelta = (value === 1 ? 2 : -2) as 1 | -1; // e.g., switching from down to up = +2
-    }
-    
-    try {
-      await voteOnQuestion(courseId, questionId, { value });
-      
-      // Update local vote tracking
-      setUserVotes(prev => {
-        const updated = { ...prev };
-        if (newVote === null) {
-          delete updated[questionId];
-        } else {
-          updated[questionId] = newVote;
-        }
-        return updated;
-      });
-      
-      // Update vote count in local state
-      setLocalQuestions(prev => prev.map(q => 
-        q.id === questionId 
-          ? { ...q, votes: (q.votes ?? 0) + voteDelta }
-          : q
-      ));
-    } catch (error) {
-      console.error('Failed to vote:', error);
-      alert('Failed to vote. Please try again.');
-    }
-  };
+  // Voting removed
 
   const handleReply = async (questionId: string) => {
     if (!replyContent.trim()) return;
@@ -233,151 +214,152 @@ const QnATab: React.FC<QnATabProps> = ({ questions, courseId }) => {
 
       {/* Questions List (API-driven) */}
       {localQuestions.length === 0 ? (
-        <div className="bg-white rounded-sm p-6 border border-gray-200 text-center text-gray-600">
-          No questions yet. Be the first to ask!
+        <div className="bg-white rounded-lg p-8 border border-gray-200 text-center">
+          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <IconMessageCircle size={32} className="text-purple-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No questions yet</h3>
+          <p className="text-gray-600 mb-4">Be the first to ask a question and help build this learning community!</p>
+          <button 
+            onClick={() => setShowAskForm(true)}
+            className="inline-flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-all"
+          >
+            <IconArrowRight size={16} />
+            Ask the First Question
+          </button>
         </div>
       ) : (
         <div className="space-y-3">
-          {localQuestions.map((q) => (
-            <div key={q.id} className="bg-white rounded-sm p-4 sm:p-5 border border-gray-200 hover:border-purple-200 transition-all">
-              <div className="flex gap-4">
-                {/* Vote Section */}
-                <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                  <button 
-                    onClick={() => handleVote(q.id, 1)}
-                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-sm flex items-center justify-center transition-colors ${
-                      userVotes[q.id] === 1 
-                        ? 'bg-purple-600 text-white hover:bg-purple-700' 
-                        : 'bg-gray-100 hover:bg-purple-100 text-gray-600'
-                    }`}
-                    title="Like"
-                  >
-                    <IconThumbUp size={16} className="sm:w-[18px] sm:h-[18px]" />
-                  </button>
-                  <span className={`text-lg font-bold ${
-                    (q.votes ?? 0) > 0 ? 'text-purple-600' : 
-                    (q.votes ?? 0) < 0 ? 'text-red-600' : 
-                    'text-gray-900'
-                  }`}>
-                    {q.votes ?? 0}
-                  </span>
-                  <button 
-                    onClick={() => handleVote(q.id, -1)}
-                    className={`w-7 h-7 sm:w-8 sm:h-8 rounded-sm flex items-center justify-center transition-colors ${
-                      userVotes[q.id] === -1 
-                        ? 'bg-red-600 text-white hover:bg-red-700' 
-                        : 'bg-gray-100 hover:bg-red-100 text-gray-600'
-                    }`}
-                    title="Dislike"
-                  >
-                    <IconThumbDown size={16} className="sm:w-[18px] sm:h-[18px]" />
-                  </button>
+          {localQuestions.slice(0, visibleCount).map((q) => (
+            <div key={q.id} className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all duration-200">
+              {/* Question Header */}
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center flex-shrink-0">
+                  <IconUser size={14} className="sm:w-4 sm:h-4 text-purple-600" />
                 </div>
-
-                {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-gray-900 text-sm sm:text-base mb-1.5 hover:text-purple-600 cursor-pointer">
+                  <h4 className="font-bold text-gray-900 text-sm sm:text-base mb-1.5 hover:text-purple-600 cursor-pointer leading-tight">
                     {q.title}
                   </h4>
                   {q.content && (
-                    <p className="text-sm text-gray-700 mb-3 leading-relaxed">{q.content}</p>
+                    <p className="text-xs sm:text-sm text-gray-700 mb-2.5 leading-relaxed">{q.content}</p>
                   )}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      {q.tags?.map((t) => (
-                        <span key={t} className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-sm font-semibold">
-                          {t}
-                        </span>
-                      ))}
+                  
+                  {/* Question Meta */}
+                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-2.5">
+                    <div className="flex items-center gap-1">
+                      <IconClock size={12} />
+                      <span>Asked recently</span>
                     </div>
-                    <button 
-                      onClick={() => toggleExpanded(q.id)}
-                      className="text-[10px] sm:text-xs text-purple-600 hover:text-purple-700 font-semibold"
-                    >
-                      {expandedQuestions.has(q.id) ? 'Hide' : 'View'} {q.answers?.length ?? 0} {q.answers && q.answers.length === 1 ? 'answer' : 'answers'} →
-                    </button>
+                    {q.tags && q.tags.length > 0 && (
+                      <div className="flex items-center gap-1.5">
+                        {q.tags.map((t) => (
+                          <span key={t} className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full font-medium text-xs">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
+                  
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 sm:gap-3">
                     <button 
                       onClick={() => toggleExpanded(q.id)}
-                      className={`hover:text-purple-600 transition-colors font-medium text-[10px] sm:text-xs ${
-                        expandedQuestions.has(q.id) ? 'text-purple-600' : ''
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md font-medium text-xs sm:text-sm transition-all duration-200 ${
+                        expandedQuestions.has(q.id) 
+                          ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-purple-100 hover:text-purple-700'
                       }`}
                     >
-                      <IconMessageCircle size={14} className="inline mr-1" />
-                      {expandedQuestions.has(q.id) ? 'Hide' : 'Show'} {q.answers?.length ?? 0} {q.answers && q.answers.length === 1 ? 'Answer' : 'Answers'}
+                      <IconMessageCircle size={14} />
+                      <span className="hidden xs:inline">{expandedQuestions.has(q.id) ? 'Hide' : 'View'} {q.answers?.length ?? 0} {q.answers && q.answers.length === 1 ? 'Answer' : 'Answers'}</span>
+                      <span className="xs:hidden">{q.answers?.length ?? 0}</span>
+                      <IconChevronDown size={12} className={`transition-transform ${expandedQuestions.has(q.id) ? 'rotate-180' : ''}`} />
                     </button>
                     <button 
                       onClick={() => setReplyingTo(replyingTo === q.id ? null : q.id)}
-                      className="hover:text-purple-600 transition-colors font-medium text-[10px] sm:text-xs"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-purple-600 text-white rounded-md font-medium text-xs sm:text-sm hover:bg-purple-700 transition-all duration-200"
                     >
-                      Reply
+                      <IconArrowRight size={12} />
+                      <span>Reply</span>
                     </button>
                   </div>
-                  
-                  {/* Expanded Answers */}
-                  {expandedQuestions.has(q.id) && q.answers && q.answers.length > 0 && (
-                    <div className="mt-4 pl-4 border-l-2 border-purple-100 space-y-3">
-                      {q.answers.map((answer) => (
-                        <div key={answer.id} className="bg-gray-50 rounded-sm p-3">
-                          <div className="flex items-start gap-2 mb-2">
-                            <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-semibold text-purple-600">T</span>
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-xs font-medium text-gray-900 mb-1">{answer.authorName}</p>
-                              <p className="text-sm text-gray-700">{answer.content}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Reply Form */}
-                  {replyingTo === q.id && (
-                    <div className="mt-4 p-3 bg-gray-50 rounded-sm border border-gray-200">
-                      <textarea
-                        value={replyContent}
-                        onChange={(e) => setReplyContent(e.target.value)}
-                        placeholder="Write your answer..."
-                        className="w-full p-2 border border-gray-300 rounded-sm text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        rows={3}
-                      />
-                      <div className="flex items-center gap-2 mt-2">
-                        <button
-                          onClick={() => handleReply(q.id)}
-                          disabled={!replyContent.trim()}
-                          className="px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-sm hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Post Answer
-                        </button>
-                        <button
-                          onClick={() => {
-                            setReplyingTo(null);
-                            setReplyContent('');
-                          }}
-                          className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs font-medium rounded-sm hover:bg-gray-100"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
+                  
+              {/* Expanded Answers */}
+              {expandedQuestions.has(q.id) && q.answers && q.answers.length > 0 && (
+                <div className="mt-4 pl-4 sm:pl-5 border-l-2 border-purple-200 space-y-2.5">
+                  <h5 className="text-xs sm:text-sm font-semibold text-gray-800 mb-2">Answers ({q.answers.length})</h5>
+                  {q.answers.map((answer) => (
+                    <div key={answer.id} className="bg-gradient-to-r from-purple-50 to-purple-25 rounded-lg p-3 border border-purple-100">
+                      <div className="flex items-start gap-2.5">
+                        <div className="w-6 h-6 sm:w-7 sm:h-7 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-white">T</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <p className="text-xs sm:text-sm font-semibold text-gray-900">{answer.authorName}</p>
+                            <span className="text-xs text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded-full font-medium">Tutor</span>
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-700 leading-relaxed">{answer.content}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Reply Form */}
+              {replyingTo === q.id && (
+                <div className="mt-4 p-3 bg-gradient-to-r from-gray-50 to-gray-25 rounded-lg border border-gray-200">
+                  <h5 className="text-xs sm:text-sm font-semibold text-gray-800 mb-2">Write your answer</h5>
+                  <textarea
+                    value={replyContent}
+                    onChange={(e) => setReplyContent(e.target.value)}
+                    placeholder="Share your knowledge and help other students..."
+                    className="w-full p-2.5 border border-gray-300 rounded-lg text-xs sm:text-sm resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    rows={3}
+                  />
+                  <div className="flex items-center gap-2 mt-2.5">
+                    <button
+                      onClick={() => handleReply(q.id)}
+                      disabled={!replyContent.trim()}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <IconArrowRight size={12} />
+                      Post Answer
+                    </button>
+                    <button
+                      onClick={() => {
+                        setReplyingTo(null);
+                        setReplyContent('');
+                      }}
+                      className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-gray-100 transition-all"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
       {/* Load More Button */}
-      <div className="text-center pt-3 sm:pt-4">
-        <button className="inline-flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-700 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-sm font-bold text-[11px] sm:text-xs md:text-sm hover:from-purple-200 hover:to-purple-300 transition-all border border-purple-300 shadow-sm hover:shadow-md">
-          <span>Load More Questions</span>
-          <IconChevronDown size={14} className="sm:w-4 sm:h-4" />
-        </button>
-      </div>
+      {visibleCount < localQuestions.length && (
+        <div className="text-center pt-4">
+          <button
+            onClick={() => setVisibleCount((c) => Math.min(c + 5, localQuestions.length))}
+            className="inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 px-4 py-2 rounded-lg font-medium text-xs sm:text-sm hover:from-purple-100 hover:to-purple-200 transition-all border border-purple-200 shadow-sm hover:shadow-md"
+          >
+            <span>Load More Questions</span>
+            <IconChevronDown size={14} />
+          </button>
+        </div>
+      )}
       
     </div>
   );

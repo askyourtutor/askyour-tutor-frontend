@@ -74,7 +74,6 @@ export interface CourseQuestion {
   title: string;
   content: string;
   tags?: string[];
-  votes?: number;
   answers?: CourseAnswer[];
   createdBy?: string;
   createdAt?: string;

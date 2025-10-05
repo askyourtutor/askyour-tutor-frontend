@@ -10,9 +10,6 @@ export interface CreateAnswerRequest {
   content: string;
 }
 
-export interface VoteRequest {
-  value: 1 | -1;
-}
 
 export async function createQuestion(courseId: string, data: CreateQuestionRequest) {
   const response = await fetch(`${API_BASE}/courses/${courseId}/questions`, {
@@ -46,18 +43,15 @@ export async function createAnswer(courseId: string, questionId: string, data: C
   return response.json();
 }
 
-export async function voteOnQuestion(courseId: string, questionId: string, data: VoteRequest) {
-  const response = await fetch(`${API_BASE}/courses/${courseId}/questions/${questionId}/vote`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
+// Voting removed
+
+export async function listAllQuestions(courseId: string) {
+  const response = await fetch(`${API_BASE}/courses/${courseId}/questions`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
   });
-
   if (!response.ok) {
-    throw new Error(`Failed to vote: ${response.status}`);
+    throw new Error(`Failed to load questions: ${response.status}`);
   }
-
   return response.json();
 }

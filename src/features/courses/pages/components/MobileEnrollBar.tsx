@@ -1,5 +1,4 @@
 import React from 'react';
-import { IconCheck } from '@tabler/icons-react';
 
 interface MobileEnrollBarProps {
   price: number;
@@ -10,18 +9,7 @@ interface MobileEnrollBarProps {
 
 const MobileEnrollBar: React.FC<MobileEnrollBarProps> = ({ price, isEnrolled, isEnrolling, onEnroll }) => {
   if (isEnrolled) {
-    return (
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gradient-to-r from-green-600 to-emerald-600 border-t border-green-700 shadow-2xl z-40">
-        <div className="px-3 sm:px-4 py-3 sm:py-3.5">
-          <div className="flex items-center justify-center gap-2 text-white">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white/20 rounded-sm flex items-center justify-center">
-              <IconCheck size={16} className="sm:w-5 sm:h-5" />
-            </div>
-            <span className="font-bold text-xs sm:text-sm">You're enrolled in this course!</span>
-          </div>
-        </div>
-      </div>
-    );
+    return null; // Don't show anything when enrolled
   }
 
   return (

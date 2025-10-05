@@ -29,6 +29,19 @@ export async function enrollInCourse(courseId: string): Promise<{ enrolled: bool
   return apiFetch<{ enrolled: boolean; sessionId: string }>(`/courses/${courseId}/enroll`, { method: 'POST' });
 }
 
+// Saved courses (auth required)
+export async function getSavedStatus(courseId: string): Promise<{ saved: boolean }> {
+  return apiFetch<{ saved: boolean }>(`/courses/${courseId}/saved`, { method: 'GET' });
+}
+
+export async function saveCourse(courseId: string): Promise<{ saved: true }> {
+  return apiFetch<{ saved: true }>(`/courses/${courseId}/save`, { method: 'POST' });
+}
+
+export async function unsaveCourse(courseId: string): Promise<{ saved: false }> {
+  return apiFetch<{ saved: false }>(`/courses/${courseId}/save`, { method: 'DELETE' });
+}
+
 function isApiCourse(val: unknown): val is ApiCourse {
   if (!val || typeof val !== 'object') return false;
   const v = val as Record<string, unknown>;

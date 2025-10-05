@@ -20,16 +20,20 @@ import {
   IconX
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router';
 import { useAuth } from '../../contexts/AuthContext';
+import { apiFetch } from '../../services/api';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const { user, logout } = useAuth();
   const userBtnRef = useRef<HTMLButtonElement | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const hoverTimerRef = useRef<number | null>(null);
+  const [savedCount, setSavedCount] = useState<number>(0);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -51,16 +55,53 @@ const Header = () => {
     };
     document.addEventListener('mousedown', onDocClick);
     document.addEventListener('keydown', onKey);
+    const onScrollResize = () => {
+      if (!userBtnRef.current) return;
+      const rect = userBtnRef.current.getBoundingClientRect();
+      const width = 224; // w-56
+      const gap = 8;
+      const left = Math.min(window.innerWidth - width - gap, Math.max(gap, rect.right - width));
+      const top = rect.bottom + gap;
+      setMenuPos({ top, left });
+    };
+    window.addEventListener('scroll', onScrollResize, true);
+    window.addEventListener('resize', onScrollResize);
+    onScrollResize();
     return () => {
       document.removeEventListener('mousedown', onDocClick);
       document.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', onScrollResize, true);
+      window.removeEventListener('resize', onScrollResize);
     };
   }, [userMenuOpen]);
+
+  // Load saved courses count for current user
+  useEffect(() => {
+    let cancelled = false;
+    if (!user) { setSavedCount(0); return; }
+    (async () => {
+      try {
+        const res = await apiFetch<{ count: number }>('/courses/saved/count');
+        if (!cancelled) setSavedCount(res?.count ?? 0);
+      } catch {
+        if (!cancelled) setSavedCount(0);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const handleUserHoverEnter = () => {
     if (hoverTimerRef.current) {
       window.clearTimeout(hoverTimerRef.current);
       hoverTimerRef.current = null;
+    }
+    // compute menu position relative to viewport for fixed menu
+    if (userBtnRef.current) {
+      const rect = userBtnRef.current.getBoundingClientRect();
+      const width = 224; const gap = 8;
+      const left = Math.min(window.innerWidth - width - gap, Math.max(gap, rect.right - width));
+      const top = rect.bottom + gap;
+      setMenuPos({ top, left });
     }
     setUserMenuOpen(true);
   };
@@ -75,7 +116,26 @@ const Header = () => {
     }, 120);
   };
   return (
-    <header className="th-header header-layout-default relative z-40">
+    <>
+      <style>{`
+        @media (min-width: 475px) {
+          .xs\\:inline { display: inline !important; }
+          .xs\\:w-4 { width: 1rem !important; }
+          .xs\\:h-4 { height: 1rem !important; }
+          .xs\\:w-5 { width: 1.25rem !important; }
+          .xs\\:h-5 { height: 1.25rem !important; }
+          .xs\\:w-7 { width: 1.75rem !important; }
+          .xs\\:h-7 { height: 1.75rem !important; }
+          .xs\\:w-9 { width: 2.25rem !important; }
+          .xs\\:h-9 { height: 2.25rem !important; }
+          .xs\\:text-sm { font-size: 0.875rem !important; line-height: 1.25rem !important; }
+          .xs\\:text-base { font-size: 1rem !important; line-height: 1.5rem !important; }
+        }
+        @media (min-width: 1536px) {
+          .2xl\\:text-3xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+        }
+      `}</style>
+      <header className="th-header header-layout-default relative z-[70]">
       {/* Logo Background Half */}
       <div 
         className="logo-bg-half absolute h-7 w-64 xl:w-80 2xl:w-96 rounded-tr-[50px] top-4 left-0 z-10 xl:block hidden"
@@ -84,7 +144,7 @@ const Header = () => {
       
       {/* Header Top */}
       <div 
-        className="header-top relative z-30 px-2 xs:px-3 sm:px-4 lg:px-6 xl:pl-[300px] xl:pr-[88px] py-1"
+        className="header-top relative z-30 px-2 xs:px-3 sm:px-4 lg:px-6 xl:pl-[300px] xl:pr-[88px] py-1 sm:py-1.5"
         style={{ 
           backgroundColor: 'var(--color-primary)', 
           color: 'white'
@@ -151,14 +211,14 @@ const Header = () => {
                       </div>
                     </div>
                   </li>
-                  <li className="hidden lg:flex items-center space-x-3 relative">
+                  <li className="flex items-center space-x-2 sm:space-x-3 relative">
                     {!user ? (
                       <>
-                        <IconUser size={16} />
-                        <div className="flex items-center space-x-2">
-                          <Link to="/login" className="hover:opacity-60 transition-opacity">Login</Link>
-                          <span className="text-white/40">/</span>
-                          <Link to="/register" className="hover:opacity-60 transition-opacity">Register</Link>
+                        <IconUser size={14} className="sm:w-4 sm:h-4" />
+                        <div className="flex items-center space-x-1.5 sm:space-x-2">
+                          <Link to="/login" className="hover:opacity-60 transition-opacity text-xs sm:text-sm">Login</Link>
+                          <span className="text-white/40 text-xs sm:text-sm">/</span>
+                          <Link to="/register" className="hover:opacity-60 transition-opacity text-xs sm:text-sm">Register</Link>
                         </div>
                       </>
                     ) : (
@@ -169,27 +229,37 @@ const Header = () => {
                       >
                         <button
                           type="button"
-                          className="flex items-center gap-2 rounded-full px-3 py-1 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                          onClick={() => setUserMenuOpen((v) => !v)}
+                          className="flex items-center gap-1.5 sm:gap-2 rounded-full px-2 sm:px-3 py-1 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                          onClick={() => {
+                            if (!userMenuOpen && userBtnRef.current) {
+                              const rect = userBtnRef.current.getBoundingClientRect();
+                              const width = 224; const gap = 8;
+                              const left = Math.min(window.innerWidth - width - gap, Math.max(gap, rect.right - width));
+                              const top = rect.bottom + gap;
+                              setMenuPos({ top, left });
+                            }
+                            setUserMenuOpen((v) => !v);
+                          }}
                           aria-haspopup="menu"
                           aria-expanded={userMenuOpen}
                           ref={userBtnRef}
                         >
-                          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/20">
-                            <IconUser size={14} />
+                          <span className="inline-flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-white/20">
+                            <IconUser size={12} className="sm:w-3.5 sm:h-3.5" />
                           </span>
-                          <span className="text-sm max-w-[180px] truncate">{user.email}</span>
-                          <IconChevronDown size={14} />
+                          <span className="text-xs sm:text-sm max-w-[120px] sm:max-w-[180px] truncate hidden xs:inline">{user.email}</span>
+                          <IconChevronDown size={12} className="sm:w-3.5 sm:h-3.5" />
                         </button>
-                        {userMenuOpen && (
+                        {userMenuOpen && menuPos && createPortal(
                           <div
                             ref={userMenuRef}
-                            className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/95 backdrop-blur shadow-xl ring-1 ring-black/5 border border-gray-100 animate-[fadeIn_120ms_ease-out]"
+                            className="fixed w-48 sm:w-56 origin-top-right rounded-lg sm:rounded-xl bg-white/95 backdrop-blur shadow-xl ring-1 ring-black/5 border border-gray-100 animate-[fadeIn_120ms_ease-out] z-[9999]"
+                            style={{ top: menuPos.top, left: menuPos.left }}
                             role="menu"
                           >
-                            <div className="px-3 py-2 border-b border-gray-100">
+                            <div className="px-2.5 sm:px-3 py-1.5 sm:py-2 border-b border-gray-100">
                               <div className="text-xs text-gray-500">Signed in as</div>
-                              <div className="truncate text-sm font-medium text-gray-800">{user.email}</div>
+                              <div className="truncate text-xs sm:text-sm font-medium text-gray-800">{user.email}</div>
                             </div>
                             <div className="py-1">
                               {(() => {
@@ -197,11 +267,11 @@ const Header = () => {
                                 return (
                                   <Link
                                     to={profilePath}
-                                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                    className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50"
                                     role="menuitem"
                                     onClick={() => setUserMenuOpen(false)}
                                   >
-                                    <IconUser size={16} />
+                                    <IconUser size={14} className="sm:w-4 sm:h-4" />
                                     <span>Profile</span>
                                   </Link>
                                 );
@@ -210,14 +280,15 @@ const Header = () => {
                               <button
                                 type="button"
                                 onClick={() => { setUserMenuOpen(false); logout(); }}
-                                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                                className="flex w-full items-center gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 text-left text-xs sm:text-sm text-red-600 hover:bg-red-50"
                                 role="menuitem"
                               >
-                                <IconArrowRight size={16} className="rotate-180" />
+                                <IconArrowRight size={14} className="sm:w-4 sm:h-4 rotate-180" />
                                 <span>Logout</span>
                               </button>
                             </div>
-                          </div>
+                          </div>,
+                          document.body
                         )}
                       </div>
                     )}
@@ -228,14 +299,14 @@ const Header = () => {
               {/* Mobile Menu Toggle - In Blue Header */}
               <button
                 type="button"
-                className="th-menu-toggle block lg:hidden p-1.5 sm:p-2 text-white hover:opacity-80 transition-opacity ml-2 sm:ml-4"
+                className="th-menu-toggle block lg:hidden p-1.5 sm:p-2 text-white hover:opacity-80 hover:bg-white/10 rounded-md transition-all ml-2 sm:ml-4"
                 aria-label="Toggle mobile menu"
                 onClick={toggleMobileMenu}
               >
                 {isMobileMenuOpen ? (
-                  <IconX size={18} className="sm:w-5 sm:h-5" />
+                  <IconX size={16} className="sm:w-5 sm:h-5" />
                 ) : (
-                  <IconMenu2 size={18} className="sm:w-5 sm:h-5" />
+                  <IconMenu2 size={16} className="sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>
@@ -247,21 +318,22 @@ const Header = () => {
       <div className="sticky-wrapper">
         {/* Main Menu Area */}
         <div 
-          className="menu-area bg-white relative z-20 px-2 xs:px-3 sm:px-4 lg:px-6 xl:pl-[30px] xl:pr-[88px] overflow-hidden"
+          className="menu-area relative z-20 px-2 xs:px-3 sm:px-4 lg:px-6 xl:pl-[30px] xl:pr-[88px] overflow-visible"
+          style={{ backgroundColor: 'var(--color-primary)' }}
         >
           <div className="container-fluid px-0">
             <div className="flex items-center justify-between w-full">
               {/* Logo */}
-              <div className="header-logo py-2 lg:py-3 -mt-3 lg:-mt-5 xl:mt-0 flex-shrink-0">
-                <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3">
+              <div className="header-logo py-3 lg:py-4 -mt-2 sm:-mt-3 lg:-mt-5 xl:mt-0 flex-shrink-0">
+                <Link to="/" className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4">
                   <div 
-                    className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center text-white"
+                    className="w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-lg flex items-center justify-center text-white shadow-lg"
                     style={{ backgroundColor: 'var(--color-primary)' }}
                   >
-                    <IconSchool size={16} className="sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                    <IconSchool size={16} className="xs:w-5 xs:h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 xl:w-8 xl:h-8" />
                   </div>
                   <span 
-                    className="text-sm sm:text-base lg:text-lg xl:text-xl font-bold text-gray-800 xl:text-white whitespace-nowrap"
+                    className="text-sm xs:text-base sm:text-lg lg:text-xl xl:text-2xl 2xl:text-3xl font-bold text-white whitespace-nowrap tracking-wide"
                   >
                     ASKYOURTUTOR
                   </span>
@@ -309,9 +381,9 @@ const Header = () => {
                 <div className="flex items-center justify-end">
                   <div className="header-button flex items-center space-x-2 xl:space-x-4 h-full">
                     {/* Categories Menu with Search */}
-                    <div className="category-menu-wrap mr-2 xl:mr-3 relative flex border border-gray-300 rounded-md overflow-hidden max-w-sm xl:max-w-none">
+                    <div className="category-menu-wrap mr-2 xl:mr-3 relative flex border border-white/20 rounded-md overflow-hidden max-w-sm xl:max-w-none bg-white/10">
                       <a 
-                        className="menu-expand flex items-center space-x-1 xl:space-x-2 px-2 xl:px-3 py-2 text-gray-700 hover:bg-gray-50 transition-colors border-r border-gray-300 min-w-[100px] xl:min-w-[160px] flex-shrink-0" 
+                        className="menu-expand flex items-center space-x-1 xl:space-x-2 px-2 xl:px-3 py-2 text-white hover:bg-white/20 transition-colors border-r border-white/20 min-w-[100px] xl:min-w-[160px] flex-shrink-0" 
                         href="#"
                       >
                         <IconGrid3x3 size={14} className="xl:w-[18px] xl:h-[18px]" />
@@ -324,11 +396,11 @@ const Header = () => {
                         <input 
                           type="text" 
                           placeholder="Search..." 
-                          className="w-full min-w-0 px-2 xl:px-4 py-2 border-0 bg-transparent focus:outline-none text-gray-600 placeholder-gray-400 text-xs xl:text-base"
+                          className="w-full min-w-0 px-2 xl:px-4 py-2 border-0 bg-transparent focus:outline-none text-white placeholder-white/60 text-xs xl:text-base"
                         />
                         <button 
                           type="submit" 
-                          className="px-2 xl:px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors bg-transparent border-0 flex-shrink-0"
+                          className="px-2 xl:px-4 py-2 text-white hover:text-white/80 transition-colors bg-transparent border-0 flex-shrink-0"
                         >
                           <IconSearch size={14} className="xl:w-[18px] xl:h-[18px]" />
                         </button>
@@ -338,21 +410,22 @@ const Header = () => {
                     {/* Wishlist */}
                     <a 
                       href="#" 
-                      className="icon-btn relative w-7 h-7 xl:w-9 xl:h-9 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors flex-shrink-0"
+                      className="icon-btn relative w-7 h-7 xl:w-9 xl:h-9 flex items-center justify-center border border-white/30 rounded-full hover:border-white hover:bg-white/10 transition-colors flex-shrink-0 text-white"
+                      title={`${savedCount} saved courses`}
                     >
                       <IconHeart size={12} className="xl:w-4 xl:h-4" />
                       <span 
-                        className="badge absolute -top-0.5 -right-0.5 xl:-top-1 xl:-right-1 w-3.5 h-3.5 xl:w-4 xl:h-4 rounded-full text-[8px] xl:text-[10px] font-bold text-white flex items-center justify-center"
+                        className="badge absolute -top-0.5 -right-0.5 xl:-top-1 xl:-right-1 min-w-[0.875rem] h-3.5 xl:w-4 xl:h-4 rounded-full text-[8px] xl:text-[10px] font-bold text-white flex items-center justify-center px-0.5"
                         style={{ backgroundColor: 'var(--color-accent)' }}
                       >
-                        3
+                        {savedCount > 99 ? '99+' : savedCount}
                       </span>
                     </a>
 
                     {/* Shopping Cart */}
                     <button 
                       type="button" 
-                      className="icon-btn relative w-7 h-7 xl:w-9 xl:h-9 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors flex-shrink-0"
+                      className="icon-btn relative w-7 h-7 xl:w-9 xl:h-9 flex items-center justify-center border border-white/30 rounded-full hover:border-white hover:bg-white/10 transition-colors flex-shrink-0 text-white"
                     >
                       <IconShoppingCart size={12} className="xl:w-4 xl:h-4" />
                       <span 
@@ -366,8 +439,7 @@ const Header = () => {
                     {/* Contact Us Button */}
                     <a 
                       href="#" 
-                      className="th-btn ml-2 xl:ml-3 px-3 xl:px-6 py-1.5 xl:py-2.5 rounded-sm font-semibold text-white hover:opacity-90 transition-all flex items-center space-x-1 xl:space-x-2 text-xs xl:text-sm whitespace-nowrap flex-shrink-0"
-                      style={{ backgroundColor: 'var(--color-primary)' }}
+                      className="th-btn ml-2 xl:ml-3 px-3 xl:px-6 py-1.5 xl:py-2.5 rounded-sm font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center space-x-1 xl:space-x-2 text-xs xl:text-sm whitespace-nowrap flex-shrink-0 shadow-sm"
                     >
                       <span className="hidden xl:inline">Contact Us</span>
                       <span className="xl:hidden">Contact</span>
@@ -388,7 +460,7 @@ const Header = () => {
 
         {/* Mobile Navigation Menu */}
         <div className={`mobile-menu lg:hidden bg-white border-t border-gray-200 shadow-lg transition-all duration-300 overflow-hidden ${
-          isMobileMenuOpen ? 'block' : 'hidden'
+          isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
         }`}>
           <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
             {/* Mobile Search */}
@@ -519,6 +591,7 @@ const Header = () => {
         </div>
       </div>
     </header>
+    </>
   );
 };
 

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { ApiCourse } from '../types/course.types';
-import { getCourseById, checkEnrollment, enrollInCourse } from '../services/course.service';
+import { getCourseById, checkEnrollment, enrollInCourse, getSavedStatus, saveCourse, unsaveCourse } from '../services/course.service';
 import { useAuth } from '../../../shared/contexts/AuthContext';
 
 export function useCourseDetails(courseId: string | undefined) {
@@ -35,11 +35,18 @@ export function useCourseDetails(courseId: string | undefined) {
           } catch {
             /* ignore */
           }
+          // Check saved status
+          try {
+            const s = await getSavedStatus(courseId);
+            setIsSaved(!!s.saved);
+          } catch {
+            /* ignore */
+          }
         } else {
           setIsEnrolled(false);
+          setIsSaved(false);
         }
       } catch (e) {
-        // eslint-disable-next-line no-console
         console.error(e);
       } finally {
         setIsLoading(false);
@@ -55,14 +62,31 @@ export function useCourseDetails(courseId: string | undefined) {
     ));
   };
 
-  const handleSaveToggle = () => {
+  const handleSaveToggle = async () => {
+    if (!courseId) return;
+    if (!user) {
+      // optionally navigate to login
+      setIsSaved(false);
+      return;
+    }
+    // optimistic
     setIsSaved((prev) => !prev);
-    // TODO: API call to save/unsave course
+    try {
+      if (!isSaved) {
+        await saveCourse(courseId);
+      } else {
+        await unsaveCourse(courseId);
+      }
+    } catch (e) {
+      // rollback
+      setIsSaved((prev) => !prev);
+      console.error(e);
+    }
   };
 
   const handleShare = () => {
-    if (typeof navigator !== 'undefined' && (navigator as any).share) {
-      (navigator as any)
+    if (typeof navigator !== 'undefined' && 'share' in navigator && typeof (navigator as Navigator & { share?: (data: ShareData) => Promise<void> }).share === 'function') {
+      (navigator as Navigator & { share: (data: ShareData) => Promise<void> })
         .share({
           title: course?.title,
           text: `Check out this course: ${course?.title}`,
@@ -89,7 +113,6 @@ export function useCourseDetails(courseId: string | undefined) {
       // Optionally: switch to syllabus tab after enroll
       setActiveTab('syllabus');
     } catch (e) {
-      // eslint-disable-next-line no-console
       console.error(e);
     } finally {
       setIsEnrolling(false);

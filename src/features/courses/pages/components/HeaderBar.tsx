@@ -23,58 +23,72 @@ const HeaderBar: React.FC<HeaderBarProps> = ({
   onEnroll,
 }) => {
   return (
-    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
-      <div className="mx-auto px-4 sm:px-6 lg:px-12">
-        <div className="flex items-center justify-between h-16">
+    <nav className="bg-white/95 backdrop-blur-sm border-b border-gray-200/80 sticky top-0 z-50 shadow-sm">
+      <div className="mx-auto px-2 xs:px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-11 xs:h-12 sm:h-14">
           {/* Left: Back button */}
           <button
             onClick={onBack}
-            className="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 font-medium px-3 py-2 rounded-sm hover:bg-gray-100 transition-all duration-200"
+            className="inline-flex items-center gap-1 xs:gap-1.5 text-gray-600 hover:text-gray-900 font-medium px-1.5 xs:px-2 py-1 xs:py-1.5 rounded-md hover:bg-gray-100 transition-all duration-200 text-xs xs:text-sm flex-shrink-0"
           >
-            <IconArrowLeft size={20} />
-            <span className="hidden sm:inline">Back</span>
+            <IconArrowLeft size={14} className="xs:w-4 xs:h-4" />
+            <span className="hidden xs:inline">Back</span>
           </button>
 
-          {/* Center: Course title (hidden on mobile) */}
-          <div className="hidden lg:flex items-center gap-3 flex-1 max-w-xl mx-8">
-            <div className="w-8 h-8 bg-blue-100 rounded-sm flex items-center justify-center flex-shrink-0">
-              <IconBook size={18} className="text-blue-600" />
+          {/* Center: Course title - Responsive layout */}
+          <div className="flex items-center gap-1.5 xs:gap-2 flex-1 min-w-0 mx-2 xs:mx-3 sm:mx-4 md:mx-6">
+            <div className="w-5 h-5 xs:w-6 xs:h-6 bg-blue-100 rounded-md flex items-center justify-center flex-shrink-0">
+              <IconBook size={12} className="xs:w-3.5 xs:h-3.5 text-blue-600" />
             </div>
-            <h1 className="text-base font-semibold text-gray-900 truncate">{title}</h1>
+            <h1 className="text-xs xs:text-sm sm:text-base font-semibold text-gray-900 truncate leading-tight">
+              {title}
+            </h1>
           </div>
 
-          {/* Right: Actions */}
-          <div className="flex items-center gap-2">
+          {/* Right: Actions - Responsive spacing and sizing */}
+          <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 flex-shrink-0">
+            {/* Save button */}
             <button
               onClick={onSave}
-              className={`p-2 rounded-sm transition-all duration-200 ${
-                isSaved ? 'text-red-600 bg-red-50 hover:bg-red-100' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              className={`p-1 xs:p-1.5 rounded-md transition-all duration-200 ${
+                isSaved 
+                  ? 'text-red-600 bg-red-50 hover:bg-red-100' 
+                  : 'text-gray-500 hover:text-red-600 hover:bg-gray-100'
               }`}
               title={isSaved ? 'Remove from saved' : 'Save course'}
             >
-              <IconHeart size={20} className={isSaved ? 'fill-current' : ''} />
+              <IconHeart size={14} className="xs:w-4 xs:h-4 sm:w-5 sm:h-5" strokeWidth={isSaved ? 0 : 2} fill={isSaved ? 'currentColor' : 'none'} />
             </button>
+
+            {/* Share button */}
             <button
               onClick={onShare}
-              className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-sm transition-all duration-200"
+              className="p-1 xs:p-1.5 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-md transition-all duration-200"
               title="Share course"
             >
-              <IconShare3 size={20} />
+              <IconShare3 size={14} className="xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
             </button>
+
+            {/* Enroll/Enrolled button - Responsive text and spacing */}
             {!isEnrolled && (
               <button
                 onClick={onEnroll}
                 disabled={isEnrolling}
-                className="hidden sm:inline-flex items-center gap-2 bg-blue-600 text-white px-5 py-2 rounded-sm font-semibold hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1 xs:gap-1.5 bg-blue-600 text-white px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 rounded-md font-medium hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md ml-0.5 xs:ml-1 disabled:opacity-50 disabled:cursor-not-allowed text-xs xs:text-sm"
               >
-                {isEnrolling ? 'Enrolling...' : 'Enroll Now'}
+                <span className="hidden xs:inline">
+                  {isEnrolling ? 'Enrolling...' : 'Enroll'}
+                </span>
+                <span className="xs:hidden">
+                  {isEnrolling ? '...' : 'Join'}
+                </span>
               </button>
             )}
             {isEnrolled && (
-              <span className="hidden sm:inline-flex items-center gap-2 bg-green-600 text-white px-5 py-2 rounded-sm font-semibold ml-2">
-                <IconCheck size={18} />
-                Enrolled
-              </span>
+              <div className="inline-flex items-center gap-1 xs:gap-1.5 bg-green-50 text-green-700 border border-green-200 px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 rounded-md font-medium ml-0.5 xs:ml-1 text-xs xs:text-sm">
+                <IconCheck size={14} className="xs:w-4 xs:h-4 stroke-2" />
+                <span>Enrolled</span>
+              </div>
             )}
           </div>
         </div>
