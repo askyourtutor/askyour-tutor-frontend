@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
-import { AuthAPI, apiFetch, setAccessToken } from '../services/api';
+import { AuthAPI, apiFetch, setAccessToken, setHasRefreshToken, clearSession, ApiError } from '../services/api';
+import { secureDebug } from '../utils/security';
 
 export type StudentProfile = {
   firstName?: string;
@@ -94,30 +95,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
-    // Initialize session: refresh (cookie) -> me
+    
+    // Check if there's evidence of a previous session
+    const hadPreviousSession = !!(
+      localStorage.getItem('auth_user') || 
+      sessionStorage.getItem('auth_user')
+    );
+    
+    // Set refresh token flag based on previous session
+    setHasRefreshToken(hadPreviousSession);
+    
+    // Initialize session: only attempt refresh if there was a previous session
     (async () => {
       try {
-        // Try refresh silently; ignore errors (user might be logged out)
-        try {
-          const r = await apiFetch<{ accessToken: string }>(
-            '/auth/refresh',
-            { method: 'POST', body: JSON.stringify({ refreshToken: '' }), signal: controller.signal },
-            false,
-          );
-          if (r?.accessToken) setAccessToken(r.accessToken);
-        } catch {
-          /* ignore refresh failures; user may be logged out */
+        // Only try refresh if user had a previous session
+        if (hadPreviousSession) {
+          try {
+            const r = await apiFetch<{ accessToken: string }>(
+              '/auth/refresh',
+              { method: 'POST', body: JSON.stringify({ refreshToken: '' }), signal: controller.signal },
+              false,
+            );
+            if (r?.accessToken) {
+              setAccessToken(r.accessToken);
+              setHasRefreshToken(true);
+              
+              // If refresh succeeded, get user info
+              if (!cancelled) {
+                try {
+                  const me = await AuthAPI.me();
+                  if (!cancelled) {
+                    persistUser(me.user ?? null, { preferLocal: 'keep' });
+                  }
+                } catch (error) {
+                  if (!cancelled) {
+                    // Failed to get user info after successful refresh
+                    clearSession();
+                    persistUser(null);
+                    if (import.meta.env.DEV) {
+                      secureDebug('[Auth] Failed to get user info:', error);
+                    }
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            // Refresh failed - clear stored user and session
+            if (!cancelled) {
+              clearSession();
+              persistUser(null);
+              if (error instanceof ApiError && !error.isExpected && import.meta.env.DEV) {
+                secureDebug('[Auth] Refresh failed unexpectedly:', error);
+              }
+            }
+          }
+        } else {
+          // No previous session, skip API calls
+          if (!cancelled) {
+            clearSession();
+            persistUser(null);
+          }
         }
-
-        if (cancelled) return;
-        const me = await AuthAPI.me();
-        if (cancelled) return;
-        // Keep existing storage (local vs session) to respect previous remember-me selection
-        persistUser(me.user ?? null, { preferLocal: 'keep' });
-      } catch {
-        if (!cancelled) persistUser(null);
+      } catch (error) {
+        if (!cancelled) {
+          clearSession();
+          persistUser(null);
+          if (import.meta.env.DEV) {
+            secureDebug('[Auth] Initialization failed:', error);
+          }
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     })();
 
@@ -130,6 +180,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {
     const { accessToken, user } = await AuthAPI.login({ email, password, rememberMe });
     setAccessToken(accessToken);
+    setHasRefreshToken(true); // Mark that we now have a refresh token
     // Persist to localStorage when rememberMe=true; sessionStorage otherwise
     persistUser(user, { preferLocal: !!rememberMe });
   }, []);
@@ -148,6 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { accessToken, user } = await AuthAPI.login({ email: payload.email, password: payload.password, rememberMe: false });
       setAccessToken(accessToken);
+      setHasRefreshToken(true); // Mark that we now have a refresh token
       persistUser(user, { preferLocal: false });
     } catch {
       // If login not allowed immediately (e.g., requires email verification), silently ignore
@@ -158,13 +210,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await AuthAPI.logout();
     } finally {
-      setAccessToken(null);
+      clearSession(); // Clear both access token and refresh token flag
       persistUser(null);
     }
   }, []);
 
   const setSession = useCallback((token: string, u: User) => {
     setAccessToken(token);
+    setHasRefreshToken(true); // Mark that we now have a refresh token
     // Default: sessionStorage (no remember-me toggle here)
     persistUser(u, { preferLocal: false });
   }, []);

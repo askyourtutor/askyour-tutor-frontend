@@ -23,7 +23,9 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router';
 import { useAuth } from '../../contexts/AuthContext';
-import { apiFetch } from '../../services/api';
+import { ApiError } from '../../services/api';
+import { savedCoursesService } from '../../services/savedCoursesService';
+import { featureFlags } from '../../utils/featureFlags';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -78,13 +80,29 @@ const Header = () => {
   // Load saved courses count for current user
   useEffect(() => {
     let cancelled = false;
-    if (!user) { setSavedCount(0); return; }
+    if (!user) { 
+      setSavedCount(0); 
+      return; 
+    }
+
+    // Check if saved courses feature is enabled
+    if (!featureFlags.isEnabled('savedCourses')) {
+      setSavedCount(0);
+      return;
+    }
+    
     (async () => {
       try {
-        const res = await apiFetch<{ count: number }>('/courses/saved/count');
-        if (!cancelled) setSavedCount(res?.count ?? 0);
-      } catch {
-        if (!cancelled) setSavedCount(0);
+        const count = await savedCoursesService.getSavedCoursesCount();
+        if (!cancelled) setSavedCount(count);
+      } catch (error) {
+        if (!cancelled) {
+          setSavedCount(0);
+          // Only log unexpected errors (service handles 404s gracefully)
+          if (!(error instanceof ApiError) || !error.isExpected) {
+            console.warn('[Header] Failed to load saved courses count:', error instanceof Error ? error.message : 'Unknown error');
+          }
+        }
       }
     })();
     return () => { cancelled = true; };

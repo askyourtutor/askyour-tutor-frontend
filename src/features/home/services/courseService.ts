@@ -1,4 +1,4 @@
-import { apiFetch } from '../../../shared/services/api';
+import { apiFetch, ApiError } from '../../../shared/services/api';
 import type { CourseSummary, PaginatedResponse } from '../../../shared/types';
 
 // Course Service - Handles all course-related API calls
@@ -24,7 +24,10 @@ export class CourseService {
 
       return await apiFetch<PaginatedResponse<CourseSummary>>(`/courses${qs.toString() ? `?${qs.toString()}` : ''}`);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      // Only log unexpected errors, API errors are already logged appropriately
+      if (!(error instanceof ApiError)) {
+        console.error('Error fetching courses:', error);
+      }
       throw new Error('Failed to fetch courses');
     }
   }
@@ -34,7 +37,9 @@ export class CourseService {
     try {
       return await apiFetch<{ data: unknown }>(`/courses/${id}`);
     } catch (error) {
-      console.error('Error fetching course:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Error fetching course:', error);
+      }
       throw new Error('Failed to fetch course');
     }
   }
@@ -44,7 +49,9 @@ export class CourseService {
     try {
       return await apiFetch<{ data: CourseSummary[] }>(`/courses/category/${categoryId}`);
     } catch (error) {
-      console.error('Error fetching courses by category:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Error fetching courses by category:', error);
+      }
       throw new Error('Failed to fetch courses by category');
     }
   }
@@ -54,7 +61,9 @@ export class CourseService {
     try {
       return await apiFetch<{ data: CourseSummary[] }>(`/courses/featured`);
     } catch (error) {
-      console.error('Error fetching featured courses:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Error fetching featured courses:', error);
+      }
       throw new Error('Failed to fetch featured courses');
     }
   }
@@ -64,7 +73,9 @@ export class CourseService {
     try {
       return await apiFetch<{ data: CourseSummary[] }>(`/courses/free`);
     } catch (error) {
-      console.error('Error fetching free courses:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Error fetching free courses:', error);
+      }
       throw new Error('Failed to fetch free courses');
     }
   }
@@ -74,7 +85,9 @@ export class CourseService {
     try {
       return await apiFetch<{ data: CourseSummary[] }>(`/courses/instructor/${instructorId}`);
     } catch (error) {
-      console.error('Error fetching courses by instructor:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Error fetching courses by instructor:', error);
+      }
       throw new Error('Failed to fetch courses by instructor');
     }
   }
@@ -85,7 +98,9 @@ export class CourseService {
       const qs = new URLSearchParams({ q: query });
       return await apiFetch<{ data: CourseSummary[] }>(`/courses/search?${qs.toString()}`);
     } catch (error) {
-      console.error('Error searching courses:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Error searching courses:', error);
+      }
       throw new Error('Failed to search courses');
     }
   }
@@ -95,7 +110,9 @@ export class CourseService {
     try {
       return await apiFetch<{ success: boolean; message: string }>(`/courses/${courseId}/enroll`, { method: 'POST' });
     } catch (error) {
-      console.error('Error enrolling in course:', error);
+      if (!(error instanceof ApiError)) {
+        console.error('Error enrolling in course:', error);
+      }
       throw new Error('Failed to enroll in course');
     }
   }

@@ -33,9 +33,9 @@ const PopularCourses: React.FC = () => {
         setCategories(filtered);
         // Set first category as active by default (only if exists)
         setActiveCategory(filtered[0]?.id || '');
-      } catch (err) {
+      } catch {
         setError('Failed to load categories');
-        console.error('Error fetching categories:', err);
+        // Error is already logged by the service layer if unexpected
       }
     };
     if (!categoriesFetchedRef.current) {
@@ -52,13 +52,11 @@ const PopularCourses: React.FC = () => {
       setLoading(true);
       setError(null); // Clear any previous errors
       try {
-        console.log('Fetching courses for category:', activeCategory);
         const coursesData = await courseService.getCoursesByCategory(activeCategory);
-        console.log('Courses data received:', coursesData);
         setCourses((coursesData.data ?? []) as CourseSummary[]);
-      } catch (err) {
+      } catch {
         setError('Failed to load courses');
-        console.error('Error fetching courses:', err);
+        // Error is already logged by the service layer if unexpected
       } finally {
         setLoading(false);
       }
@@ -70,7 +68,6 @@ const PopularCourses: React.FC = () => {
   }, [activeCategory]);
 
   const handleCategoryChange = (categoryId: string) => {
-    console.log('Category changed to:', categoryId);
     setActiveCategory(categoryId);
   };
 

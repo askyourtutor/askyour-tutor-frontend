@@ -5,12 +5,88 @@
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 import type { User } from '../contexts/AuthContext';
+import { secureWarn, secureError, secureDebug } from '../utils/security';
 
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
+let hasRefreshToken = false; // Track if refresh token exists
 
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
+  // If we set an access token, assume we might have a refresh token
+  if (token) {
+    hasRefreshToken = true;
+  }
+};
+
+export const setHasRefreshToken = (hasToken: boolean) => {
+  hasRefreshToken = hasToken;
+};
+
+export const clearSession = () => {
+  accessToken = null;
+  hasRefreshToken = false;
+};
+
+// Custom error class to distinguish API errors
+export class ApiError extends Error {
+  public status: number;
+  public endpoint: string;
+  public isExpected: boolean;
+
+  constructor(
+    message: string,
+    status: number,
+    endpoint: string,
+    isExpected: boolean = false
+  ) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.endpoint = endpoint;
+    this.isExpected = isExpected;
+  }
+}
+
+// Helper to determine if 401 error is expected
+const isExpected401 = (path: string): boolean => {
+  // These endpoints commonly return 401 for unauthenticated users
+  const publicEndpoints = ['/auth/me', '/auth/refresh'];
+  return publicEndpoints.some(endpoint => path.includes(endpoint));
+};
+
+// Helper to determine if 404 error should be handled quietly
+const isExpected404 = (path: string): boolean => {
+  // These endpoints might not be implemented yet or are optional
+  const optionalEndpoints = ['/courses/saved/count', '/courses/saved', '/notifications'];
+  return optionalEndpoints.some(endpoint => path.includes(endpoint));
+};
+
+// Enhanced logging that respects expected vs unexpected errors
+const logApiError = (error: ApiError) => {
+  // Check if this is an expected error that should be handled silently
+  if (error.isExpected) {
+    // Only log in development with debug flag
+    if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_AUTH === 'true') {
+      if (error.status === 401) {
+        secureDebug(`[Auth] Expected 401 from ${error.endpoint}`);
+      } else if (error.status === 404) {
+        secureDebug(`[API] Optional endpoint not found: ${error.endpoint}`);
+      }
+    }
+    return; // Don't log expected errors
+  }
+  
+  // Log unexpected errors based on severity
+  if (error.status >= 500) {
+    secureError(`[API] Server error (${error.status}):`, error.message);
+  } else if (error.status === 401) {
+    secureWarn(`[Auth] Unauthorized access attempt:`, error.message);
+  } else if (error.status === 404) {
+    secureWarn(`[API] Endpoint not found (${error.status}): ${error.endpoint}`);
+  } else {
+    secureError(`[API] Request failed (${error.status}):`, error.message);
+  }
 };
 
 export const UsersAPI = {
@@ -30,11 +106,23 @@ async function refreshAccessToken(): Promise<string | null> {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken: '' }),
         });
-        if (!res.ok) return null;
+        
+        if (!res.ok) {
+          // Don't log expected 401s from refresh endpoint
+          if (res.status !== 401) {
+            secureError(`[Auth] Token refresh failed (${res.status})`);
+          }
+          return null;
+        }
+        
         const data = (await res.json()) as { accessToken: string };
         setAccessToken(data.accessToken);
         return data.accessToken;
-      } catch {
+      } catch (err) {
+        // Only log unexpected network errors
+        if (import.meta.env.DEV) {
+          secureDebug('[Auth] Token refresh network error:', err);
+        }
         return null;
       } finally {
         // Allow subsequent refreshes
@@ -61,10 +149,14 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
     headers,
   });
 
-  if (res.status === 401 && retry) {
+  // Only attempt refresh if we have evidence of a refresh token
+  if (res.status === 401 && retry && hasRefreshToken) {
     const newToken = await refreshAccessToken();
     if (newToken) {
       return apiFetch<T>(path, options, false);
+    } else {
+      // Refresh failed, clear the flag
+      hasRefreshToken = false;
     }
   }
 
@@ -76,7 +168,16 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
     } catch {
       /* ignore json parse error */
     }
-    throw new Error(message);
+    
+    // Create enhanced error with context
+    const isExpected = (res.status === 401 && isExpected401(path)) || 
+                      (res.status === 404 && isExpected404(path));
+    const apiError = new ApiError(message, res.status, path, isExpected);
+    
+    // Log error appropriately
+    logApiError(apiError);
+    
+    throw apiError;
   }
 
   if (res.status === 204) return undefined as T;
