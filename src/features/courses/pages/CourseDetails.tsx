@@ -65,7 +65,7 @@ const CourseDetails: React.FC = () => {
 
   const activeLesson: ApiLesson | undefined = course?.lessons.find(l => l.id === activeLessonId);
   const videoSrc = activeLesson?.videoUrl || course?.previewVideoUrl || undefined;
-  const videoThumb = course?.image || undefined;
+  const videoThumb = activeLesson?.thumbnailUrl || course?.image || undefined;
   const totalDuration = course?.lessons.reduce((sum, lesson) => sum + (lesson.duration || 0), 0) || 0;
 
   if (isLoading) {

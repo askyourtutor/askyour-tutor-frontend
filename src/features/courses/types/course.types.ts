@@ -6,6 +6,7 @@ export interface ApiLesson {
   description: string | null;
   content: string | null;
   videoUrl?: string | null;
+  thumbnailUrl?: string | null;
   bunnyVideoId?: string | null;
   duration: number | null;
   orderIndex: number;
