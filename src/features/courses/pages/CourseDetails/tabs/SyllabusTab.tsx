@@ -133,6 +133,7 @@ const SyllabusTab: React.FC<SyllabusTabProps> = ({ course, isEnrolled, isEnrolli
                     if (!isLocked) {
                       onSelectLesson(lesson.id);
                       onSwitchToOverview();
+                      // Scroll to top and reset video when selecting lesson
                       window.scrollTo({ top: 0, behavior: 'smooth' });
                     }
                   }}

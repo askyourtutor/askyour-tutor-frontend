@@ -5,6 +5,7 @@ export interface ApiLesson {
   title: string;
   description: string | null;
   content: string | null;
+  videoUrl: string | null; // Video URL for this lesson
   duration: number | null;
   orderIndex: number;
   isPublished: boolean;

@@ -10,6 +10,7 @@ interface VideoPlayerProps {
   lessonsCount: number;
   rating: number;
   renderStars: (rating: number) => React.ReactNode;
+  activeLesson?: { title: string; orderIndex: number } | null; // Add active lesson info
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -21,6 +22,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   lessonsCount,
   rating,
   renderStars,
+  activeLesson,
 }) => {
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
@@ -45,6 +47,21 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
             {/* Bottom Info Bar */}
             <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 lg:p-6">
+              {/* Active Lesson Indicator */}
+              {activeLesson && (
+                <div className="mb-2">
+                  <div className="inline-flex items-center gap-2 bg-blue-600/90 backdrop-blur-md rounded-sm px-3 py-1.5">
+                    <span className="font-bold text-white text-xs sm:text-sm">
+                      Lesson {activeLesson.orderIndex + 1}
+                    </span>
+                    <span className="text-blue-100 text-xs sm:text-sm">•</span>
+                    <span className="text-white text-xs sm:text-sm font-medium line-clamp-1">
+                      {activeLesson.title}
+                    </span>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-2 sm:gap-0">
                 <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
                   <div className="flex items-center gap-1.5 sm:gap-2 bg-black/40 backdrop-blur-md rounded-sm px-2 sm:px-3 py-1.5 sm:py-2">

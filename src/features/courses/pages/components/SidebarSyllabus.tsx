@@ -82,7 +82,11 @@ const SidebarSyllabus: React.FC<SidebarSyllabusProps> = ({
               <button
                 key={l.id}
                 onClick={() => {
-                  if (!isLocked) onSelectLesson(l.id);
+                  if (!isLocked) {
+                    onSelectLesson(l.id);
+                    // Stop any currently playing video when switching lessons
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
                 }}
                 disabled={isLocked}
                 className={`w-full text-left p-2.5 rounded-sm border transition-all duration-200 group ${
