@@ -64,8 +64,7 @@ const CourseDetails: React.FC = () => {
   // Handler functions are provided by the hook above
 
   const activeLesson: ApiLesson | undefined = course?.lessons.find(l => l.id === activeLessonId);
-  // Use active lesson video if available, otherwise fall back to course preview video
-  const videoSrc = activeLesson?.videoUrl || course?.previewVideoUrl || undefined;
+  const videoSrc = course?.previewVideoUrl || undefined;
   const videoThumb = course?.image || undefined;
   const totalDuration = course?.lessons.reduce((sum, lesson) => sum + (lesson.duration || 0), 0) || 0;
 
@@ -135,7 +134,6 @@ const CourseDetails: React.FC = () => {
               lessonsCount={course.lessons.length}
               rating={course.rating}
               renderStars={renderStars}
-              activeLesson={activeLesson ? { title: activeLesson.title, orderIndex: activeLesson.orderIndex } : null}
             />
 
 

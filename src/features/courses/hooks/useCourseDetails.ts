@@ -55,11 +55,6 @@ export function useCourseDetails(courseId: string | undefined) {
     if (!authLoading) load();
   }, [courseId, authLoading, user]);
 
-  // Stop video when switching lessons
-  useEffect(() => {
-    setIsVideoPlaying(false);
-  }, [activeLessonId]);
-
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       // Consumers pass their own IconStar component; keep logic here minimal if needed
