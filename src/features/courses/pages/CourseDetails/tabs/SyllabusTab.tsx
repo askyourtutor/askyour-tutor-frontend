@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconBook, IconClock, IconLock, IconPlayerPlay } from '@tabler/icons-react';
+import { IconBook, IconClock, IconLock, IconPlayerPlay, IconPlayerPause } from '@tabler/icons-react';
 
 interface Lesson {
   id: string;
@@ -20,9 +20,22 @@ interface SyllabusTabProps {
   onEnroll: () => void;
   onSelectLesson: (lessonId: string) => void;
   onSwitchToOverview: () => void;
+  activeLessonId: string | null;
+  isVideoPlaying: boolean;
+  onTogglePlayPause: () => void;
 }
 
-const SyllabusTab: React.FC<SyllabusTabProps> = ({ course, isEnrolled, isEnrolling, onEnroll, onSelectLesson, onSwitchToOverview }) => {
+const SyllabusTab: React.FC<SyllabusTabProps> = ({ 
+  course, 
+  isEnrolled, 
+  isEnrolling, 
+  onEnroll, 
+  onSelectLesson, 
+  onSwitchToOverview,
+  activeLessonId,
+  isVideoPlaying,
+  onTogglePlayPause
+}) => {
   return (
     <div className="space-y-3 sm:space-y-4 animate-fadeIn">
       {/* Syllabus Header */}
@@ -65,6 +78,7 @@ const SyllabusTab: React.FC<SyllabusTabProps> = ({ course, isEnrolled, isEnrolli
         {course.lessons.map((lesson, index) => {
           const isLocked = !isEnrolled && index > 0; // First lesson preview, rest locked
           const isPreview = !isEnrolled && index === 0;
+          const isActive = activeLessonId === lesson.id;
           
           return (
             <div
@@ -72,7 +86,9 @@ const SyllabusTab: React.FC<SyllabusTabProps> = ({ course, isEnrolled, isEnrolli
               className={`bg-white border rounded-sm transition-all duration-200 overflow-hidden ${
                 isLocked 
                   ? 'border-gray-200 opacity-75' 
-                  : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
+                  : isActive
+                    ? 'border-blue-400 bg-blue-50/30 shadow-sm'
+                    : 'border-gray-200 hover:border-blue-300 hover:shadow-sm'
               }`}
             >
               <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 md:p-4">
@@ -131,19 +147,32 @@ const SyllabusTab: React.FC<SyllabusTabProps> = ({ course, isEnrolled, isEnrolli
                   disabled={isLocked}
                   onClick={() => {
                     if (!isLocked) {
-                      onSelectLesson(lesson.id);
-                      onSwitchToOverview();
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      if (isActive && isVideoPlaying) {
+                        // If current lesson is playing, pause it
+                        onTogglePlayPause();
+                      } else if (isActive && !isVideoPlaying) {
+                        // If current lesson is paused, resume it
+                        onTogglePlayPause();
+                      } else {
+                        // If different lesson, select and play it
+                        onSelectLesson(lesson.id);
+                        onSwitchToOverview();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
                     }
                   }}
                   className={`flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-sm transition-colors flex-shrink-0 ${
                     isLocked 
                       ? 'bg-gray-200 cursor-not-allowed' 
-                      : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
+                      : isActive
+                        ? 'bg-blue-600 hover:bg-blue-700 cursor-pointer ring-2 ring-blue-300'
+                        : 'bg-blue-600 hover:bg-blue-700 cursor-pointer'
                   }`}
                 >
                   {isLocked ? (
                     <IconLock size={14} className="sm:w-4 sm:h-4 text-gray-400" />
+                  ) : isActive && isVideoPlaying ? (
+                    <IconPlayerPause size={14} className="sm:w-4 sm:h-4 text-white" />
                   ) : (
                     <IconPlayerPlay size={14} className="sm:w-4 sm:h-4 text-white" />
                   )}

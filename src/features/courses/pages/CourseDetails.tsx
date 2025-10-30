@@ -256,8 +256,14 @@ const CourseDetails: React.FC = () => {
                     isEnrolled={isEnrolled}
                     isEnrolling={isEnrolling}
                     onEnroll={handleEnroll}
-                    onSelectLesson={(lessonId) => setActiveLessonId(lessonId)}
+                    onSelectLesson={(lessonId) => {
+                      setActiveLessonId(lessonId);
+                      setIsVideoPlaying(true);
+                    }}
                     onSwitchToOverview={() => setActiveTab('overview')}
+                    activeLessonId={activeLessonId}
+                    isVideoPlaying={isVideoPlaying}
+                    onTogglePlayPause={() => setIsVideoPlaying(!isVideoPlaying)}
                   />
                 )}
 
@@ -285,9 +291,11 @@ const CourseDetails: React.FC = () => {
                 onEnroll={handleEnroll}
                 onSelectLesson={(lessonId) => {
                   setActiveLessonId(lessonId);
-                  setIsVideoPlaying(false);
+                  setIsVideoPlaying(true);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
+                isVideoPlaying={isVideoPlaying}
+                onTogglePlayPause={() => setIsVideoPlaying(!isVideoPlaying)}
               />
 
             </div>

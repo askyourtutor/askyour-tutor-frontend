@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconBook, IconClock, IconLock, IconPlayerPlay } from '@tabler/icons-react';
+import { IconBook, IconClock, IconLock, IconPlayerPlay, IconPlayerPause } from '@tabler/icons-react';
 
 interface Lesson {
   id: string;
@@ -20,6 +20,8 @@ interface SidebarSyllabusProps {
   isEnrolling: boolean;
   onEnroll: () => void;
   onSelectLesson: (lessonId: string) => void;
+  isVideoPlaying: boolean;
+  onTogglePlayPause: () => void;
 }
 
 const SidebarSyllabus: React.FC<SidebarSyllabusProps> = ({
@@ -29,6 +31,8 @@ const SidebarSyllabus: React.FC<SidebarSyllabusProps> = ({
   isEnrolling,
   onEnroll,
   onSelectLesson,
+  isVideoPlaying,
+  onTogglePlayPause,
 }) => {
   return (
     <div className="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden lg:h-full flex flex-col">
@@ -82,14 +86,25 @@ const SidebarSyllabus: React.FC<SidebarSyllabusProps> = ({
               <button
                 key={l.id}
                 onClick={() => {
-                  if (!isLocked) onSelectLesson(l.id);
+                  if (!isLocked) {
+                    if (isActive && isVideoPlaying) {
+                      // If current lesson is playing, pause it
+                      onTogglePlayPause();
+                    } else if (isActive && !isVideoPlaying) {
+                      // If current lesson is paused, resume it
+                      onTogglePlayPause();
+                    } else {
+                      // If different lesson, select and play it
+                      onSelectLesson(l.id);
+                    }
+                  }
                 }}
                 disabled={isLocked}
                 className={`w-full text-left p-2.5 rounded-sm border transition-all duration-200 group ${
                   isLocked
                     ? 'border-gray-200 bg-gray-50 opacity-70 cursor-not-allowed'
                     : isActive 
-                      ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-sm' 
+                      ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-sm ring-2 ring-blue-200' 
                       : 'border-gray-200 hover:bg-gray-50 hover:border-blue-300 cursor-pointer'
                 }`}
               >
@@ -146,7 +161,11 @@ const SidebarSyllabus: React.FC<SidebarSyllabusProps> = ({
                   {/* Play Icon for Active */}
                   {isActive && !isLocked && (
                     <div className="w-7 h-7 bg-blue-600 rounded-sm flex items-center justify-center flex-shrink-0">
-                      <IconPlayerPlay size={12} className="text-white ml-0.5" />
+                      {isVideoPlaying ? (
+                        <IconPlayerPause size={12} className="text-white" />
+                      ) : (
+                        <IconPlayerPlay size={12} className="text-white ml-0.5" />
+                      )}
                     </div>
                   )}
                 </div>
