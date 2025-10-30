@@ -28,8 +28,17 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
         {!isPlaying || !src ? (
           <div className={`relative w-full h-full ${src ? 'group cursor-pointer' : ''}`} onClick={() => src && onTogglePlay(true)}>
             {poster && <img src={poster} alt="Course preview" className="w-full h-full object-cover" />}
+            {!src && !poster && (
+              <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
+                <div className="text-center text-white">
+                  <div className="text-4xl mb-4">🎥</div>
+                  <h3 className="text-lg font-semibold mb-2">Select a Lesson</h3>
+                  <p className="text-gray-300">Choose a lesson from the syllabus to start watching</p>
+                </div>
+              </div>
+            )}
             {/* Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+            {(poster || src) && <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>}
 
             {/* Play Button */}
             {src && (

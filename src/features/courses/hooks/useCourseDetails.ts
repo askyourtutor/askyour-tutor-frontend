@@ -25,7 +25,11 @@ export function useCourseDetails(courseId: string | undefined) {
         const data = await getCourseById(courseId);
         if (data) {
           setCourse(data);
-          if (data.lessons && data.lessons.length > 0) setActiveLessonId(data.lessons[0].id);
+          // Auto-select the first lesson with video, or just the first lesson
+          if (data.lessons && data.lessons.length > 0) {
+            const firstVideoLesson = data.lessons.find(l => l.videoUrl) || data.lessons[0];
+            setActiveLessonId(firstVideoLesson.id);
+          }
         }
         // If authenticated student, check enrollment
         if (user && courseId) {
