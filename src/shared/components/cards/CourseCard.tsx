@@ -113,7 +113,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
       }}
     >
       {/* Course Image Container */}
-      <div className="relative overflow-hidden aspect-[3/2] sm:aspect-[4/3] lg:aspect-[16/10]">
+      <div className="relative overflow-hidden aspect-[4/3]">
         {hasImage ? (
           <img
             src={imgSrc}
@@ -130,27 +130,25 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gray-50 group-hover:bg-gray-100 transition-colors duration-300">
-            <span className="text-xl sm:text-2xl font-medium text-gray-400">
+            <span className="text-lg font-medium text-gray-400">
               {getInitials(course.title)}
             </span>
           </div>
         )}
         
-        {/* Removed overlay for mobile optimization */}
-        
         {/* Duration badge */}
         {duration && (
-          <div className="absolute top-2 lg:top-3 left-2 lg:left-3">
-            <div className="flex items-center gap-1 bg-black/80 text-white px-1.5 lg:px-2 py-0.5 lg:py-1 rounded text-[10px] lg:text-xs">
-              <IconClock size={10} className="lg:w-3 lg:h-3" />
+          <div className="absolute top-2 left-2">
+            <div className="flex items-center gap-0.5 bg-black/80 text-white px-1.5 py-0.5 rounded text-[10px]">
+              <IconClock size={10} />
               <span>{duration}</span>
             </div>
           </div>
         )}
         
         {/* Price badge */}
-        <div className="absolute top-2 lg:top-3 right-2 lg:right-3">
-          <div className={`px-1.5 lg:px-2 py-0.5 lg:py-1 rounded text-[10px] lg:text-xs font-medium ${
+        <div className="absolute top-2 right-2">
+          <div className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
             isFree 
               ? 'bg-green-500 text-white' 
               : 'bg-white text-gray-900'
@@ -161,42 +159,42 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
       </div>
 
       {/* Course Content */}
-      <div className="p-3 lg:p-4">
+      <div className="p-2.5">
         {/* Course Meta */}
-        <div className="flex items-center gap-3 lg:gap-4 mb-2 lg:mb-3 text-gray-500">
-          <div className="flex items-center gap-1">
-            <IconFile size={12} className="text-gray-400 lg:w-4 lg:h-4" />
-            <span className="text-xs lg:text-sm">{lessons} lessons</span>
+        <div className="flex items-center gap-2.5 mb-1.5 text-gray-500">
+          <div className="flex items-center gap-0.5">
+            <IconFile size={11} className="text-gray-400" />
+            <span className="text-[10px]">{lessons}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <IconUsers size={12} className="text-gray-400 lg:w-4 lg:h-4" />
-            <span className="text-xs lg:text-sm">{formatCount(students)} students</span>
+          <div className="flex items-center gap-0.5">
+            <IconUsers size={11} className="text-gray-400" />
+            <span className="text-[10px]">{formatCount(students)}</span>
           </div>
         </div>
 
         {/* Course Title */}
-        <h3 className="text-sm lg:text-lg font-semibold text-gray-900 mb-2 lg:mb-3 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors duration-200">
+        <h3 className="text-xs font-semibold text-gray-900 mb-1.5 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors duration-200">
           {course.title}
         </h3>
         
         {/* Rating */}
-        <div className="flex items-center gap-1.5 lg:gap-2 mb-3 lg:mb-4">
+        <div className="flex items-center gap-1 mb-2">
           <div className="flex items-center gap-0.5">
             {renderStars(displayRating)}
           </div>
-          <span className="text-xs lg:text-sm text-gray-600">
+          <span className="text-[10px] text-gray-600">
             {displayRating.toFixed(1)}
           </span>
         </div>
 
         {/* Instructor */}
-        <div className="flex items-center gap-2 lg:gap-3">
+        <div className="flex items-center gap-1.5">
           <img
             src={instructorAvatar}
             alt={instructorName}
             loading="lazy"
             decoding="async"
-            className="w-6 h-6 lg:w-8 lg:h-8 rounded-full object-cover"
+            className="w-5 h-5 rounded-full object-cover"
             onError={(e) => {
               const img = e.currentTarget as HTMLImageElement;
               img.onerror = null;
@@ -204,10 +202,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
             }}
           />
           <div className="flex-1 min-w-0">
-            <span className="text-xs lg:text-sm font-medium text-gray-700 truncate block">
+            <span className="text-[10px] font-medium text-gray-700 truncate block">
               {instructorName}
             </span>
-            <p className="text-[10px] lg:text-xs text-gray-500">Instructor</p>
           </div>
         </div>
       </div>

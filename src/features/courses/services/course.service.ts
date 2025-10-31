@@ -1,5 +1,50 @@
 import type { ApiCourse } from '../types/course.types';
 import { apiFetch } from '../../../shared/services/api';
+import type { CourseSummary, CategorySummary } from '../../../shared/types';
+
+interface GetCoursesParams {
+  category?: string;
+  priceType?: 'all' | 'free' | 'paid';
+  level?: 'all' | 'beginner' | 'intermediate' | 'advanced';
+  rating?: number;
+  search?: string;
+  sortBy?: 'popular' | 'newest' | 'rating' | 'price-low' | 'price-high';
+  page?: number;
+  limit?: number;
+}
+
+interface CoursesResponse {
+  data: CourseSummary[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+// Fetch all courses with filters
+export async function getCourses(params: GetCoursesParams = {}): Promise<CoursesResponse> {
+  const queryParams = new URLSearchParams();
+  
+  if (params.category && params.category !== 'all') queryParams.set('category', params.category);
+  if (params.priceType && params.priceType !== 'all') queryParams.set('priceType', params.priceType);
+  if (params.rating && params.rating > 0) queryParams.set('rating', params.rating.toString());
+  if (params.search) queryParams.set('search', params.search);
+  if (params.sortBy) queryParams.set('sortBy', params.sortBy);
+  if (params.page) queryParams.set('page', params.page.toString());
+  if (params.limit) queryParams.set('limit', params.limit.toString());
+
+  const query = queryParams.toString();
+  const endpoint = query ? `/courses?${query}` : '/courses';
+  
+  return apiFetch<CoursesResponse>(endpoint, { method: 'GET' });
+}
+
+// Fetch all categories
+export async function getCategories(): Promise<CategorySummary[]> {
+  return apiFetch<CategorySummary[]>('/courses/categories', { method: 'GET' });
+}
 
 // Fetch a course by id (public)
 export async function getCourseById(courseId: string): Promise<ApiCourse | null> {

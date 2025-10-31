@@ -2,27 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   IconSearch, 
   IconX, 
-  IconLayoutGrid,
-  IconLayoutList,
   IconChevronDown
 } from '@tabler/icons-react';
 import { CourseCard } from '../../../shared/components/cards/CourseCard';
 import { CourseSkeletonGrid } from '../../../shared/components/skeletons/CourseCardSkeleton';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import type { CourseSummary, CategorySummary } from '../../../shared/types';
+import { getCourses, getCategories } from '../services/course.service';
 
-// Mock categories for now - replace with API call later
-const MOCK_CATEGORIES: CategorySummary[] = [
-  { id: 'all', name: 'All Categories', slug: 'all', courseCount: 156 },
-  { id: '1', name: 'Mathematics', slug: 'mathematics', courseCount: 45 },
-  { id: '2', name: 'Computer Science', slug: 'computer-science', courseCount: 38 },
-  { id: '3', name: 'Physics', slug: 'physics', courseCount: 28 },
-  { id: '4', name: 'Chemistry', slug: 'chemistry', courseCount: 22 },
-  { id: '5', name: 'Business', slug: 'business', courseCount: 15 },
-  { id: '6', name: 'English', slug: 'english', courseCount: 8 },
-];
-
-type ViewMode = 'grid' | 'list';
 type SortOption = 'popular' | 'newest' | 'price-low' | 'price-high' | 'rating';
 
 interface FilterState {
@@ -34,15 +21,17 @@ interface FilterState {
 
 const CoursesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const [sortBy, setSortBy] = useState<SortOption>('popular');
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [showLevelDropdown, setShowLevelDropdown] = useState(false);
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [courses, setCourses] = useState<CourseSummary[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<CourseSummary[]>([]);
+  const [categories, setCategories] = useState<CategorySummary[]>([
+    { id: 'all', name: 'All Categories', slug: 'all', courseCount: 0 },
+  ]);
+  const [totalCount, setTotalCount] = useState(0);
   
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   const priceDropdownRef = useRef<HTMLDivElement>(null);
@@ -56,71 +45,50 @@ const CoursesPage: React.FC = () => {
     rating: 0,
   });
 
-  // Simulate loading courses - Replace with actual API call
+  // Fetch categories on mount
   useEffect(() => {
-    setIsLoading(true);
-    // Simulate API delay
-    setTimeout(() => {
-      // Mock data - replace with actual API call
-      const mockCourses: CourseSummary[] = [];
-      setCourses(mockCourses);
-      setFilteredCourses(mockCourses);
-      setIsLoading(false);
-    }, 1000);
+    const fetchCategories = async () => {
+      try {
+        const cats = await getCategories();
+        setCategories([
+          { id: 'all', name: 'All Categories', slug: 'all', courseCount: 0 },
+          ...cats,
+        ]);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+    fetchCategories();
   }, []);
 
-  // Apply filters and search
+  // Fetch courses from API
   useEffect(() => {
-    let result = [...courses];
+    const fetchCourses = async () => {
+      setIsLoading(true);
+      try {
+        const response = await getCourses({
+          category: filters.category !== 'all' ? filters.category : undefined,
+          priceType: filters.priceType !== 'all' ? filters.priceType : undefined,
+          rating: filters.rating > 0 ? filters.rating : undefined,
+          search: searchQuery.trim() || undefined,
+          sortBy: sortBy,
+          page: 1,
+          limit: 100, // Fetch more for client-side display
+        });
+        
+        setFilteredCourses(response.data);
+        setTotalCount(response.pagination.total);
+      } catch (error) {
+        console.error('Failed to fetch courses:', error);
+        setFilteredCourses([]);
+        setTotalCount(0);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    // Search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter(course => 
-        course.title.toLowerCase().includes(query) ||
-        course.instructor?.name?.toLowerCase().includes(query)
-      );
-    }
-
-    // Category filter
-    if (filters.category !== 'all') {
-      // Apply category filter when backend is integrated
-    }
-
-    // Price filter
-    if (filters.priceType === 'free') {
-      result = result.filter(course => course.isFree);
-    } else if (filters.priceType === 'paid') {
-      result = result.filter(course => !course.isFree);
-    }
-
-    // Rating filter
-    if (filters.rating > 0) {
-      result = result.filter(course => (course.rating || 0) >= filters.rating);
-    }
-
-    // Sorting
-    switch (sortBy) {
-      case 'newest':
-        // Sort by date when available
-        break;
-      case 'price-low':
-        result.sort((a, b) => (a.price || 0) - (b.price || 0));
-        break;
-      case 'price-high':
-        result.sort((a, b) => (b.price || 0) - (a.price || 0));
-        break;
-      case 'rating':
-        result.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-      case 'popular':
-      default:
-        result.sort((a, b) => (b.totalStudents || 0) - (a.totalStudents || 0));
-        break;
-    }
-
-    setFilteredCourses(result);
-  }, [courses, searchQuery, filters, sortBy]);
+    fetchCourses();
+  }, [filters, searchQuery, sortBy]);
 
   const handleCategoryChange = (categoryId: string) => {
     setFilters(prev => ({ ...prev, category: categoryId }));
@@ -204,8 +172,16 @@ const CoursesPage: React.FC = () => {
                       : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <span className="hidden sm:inline">Category</span>
-                  <span className="sm:hidden">Cat</span>
+                  <span className="hidden sm:inline">
+                    {filters.category === 'all' 
+                      ? 'Category' 
+                      : categories.find(c => c.id === filters.category)?.name || 'Category'}
+                  </span>
+                  <span className="sm:hidden">
+                    {filters.category === 'all' 
+                      ? 'Cat' 
+                      : (categories.find(c => c.id === filters.category)?.name || 'Cat').slice(0, 3)}
+                  </span>
                   {filters.category !== 'all' && (
                     <span className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                       1
@@ -216,7 +192,7 @@ const CoursesPage: React.FC = () => {
 
                 {showCategoryDropdown && (
                   <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 max-h-80 overflow-y-auto z-50">
-                    {MOCK_CATEGORIES.map((category) => (
+                    {categories.map((category) => (
                       <button
                         key={category.id}
                         onClick={() => {
@@ -229,7 +205,9 @@ const CoursesPage: React.FC = () => {
                       >
                         <div className="flex items-center justify-between">
                           <span>{category.name}</span>
-                          <span className="text-xs text-gray-500">{category.courseCount}</span>
+                          {category.courseCount > 0 && (
+                            <span className="text-xs text-gray-500">{category.courseCount}</span>
+                          )}
                         </div>
                       </button>
                     ))}
@@ -247,8 +225,12 @@ const CoursesPage: React.FC = () => {
                       : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <span className="hidden sm:inline">Price</span>
-                  <span className="sm:hidden">$</span>
+                  <span className="hidden sm:inline">
+                    {filters.priceType === 'all' ? 'Price' : filters.priceType === 'free' ? 'Free' : 'Paid'}
+                  </span>
+                  <span className="sm:hidden">
+                    {filters.priceType === 'all' ? '$' : filters.priceType === 'free' ? 'Free' : 'Paid'}
+                  </span>
                   {filters.priceType !== 'all' && (
                     <span className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                       1
@@ -291,8 +273,12 @@ const CoursesPage: React.FC = () => {
                       : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <span className="hidden sm:inline">Level</span>
-                  <span className="sm:hidden">Lvl</span>
+                  <span className="hidden sm:inline">
+                    {filters.level === 'all' ? 'Level' : filters.level.charAt(0).toUpperCase() + filters.level.slice(1)}
+                  </span>
+                  <span className="sm:hidden">
+                    {filters.level === 'all' ? 'Lvl' : filters.level.slice(0, 3)}
+                  </span>
                   {filters.level !== 'all' && (
                     <span className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                       1
@@ -336,8 +322,12 @@ const CoursesPage: React.FC = () => {
                       : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >
-                  <span className="hidden sm:inline">Rating</span>
-                  <span className="sm:hidden">★</span>
+                  <span className="hidden sm:inline">
+                    {filters.rating === 0 ? 'Rating' : `${filters.rating}+ Stars`}
+                  </span>
+                  <span className="sm:hidden">
+                    {filters.rating === 0 ? '★' : `${filters.rating}+`}
+                  </span>
                   {filters.rating > 0 && (
                     <span className="bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                       1
@@ -381,24 +371,6 @@ const CoursesPage: React.FC = () => {
                   <span className="hidden lg:inline">Clear</span>
                 </button>
               )}
-
-              {/* View Mode Toggle (Desktop) */}
-              <div className="hidden md:flex items-center gap-1 border border-gray-300 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded ${viewMode === 'grid' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'} transition-colors`}
-                  title="Grid view"
-                >
-                  <IconLayoutGrid size={16} />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-1.5 rounded ${viewMode === 'list' ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-100'} transition-colors`}
-                  title="List view"
-                >
-                  <IconLayoutList size={16} />
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -415,7 +387,8 @@ const CoursesPage: React.FC = () => {
                     <span className="animate-pulse">Loading courses...</span>
                   ) : (
                     <>
-                      Showing <span className="text-blue-600 font-semibold">{filteredCourses.length}</span> courses
+                      Showing <span className="text-blue-600 font-semibold">{filteredCourses.length}</span> 
+                      {totalCount > filteredCourses.length && ` of ${totalCount}`} courses
                       {searchQuery && <span className="text-gray-500"> for "{searchQuery}"</span>}
                     </>
                   )}
@@ -458,13 +431,7 @@ const CoursesPage: React.FC = () => {
                 />
               </div>
             ) : (
-              <div
-                className={
-                  viewMode === 'grid'
-                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6'
-                    : 'space-y-4'
-                }
-              >
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 lg:gap-4">
                 {filteredCourses.map((course) => (
                   <CourseCard key={course.id} course={course} />
                 ))}
