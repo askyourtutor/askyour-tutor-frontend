@@ -14,6 +14,7 @@ import RoleRoute from '../shared/components/guards/RoleRoute';
 import StudentProfile from '../features/profile/pages/StudentProfile';
 import TutorProfile from '../features/profile/pages/TutorProfile';
 import CourseDetails from '../features/courses/pages/CourseDetails';
+import CoursesPage from '../features/courses/pages/CoursesPage';
 
 const router = createBrowserRouter([
   {
@@ -22,6 +23,7 @@ const router = createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { index: true, element: <Home /> },
+      { path: 'courses', element: <CoursesPage /> },
       { path: 'course/:id', element: <CourseDetails /> },
       {
         element: <GuestRoute />,
