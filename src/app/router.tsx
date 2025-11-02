@@ -14,8 +14,8 @@ import RoleRoute from '../shared/components/guards/RoleRoute';
 import StudentProfile from '../features/profile/pages/StudentProfile';
 import TutorProfile from '../features/profile/pages/TutorProfile';
 import StudentDashboard from '../features/profile/pages/StudentDashboard';
-import TutorDashboard from '../features/profile/pages/TutorDashboard';
 import AdminDashboard from '../features/profile/pages/AdminDashboard';
+import TutorDashboard from '../features/profile/pages/TutorDashboard';
 import CourseDetails from '../features/courses/pages/CourseDetails';
 import CoursesPage from '../features/courses/pages/CoursesPage';
 import TeachersPage from '../features/teachers/pages/TeachersPage';
@@ -89,15 +89,10 @@ const router = createBrowserRouter([
             </RoleRoute>
           ) },
           
-          // Tutor only routes
+          // Tutor profile route (uses layout)
           { path: 'tutor/profile', element: (
             <RoleRoute allowed={['TUTOR']}>
               <TutorProfile />
-            </RoleRoute>
-          ) },
-          { path: 'tutor/dashboard', element: (
-            <RoleRoute allowed={['TUTOR']}>
-              <TutorDashboard />
             </RoleRoute>
           ) },
         ],
@@ -105,7 +100,7 @@ const router = createBrowserRouter([
       { path: '*', element: <NotFound /> },
     ],
   },
-  // Admin routes without header
+  // Admin routes without layout header
   {
     path: 'admin',
     element: (
@@ -119,6 +114,15 @@ const router = createBrowserRouter([
     element: (
       <RoleRoute allowed={['ADMIN']}>
         <AdminDashboard />
+      </RoleRoute>
+    ),
+  },
+  // Tutor dashboard without layout header (like admin)
+  {
+    path: 'tutor/dashboard',
+    element: (
+      <RoleRoute allowed={['TUTOR']}>
+        <TutorDashboard />
       </RoleRoute>
     ),
   },
