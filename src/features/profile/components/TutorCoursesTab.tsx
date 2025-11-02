@@ -11,6 +11,7 @@ import {
 } from '@tabler/icons-react';
 import { useState } from 'react';
 import type { CourseWithStats } from '../../../shared/services/tutorDashboardService';
+import CreateCourseModal from './CreateCourseModal';
 
 interface TutorCoursesTabProps {
   courses: CourseWithStats[];
@@ -30,6 +31,7 @@ function TutorCoursesTab({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
   const [filterSubject, setFilterSubject] = useState<string>('ALL');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const subjects = Array.from(new Set(courses.map(c => c.subject))).sort();
 
@@ -119,7 +121,7 @@ function TutorCoursesTab({
               ))}
             </select>
             <button
-              onClick={onCreateCourse}
+              onClick={() => setIsCreateModalOpen(true)}
               className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-sm hover:bg-blue-700 transition-colors"
             >
               <IconPlus size={14} />
@@ -236,7 +238,7 @@ function TutorCoursesTab({
                     <IconBook size={40} className="mx-auto text-gray-300 mb-3" />
                     <p className="text-sm text-gray-500">No courses found</p>
                     <button
-                      onClick={onCreateCourse}
+                      onClick={() => setIsCreateModalOpen(true)}
                       className="mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium"
                     >
                       Create your first course
@@ -248,6 +250,16 @@ function TutorCoursesTab({
           </table>
         </div>
       </div>
+
+      {/* Create Course Modal */}
+      <CreateCourseModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={() => {
+          setIsCreateModalOpen(false);
+          onCreateCourse(); // Refresh courses list
+        }}
+      />
     </div>
   );
 }
