@@ -58,19 +58,19 @@ function AdminDashboardTab({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-white rounded-sm p-3 border border-gray-200">
           <div className="flex items-start justify-between mb-2">
-            <div className="p-2 bg-gray-100 rounded-sm">
-              <IconUsers size={18} className="text-gray-700" />
+            <div className="p-2 bg-blue-50 rounded-sm">
+              <IconUsers size={18} className="text-blue-600" />
             </div>
             <span className="text-xs text-green-600 font-medium">↑ {stats.userGrowth}%</span>
           </div>
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Users</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalUsers.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-blue-600 mt-1">{stats.totalUsers.toLocaleString()}</p>
         </div>
 
         <div className="bg-white rounded-sm p-3 border border-gray-200">
           <div className="flex items-start justify-between mb-2">
-            <div className="p-2 bg-gray-100 rounded-sm">
-              <IconBook size={18} className="text-gray-700" />
+            <div className="p-2 bg-purple-50 rounded-sm">
+              <IconBook size={18} className="text-purple-600" />
             </div>
             {pendingTutors.length > 0 && (
               <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-sm font-medium">
@@ -79,28 +79,28 @@ function AdminDashboardTab({
             )}
           </div>
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Total Tutors</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.totalTutors}</p>
+          <p className="text-2xl font-bold text-purple-600 mt-1">{stats.totalTutors}</p>
         </div>
 
         <div className="bg-white rounded-sm p-3 border border-gray-200">
           <div className="flex items-start justify-between mb-2">
-            <div className="p-2 bg-gray-100 rounded-sm">
-              <IconCalendarEvent size={18} className="text-gray-700" />
+            <div className="p-2 bg-green-50 rounded-sm">
+              <IconCalendarEvent size={18} className="text-green-600" />
             </div>
             <span className="w-2 h-2 bg-green-600 rounded-full mt-1"></span>
           </div>
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Active Sessions</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{stats.activeSessions}</p>
+          <p className="text-2xl font-bold text-green-600 mt-1">{stats.activeSessions}</p>
         </div>
 
         <div className="bg-white rounded-sm p-3 border border-gray-200">
           <div className="flex items-start justify-between mb-2">
-            <div className="p-2 bg-gray-100 rounded-sm">
-              <IconChartBar size={18} className="text-gray-700" />
+            <div className="p-2 bg-amber-50 rounded-sm">
+              <IconChartBar size={18} className="text-amber-600" />
             </div>
           </div>
           <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Monthly Revenue</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">${stats.monthlyRevenue.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-amber-600 mt-1">${stats.monthlyRevenue.toLocaleString()}</p>
         </div>
       </div>
 
@@ -110,9 +110,9 @@ function AdminDashboardTab({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 font-medium">STUDENTS</p>
-              <p className="text-lg font-bold text-gray-900 mt-0.5">{stats.totalStudents.toLocaleString()}</p>
+              <p className="text-lg font-bold text-indigo-600 mt-0.5">{stats.totalStudents.toLocaleString()}</p>
             </div>
-            <div className="text-gray-600 text-xs font-medium">
+            <div className="text-indigo-600 text-xs font-medium">
               {((stats.totalStudents / stats.totalUsers) * 100).toFixed(0)}%
             </div>
           </div>
@@ -122,9 +122,9 @@ function AdminDashboardTab({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 font-medium">COURSES</p>
-              <p className="text-lg font-bold text-gray-900 mt-0.5">{stats.totalCourses}</p>
+              <p className="text-lg font-bold text-teal-600 mt-0.5">{stats.totalCourses}</p>
             </div>
-            <div className="text-gray-600 text-xs font-medium">Active</div>
+            <div className="text-teal-600 text-xs font-medium">Active</div>
           </div>
         </div>
 
@@ -132,7 +132,7 @@ function AdminDashboardTab({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs text-gray-500 font-medium">PENDING APPROVALS</p>
-              <p className="text-lg font-bold text-gray-900 mt-0.5">{stats.pendingApprovals}</p>
+              <p className="text-lg font-bold text-orange-600 mt-0.5">{stats.pendingApprovals}</p>
             </div>
             <div className={`text-xs font-medium ${stats.pendingApprovals > 0 ? 'text-red-600' : 'text-green-600'}`}>
               {stats.pendingApprovals > 0 ? 'Action needed' : 'Up to date'}
@@ -147,7 +147,7 @@ function AdminDashboardTab({
           <div className="p-3 border-b border-gray-200 flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold text-gray-900">Pending Tutor Approvals</h2>
-              <p className="text-xs text-gray-500 mt-0.5">{pendingTutors.length} tutor{pendingTutors.length > 1 ? 's' : ''} awaiting verification</p>
+              <p className="text-xs text-orange-600 mt-0.5 font-medium">{pendingTutors.length} tutor{pendingTutors.length > 1 ? 's' : ''} awaiting verification</p>
             </div>
             {pendingTutors.length > 1 && (
               <button 
@@ -212,7 +212,7 @@ function AdminDashboardTab({
               <div className="text-center mt-4 pt-3 border-t border-gray-200">
                 <button 
                   onClick={() => onNavigate('tutors')}
-                  className="text-sm text-gray-900 hover:text-gray-700 font-medium"
+                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
                   View all {pendingTutors.length} pending approvals →
                 </button>
@@ -229,19 +229,19 @@ function AdminDashboardTab({
           <div className="space-y-2">
             <button 
               onClick={() => onNavigate('users')}
-              className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-sm text-sm text-gray-700 transition-colors"
+              className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-sm text-sm text-blue-600 font-medium transition-colors"
             >
               → Manage Users ({stats.totalUsers})
             </button>
             <button 
               onClick={() => onNavigate('tutors')}
-              className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-sm text-sm text-gray-700 transition-colors"
+              className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-sm text-sm text-purple-600 font-medium transition-colors"
             >
               → Review Tutors ({pendingTutors.length} pending)
             </button>
             <button 
               onClick={() => onNavigate('courses')}
-              className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-sm text-sm text-gray-700 transition-colors"
+              className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-sm text-sm text-teal-600 font-medium transition-colors"
             >
               → View Courses ({stats.totalCourses})
             </button>
@@ -254,13 +254,13 @@ function AdminDashboardTab({
             <div>
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-gray-600">User Engagement</span>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-blue-600">
                   {((stats.activeSessions / stats.totalUsers) * 100).toFixed(1)}%
                 </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div 
-                  className="bg-gray-900 h-2 rounded-full transition-all" 
+                  className="bg-blue-600 h-2 rounded-full transition-all" 
                   style={{ width: `${((stats.activeSessions / stats.totalUsers) * 100)}%` }}
                 ></div>
               </div>
@@ -268,13 +268,13 @@ function AdminDashboardTab({
             <div>
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-gray-600">Tutor Approval Rate</span>
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-purple-600">
                   {stats.totalTutors > 0 ? ((stats.totalTutors / (stats.totalTutors + pendingTutors.length)) * 100).toFixed(1) : 0}%
                 </span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
                 <div 
-                  className="bg-gray-900 h-2 rounded-full transition-all" 
+                  className="bg-purple-600 h-2 rounded-full transition-all" 
                   style={{ width: `${stats.totalTutors > 0 ? ((stats.totalTutors / (stats.totalTutors + pendingTutors.length)) * 100) : 0}%` }}
                 ></div>
               </div>
@@ -282,10 +282,10 @@ function AdminDashboardTab({
             <div>
               <div className="flex items-center justify-between text-xs mb-1">
                 <span className="text-gray-600">Platform Activity</span>
-                <span className="font-medium text-gray-900">Excellent</span>
+                <span className="font-medium text-green-600">Excellent</span>
               </div>
               <div className="w-full bg-gray-100 rounded-full h-2">
-                <div className="bg-gray-900 h-2 rounded-full transition-all" style={{ width: '85%' }}></div>
+                <div className="bg-green-600 h-2 rounded-full transition-all" style={{ width: '85%' }}></div>
               </div>
             </div>
           </div>

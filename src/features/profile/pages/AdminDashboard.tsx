@@ -411,27 +411,27 @@ function AdminDashboard() {
       />
 
       {/* Top Header */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-30 flex items-center px-6">
+      <div className="fixed top-0 left-0 right-0 h-16 bg-gray-900 z-30 flex items-center px-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gray-900 rounded-sm flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-base">AT</span>
+          <div className="w-10 h-10 bg-white rounded-sm flex items-center justify-center flex-shrink-0">
+            <span className="text-gray-900 font-bold text-base">AT</span>
           </div>
           <div>
-            <h1 className="text-base font-semibold text-gray-900">AskYourTutor Admin</h1>
-            <p className="text-xs text-gray-500">Management Dashboard</p>
+            <h1 className="text-base font-semibold !text-white">AskYourTutor Admin</h1>
+            <p className="text-xs !text-gray-400">Management Dashboard</p>
           </div>
         </div>
         <div className="ml-auto flex items-center gap-4">
           <div className="text-right">
-            <p className="text-sm font-medium text-gray-900">{user?.email || 'Admin User'}</p>
-            <p className="text-xs text-gray-500">Administrator</p>
+            <p className="text-sm font-medium !text-white">{user?.email || 'Admin User'}</p>
+            <p className="text-xs !text-gray-400">Administrator</p>
           </div>
           <button
             onClick={logout}
-            className="p-2 hover:bg-gray-100 rounded-sm transition-colors"
+            className="p-2 hover:bg-gray-800 rounded-sm transition-colors"
             title="Logout"
           >
-            <IconLogout size={18} className="text-gray-600" />
+            <IconLogout size={18} className="!text-white" />
           </button>
         </div>
       </div>
