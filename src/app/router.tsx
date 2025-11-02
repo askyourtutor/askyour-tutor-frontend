@@ -13,6 +13,9 @@ import NotFound from '../features/home/pages/NotFound';
 import RoleRoute from '../shared/components/guards/RoleRoute';
 import StudentProfile from '../features/profile/pages/StudentProfile';
 import TutorProfile from '../features/profile/pages/TutorProfile';
+import StudentDashboard from '../features/profile/pages/StudentDashboard';
+import TutorDashboard from '../features/profile/pages/TutorDashboard';
+import AdminDashboard from '../features/profile/pages/AdminDashboard';
 import CourseDetails from '../features/courses/pages/CourseDetails';
 import CoursesPage from '../features/courses/pages/CoursesPage';
 import TeachersPage from '../features/teachers/pages/TeachersPage';
@@ -25,10 +28,42 @@ const router = createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'courses', element: <CoursesPage /> },
-      { path: 'course/:id', element: <CourseDetails /> },
-      { path: 'teachers', element: <TeachersPage /> },
-      { path: 'teachers/:id', element: <TeacherDetailPage /> },
+      
+      // Courses accessible by STUDENT, TUTOR, ADMIN but details only for STUDENT, ADMIN
+      { 
+        path: 'courses', 
+        element: (
+          <RoleRoute allowed={['STUDENT', 'TUTOR', 'ADMIN']}>
+            <CoursesPage />
+          </RoleRoute>
+        )
+      },
+      { 
+        path: 'course/:id', 
+        element: (
+          <RoleRoute allowed={['STUDENT', 'ADMIN']}>
+            <CourseDetails />
+          </RoleRoute>
+        )
+      },
+      // Teachers accessible by STUDENT, TUTOR, ADMIN but details only for STUDENT, ADMIN
+      { 
+        path: 'teachers', 
+        element: (
+          <RoleRoute allowed={['STUDENT', 'TUTOR', 'ADMIN']}>
+            <TeachersPage />
+          </RoleRoute>
+        )
+      },
+      { 
+        path: 'teachers/:id', 
+        element: (
+          <RoleRoute allowed={['STUDENT', 'ADMIN']}>
+            <TeacherDetailPage />
+          </RoleRoute>
+        )
+      },
+
       {
         element: <GuestRoute />,
         children: [
@@ -42,14 +77,39 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
+          // Student only routes
           { path: 'student/profile', element: (
             <RoleRoute allowed={['STUDENT']}>
               <StudentProfile />
             </RoleRoute>
           ) },
+          { path: 'student/dashboard', element: (
+            <RoleRoute allowed={['STUDENT']}>
+              <StudentDashboard />
+            </RoleRoute>
+          ) },
+          
+          // Tutor only routes
           { path: 'tutor/profile', element: (
             <RoleRoute allowed={['TUTOR']}>
               <TutorProfile />
+            </RoleRoute>
+          ) },
+          { path: 'tutor/dashboard', element: (
+            <RoleRoute allowed={['TUTOR']}>
+              <TutorDashboard />
+            </RoleRoute>
+          ) },
+          
+          // Admin only routes
+          { path: 'admin', element: (
+            <RoleRoute allowed={['ADMIN']}>
+              <AdminDashboard />
+            </RoleRoute>
+          ) },
+          { path: 'admin/dashboard', element: (
+            <RoleRoute allowed={['ADMIN']}>
+              <AdminDashboard />
             </RoleRoute>
           ) },
         ],

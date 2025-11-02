@@ -18,9 +18,11 @@ export default function ProtectedRoute() {
   }
 
   // Determine if user's profile needs setup and where to send them
-  const profileTarget = user.role === 'STUDENT' ? '/student/profile' : '/tutor/profile';
+  const profileTarget = user.role === 'STUDENT' ? '/student/profile' : 
+                       user.role === 'TUTOR' ? '/tutor/profile' : 
+                       '/admin/dashboard'; // Admin users go to dashboard instead of profile setup
   const completion = typeof user.profileCompletion === 'number' ? user.profileCompletion : 0;
-  const needsSetup = completion < 100;
+  const needsSetup = completion < 100 && user.role !== 'ADMIN'; // Admin users don't need profile setup
 
   // If profile is incomplete and user is navigating elsewhere, force redirect to setup page
   if (needsSetup && location.pathname !== profileTarget) {

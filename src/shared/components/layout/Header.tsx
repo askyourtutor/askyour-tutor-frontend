@@ -21,7 +21,7 @@ import {
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/AuthContext';
 import { ApiError } from '../../services/api';
 import { savedCoursesService } from '../../services/savedCoursesService';
@@ -32,10 +32,19 @@ const Header = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const userBtnRef = useRef<HTMLButtonElement | null>(null);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
   const hoverTimerRef = useRef<number | null>(null);
   const [savedCount, setSavedCount] = useState<number>(0);
+
+  const handleDashboardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (user) {
+      const dashboardPath = user.role === 'ADMIN' ? '/admin/dashboard' : `/${user.role.toLowerCase()}/dashboard`;
+      navigate(dashboardPath);
+    }
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -281,7 +290,9 @@ const Header = () => {
                             </div>
                             <div className="py-1">
                               {(() => {
-                                const profilePath = user?.role === 'TUTOR' ? '/tutor/profile' : '/student/profile';
+                                const profilePath = user?.role === 'TUTOR' ? '/tutor/profile' : 
+                                                  user?.role === 'STUDENT' ? '/student/profile' : 
+                                                  '/admin/dashboard'; // Admin users go to dashboard instead
                                 return (
                                   <Link
                                     to={profilePath}
@@ -366,16 +377,36 @@ const Header = () => {
                       <span>Home</span>
                     </Link>
                   </li>
-                  <li className="menu-item-has-children relative group mx-2.5">
-                    <Link to="/courses" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
-                      <span>Courses</span>
-                    </Link>
-                  </li>
-                  <li className="menu-item-has-children relative group mx-2.5">
-                    <Link to="/teachers" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
-                      <span>Teachers</span>
-                    </Link>
-                  </li>
+                  
+                  {/* Show courses and teachers navigation for STUDENT, TUTOR, and ADMIN users */}
+                  {(!user || user.role === 'STUDENT' || user.role === 'TUTOR' || user.role === 'ADMIN') && (
+                    <>
+                      <li className="menu-item-has-children relative group mx-2.5">
+                        <Link to="/courses" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
+                          <span>Courses</span>
+                        </Link>
+                      </li>
+                      <li className="menu-item-has-children relative group mx-2.5">
+                        <Link to="/teachers" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
+                          <span>Teachers</span>
+                        </Link>
+                      </li>
+                    </>
+                  )}
+                  
+                  {/* Show Dashboard link for authenticated users */}
+                  {user && (
+                    <li className="menu-item-has-children relative group mx-2.5">
+                      <a 
+                        href="#"
+                        onClick={handleDashboardClick}
+                        className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm"
+                      >
+                        <span>Dashboard</span>
+                      </a>
+                    </li>
+                  )}
+                  
                   <li className="mx-2.5">
                     <a href="#" className="font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
                       <span>Contact</span>
@@ -496,16 +527,39 @@ const Header = () => {
                     Home
                   </Link>
                 </li>
-                <li>
-                  <Link to="/courses" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
-                    Courses
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/teachers" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
-                    Teachers
-                  </Link>
-                </li>
+                
+                {/* Show courses and teachers navigation for STUDENT, TUTOR, and ADMIN users */}
+                {(!user || user.role === 'STUDENT' || user.role === 'TUTOR' || user.role === 'ADMIN') && (
+                  <>
+                    <li>
+                      <Link to="/courses" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                        Courses
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/teachers" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                        Teachers
+                      </Link>
+                    </li>
+                  </>
+                )}
+                
+                {/* Show Dashboard link for authenticated users */}
+                {user && (
+                  <li>
+                    <a 
+                      href="#"
+                      onClick={(e) => {
+                        handleDashboardClick(e);
+                        toggleMobileMenu();
+                      }}
+                      className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base"
+                    >
+                      Dashboard
+                    </a>
+                  </li>
+                )}
+                
                 <li>
                   <a href="#" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                     Contact
@@ -568,7 +622,9 @@ const Header = () => {
               ) : (
                 <div className="flex items-center space-x-3">
                   <Link 
-                    to={user?.role === 'TUTOR' ? '/tutor/profile' : '/student/profile'}
+                    to={user?.role === 'TUTOR' ? '/tutor/profile' : 
+                        user?.role === 'STUDENT' ? '/student/profile' : 
+                        '/admin/dashboard'}
                     className="flex items-center space-x-1.5 text-gray-700 hover:text-blue-600 transition-colors"
                     onClick={toggleMobileMenu}
                   >
