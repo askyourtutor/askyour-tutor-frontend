@@ -15,6 +15,7 @@ import StudentProfile from '../features/profile/pages/StudentProfile';
 import TutorProfile from '../features/profile/pages/TutorProfile';
 import CourseDetails from '../features/courses/pages/CourseDetails';
 import CoursesPage from '../features/courses/pages/CoursesPage';
+import TeachersPage from '../features/teachers/pages/TeachersPage';
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'courses', element: <CoursesPage /> },
       { path: 'course/:id', element: <CourseDetails /> },
+      { path: 'teachers', element: <TeachersPage /> },
       {
         element: <GuestRoute />,
         children: [

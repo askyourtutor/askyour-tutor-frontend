@@ -65,7 +65,7 @@ const CoursesPage: React.FC = () => {
     fetchCategories();
   }, []);
 
-  // Fetch courses from API
+  // Fetch courses from API with all filters
   useEffect(() => {
     const fetchCourses = async () => {
       setIsLoading(true);
@@ -73,6 +73,7 @@ const CoursesPage: React.FC = () => {
         const response = await getCourses({
           category: filters.category !== 'all' ? filters.category : undefined,
           priceType: filters.priceType !== 'all' ? filters.priceType : undefined,
+          level: filters.level !== 'all' ? filters.level : undefined,
           rating: filters.rating > 0 ? filters.rating : undefined,
           search: searchQuery.trim() || undefined,
           sortBy: filters.sortBy,

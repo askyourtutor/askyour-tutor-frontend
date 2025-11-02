@@ -260,3 +260,7 @@ export interface ThemeColors {
 
 export type ComponentSize = 'sm' | 'md' | 'lg' | 'xl';
 export type ComponentVariant = 'primary' | 'secondary' | 'outline' | 'ghost';
+
+// Re-export teacher types
+export type { TutorProfile, TutorSummary, TutorsResponse, TutorFilters } from './teacher';
+

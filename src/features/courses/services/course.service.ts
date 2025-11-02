@@ -29,6 +29,7 @@ export async function getCourses(params: GetCoursesParams = {}): Promise<Courses
   
   if (params.category && params.category !== 'all') queryParams.set('category', params.category);
   if (params.priceType && params.priceType !== 'all') queryParams.set('priceType', params.priceType);
+  if (params.level && params.level !== 'all') queryParams.set('level', params.level);
   if (params.rating && params.rating > 0) queryParams.set('rating', params.rating.toString());
   if (params.search) queryParams.set('search', params.search);
   if (params.sortBy) queryParams.set('sortBy', params.sortBy);

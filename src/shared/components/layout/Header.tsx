@@ -366,19 +366,19 @@ const Header = () => {
                       <span>Home</span>
                     </Link>
                   </li>
-                  <li className="menu-item-has-children relative group mx-3">
-                    <Link to="/courses" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
+                  <li className="menu-item-has-children relative group mx-2.5">
+                    <Link to="/courses" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
                       <span>Courses</span>
                     </Link>
                   </li>
-                  <li className="menu-item-has-children relative group mx-3">
-                    <a href="#" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
+                  <li className="menu-item-has-children relative group mx-2.5">
+                    <Link to="/teachers" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
                       <span>Teachers</span>
-                    </a>
+                    </Link>
                   </li>
-                  <li className="mx-3">
-                    <a href="#" className="font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
-                      Contact
+                  <li className="mx-2.5">
+                    <a href="#" className="font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
+                      <span>Contact</span>
                     </a>
                   </li>
                 </ul>
@@ -502,9 +502,9 @@ const Header = () => {
                   </Link>
                 </li>
                 <li>
-                  <a href="#" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                  <Link to="/teachers" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                     Teachers
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <a href="#" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
