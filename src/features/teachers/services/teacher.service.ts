@@ -1,5 +1,5 @@
 import { apiFetch } from '../../../shared/services/api';
-import type { TutorSummary, TutorsResponse } from '../../../shared/types/teacher';
+import type { TutorSummary, TutorsResponse, TutorCourse } from '../../../shared/types/teacher';
 
 interface GetTutorsParams {
   subject?: string;
@@ -52,5 +52,10 @@ export const teacherService = {
         'Business',
       ];
     }
+  },
+
+  async getTutorCourses(tutorId: string): Promise<TutorCourse[]> {
+    const response = await apiFetch<{ success: boolean; data: TutorCourse[] }>(`/tutors/${tutorId}/courses`);
+    return response.data;
   },
 };

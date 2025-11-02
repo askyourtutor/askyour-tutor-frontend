@@ -51,6 +51,21 @@ export interface TutorsResponse {
   };
 }
 
+export interface TutorCourse {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  code: string | null;
+  image: string | null;
+  price: number;
+  rating: number;
+  createdAt: string;
+  _count: {
+    lessons: number;
+  };
+}
+
 export interface TutorFilters {
   subject?: string;
   experience?: string;
