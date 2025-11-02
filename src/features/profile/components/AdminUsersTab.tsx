@@ -1,24 +1,24 @@
 import { IconUsers, IconSearch } from '@tabler/icons-react';
 import { useState } from 'react';
+import type { AdminUser } from '../../../shared/services/adminService';
 import ConfirmationModal from './ConfirmationModal';
 
-interface User {
-  id: string;
-  email: string;
-  role: 'STUDENT' | 'TUTOR' | 'ADMIN';
-  status: 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'PENDING_VERIFICATION' | 'INACTIVE';
-  emailVerified: boolean;
-  createdAt: string;
-  profile?: {
-    firstName?: string;
-    lastName?: string;
-    university?: string;
-    profileCompletion?: number;
-  };
-}
+// Helper to get user profile (either student or tutor)
+const getUserProfile = (user: AdminUser) => {
+  return user.studentProfile || user.tutorProfile;
+};
+
+// Helper to get user display name
+const getUserDisplayName = (user: AdminUser) => {
+  const profile = getUserProfile(user);
+  if (profile?.firstName && profile?.lastName) {
+    return `${profile.firstName} ${profile.lastName}`;
+  }
+  return user.email;
+};
 
 interface AdminUsersTabProps {
-  users: User[];
+  users: AdminUser[];
   onUpdateStatus: (userId: string, status: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE') => void;
   onDeleteUser: (userId: string) => void;
 }
@@ -28,7 +28,7 @@ function AdminUsersTab({ users, onUpdateStatus, onDeleteUser }: AdminUsersTabPro
   const [filterRole, setFilterRole] = useState<'ALL' | 'STUDENT' | 'TUTOR' | 'ADMIN'>('ALL');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [pendingStatus, setPendingStatus] = useState<'ACTIVE' | 'SUSPENDED' | 'INACTIVE'>('ACTIVE');
 
   const handleConfirmDelete = () => {
@@ -48,8 +48,9 @@ function AdminUsersTab({ users, onUpdateStatus, onDeleteUser }: AdminUsersTabPro
   };
 
   const filteredUsers = users.filter(user => {
+    const profile = getUserProfile(user);
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         `${user.profile?.firstName} ${user.profile?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+                         `${profile?.firstName} ${profile?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === 'ALL' || user.role === filterRole;
     return matchesSearch && matchesRole;
   });

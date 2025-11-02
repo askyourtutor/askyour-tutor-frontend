@@ -4,39 +4,12 @@ import {
   IconCalendarEvent, 
   IconChartBar
 } from '@tabler/icons-react';
-
-interface DashboardStats {
-  totalUsers: number;
-  totalStudents: number;
-  totalTutors: number;
-  totalCourses: number;
-  activeSessions: number;
-  pendingApprovals: number;
-  monthlyRevenue: number;
-  userGrowth: number;
-}
-
-interface Tutor {
-  id: string;
-  email: string;
-  tutorProfile: {
-    firstName: string;
-    lastName: string;
-    university?: string;
-    professionalTitle?: string;
-    hourlyRate?: number;
-    teachingExperience?: number;
-    verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
-    bio?: string;
-  };
-  status: string;
-  createdAt: string;
-}
+import type { DashboardStats, AdminTutor } from '../../../shared/services/adminService';
 
 interface AdminDashboardTabProps {
   stats: DashboardStats;
-  pendingTutors: Tutor[];
-  onViewTutor: (tutor: Tutor) => void;
+  pendingTutors: AdminTutor[];
+  onViewTutor: (tutor: AdminTutor) => void;
   onApproveTutor: (tutorId: string) => void;
   onRejectTutor: (tutorId: string) => void;
   onBulkApprove: () => void;

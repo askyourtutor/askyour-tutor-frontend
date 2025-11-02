@@ -8,91 +8,34 @@ import {
   IconSettings,
   IconLogout
 } from '@tabler/icons-react';
-import { adminService } from '../../../shared/services/adminService';
+import { 
+  adminService,
+  type AdminUser,
+  type AdminTutor,
+  type AdminCourse,
+  type DashboardStats
+} from '../../../shared/services/adminService';
 import { useAuth } from '../../../shared/contexts/AuthContext';
+import { ADMIN_CONSTANTS } from '../../../shared/constants/admin';
+import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import TutorVerificationModal from '../components/TutorVerificationModal';
 import AdminDashboardTab from '../components/AdminDashboardTab';
 import AdminUsersTab from '../components/AdminUsersTab';
 import AdminTutorsTab from '../components/AdminTutorsTab';
 import AdminCoursesTab from '../components/AdminCoursesTab';
 
-interface User {
-  id: string;
-  email: string;
-  role: 'STUDENT' | 'TUTOR' | 'ADMIN';
-  status: 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'PENDING_VERIFICATION' | 'INACTIVE';
-  emailVerified: boolean;
-  createdAt: string;
-  profile?: {
-    firstName?: string;
-    lastName?: string;
-    university?: string;
-    profileCompletion?: number;
-  };
-}
-
-interface Tutor {
-  id: string;
-  email: string;
-  tutorProfile: {
-    firstName: string;
-    lastName: string;
-    university?: string;
-    professionalTitle?: string;
-    hourlyRate?: number;
-    teachingExperience?: number;
-    verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
-    bio?: string;
-  };
-  status: string;
-  createdAt: string;
-}
-
-interface DashboardStats {
-  totalUsers: number;
-  totalStudents: number;
-  totalTutors: number;
-  totalCourses: number;
-  activeSessions: number;
-  pendingApprovals: number;
-  monthlyRevenue: number;
-  userGrowth: number;
-}
-
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  subject: string;
-  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-  price: number;
-  duration: number;
-  status: 'ACTIVE' | 'INACTIVE' | 'DRAFT';
-  createdAt: string;
-  tutor: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    profileImage?: string;
-  };
-  enrollmentCount?: number;
-  rating?: number;
-  isPublished: boolean;
-}
-
 function AdminDashboard() {
   const { user, logout } = useAuth();
   
   // Initialize activeTab from localStorage or default to 'dashboard'
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'tutors' | 'courses' | 'settings'>(() => {
-    const savedTab = localStorage.getItem('adminActiveTab');
-    return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'settings') || 'dashboard';
+    const savedTab = localStorage.getItem(ADMIN_CONSTANTS.STORAGE_KEY_ACTIVE_TAB);
+    return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'settings') || ADMIN_CONSTANTS.DEFAULT_TAB;
   });
   
-  const [users, setUsers] = useState<User[]>([]);
-  const [tutors, setTutors] = useState<Tutor[]>([]);
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [tutors, setTutors] = useState<AdminTutor[]>([]);
+  const [courses, setCourses] = useState<AdminCourse[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalStudents: 0,
@@ -100,16 +43,18 @@ function AdminDashboard() {
     totalCourses: 0,
     activeSessions: 0,
     pendingApprovals: 0,
+    verifiedTutors: 0,
+    unverifiedEmails: 0,
     monthlyRevenue: 0,
     userGrowth: 0
   });
   const [loading, setLoading] = useState(true);
-  const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
+  const [selectedTutor, setSelectedTutor] = useState<AdminTutor | null>(null);
   const [showTutorModal, setShowTutorModal] = useState(false);
 
   // Save activeTab to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('adminActiveTab', activeTab);
+    localStorage.setItem(ADMIN_CONSTANTS.STORAGE_KEY_ACTIVE_TAB, activeTab);
   }, [activeTab]);
 
   // Fetch dashboard data
@@ -122,73 +67,16 @@ function AdminDashboard() {
         setStats(dashboardStats);
 
         // Fetch real users data with pagination
-        const usersResponse = await adminService.getUsers({ limit: 50 });
-        
-        // Transform admin users to match our interface
-        const transformedUsers: User[] = usersResponse.users.map(user => ({
-          id: user.id,
-          email: user.email,
-          role: user.role,
-          status: user.status as 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'PENDING_VERIFICATION' | 'INACTIVE',
-          emailVerified: user.emailVerified,
-          createdAt: user.createdAt,
-          profile: user.studentProfile || user.tutorProfile ? {
-            firstName: user.studentProfile?.firstName || user.tutorProfile?.firstName,
-            lastName: user.studentProfile?.lastName || user.tutorProfile?.lastName,
-            university: user.studentProfile?.university || user.tutorProfile?.university,
-            profileCompletion: 95 // You can calculate this based on profile completeness
-          } : undefined
-        }));
-        setUsers(transformedUsers);
+        const usersResponse = await adminService.getUsers({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
+        setUsers(usersResponse.users);
 
         // Fetch real tutors data
-        const tutorsResponse = await adminService.getTutors({ limit: 50 });
-        
-        // Transform admin tutors to match our interface
-        const transformedTutors: Tutor[] = tutorsResponse.tutors.map(tutor => ({
-          id: tutor.id,
-          email: tutor.email,
-          tutorProfile: {
-            firstName: tutor.tutorProfile.firstName,
-            lastName: tutor.tutorProfile.lastName,
-            university: tutor.tutorProfile.university,
-            professionalTitle: tutor.tutorProfile.professionalTitle,
-            hourlyRate: tutor.tutorProfile.hourlyRate,
-            teachingExperience: tutor.tutorProfile.teachingExperience,
-            verificationStatus: tutor.tutorProfile.verificationStatus,
-            bio: tutor.tutorProfile.bio
-          },
-          status: tutor.status,
-          createdAt: tutor.createdAt
-        }));
-        setTutors(transformedTutors);
+        const tutorsResponse = await adminService.getTutors({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
+        setTutors(tutorsResponse.tutors);
 
         // Fetch courses data
-        const coursesResponse = await adminService.getCourses({ limit: 100 });
-        
-        // Transform API courses to match our interface
-        const transformedCourses: Course[] = coursesResponse.courses.map(course => ({
-          id: course.id,
-          title: course.title,
-          description: course.description || '',
-          subject: course.subject,
-          level: 'INTERMEDIATE' as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED', // Default since API doesn't have level
-          price: course.price,
-          duration: 12, // Default duration in weeks
-          status: course.isActive ? 'ACTIVE' : 'INACTIVE' as 'ACTIVE' | 'INACTIVE' | 'DRAFT',
-          createdAt: course.createdAt,
-          tutor: {
-            id: course.tutor?.id || course.tutorId,
-            firstName: course.tutor?.tutorProfile?.firstName || 'Unknown',
-            lastName: course.tutor?.tutorProfile?.lastName || 'Tutor',
-            email: course.tutor?.email || '',
-            profileImage: undefined
-          },
-          enrollmentCount: course._count?.sessions || 0,
-          rating: course.rating || undefined,
-          isPublished: course.isActive
-        }));
-        setCourses(transformedCourses);
+        const coursesResponse = await adminService.getCourses({ limit: ADMIN_CONSTANTS.COURSES_PAGE_SIZE });
+        setCourses(coursesResponse.courses);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         setStats({
@@ -198,6 +86,8 @@ function AdminDashboard() {
           totalCourses: 0,
           activeSessions: 0,
           pendingApprovals: 0,
+          verifiedTutors: 0,
+          unverifiedEmails: 0,
           monthlyRevenue: 0,
           userGrowth: 0
         });
@@ -215,7 +105,7 @@ function AdminDashboard() {
   const pendingTutors = tutors.filter(tutor => tutor.tutorProfile.verificationStatus === 'PENDING');
 
   // Modal handlers
-  const openTutorModal = (tutor: Tutor) => {
+  const openTutorModal = (tutor: AdminTutor) => {
     setSelectedTutor(tutor);
     setShowTutorModal(true);
   };
@@ -240,28 +130,12 @@ function AdminDashboard() {
       if (action === 'approve') {
         await adminService.approveTutor(tutorId, { notes });
       } else {
-        await adminService.rejectTutor(tutorId, { notes });
+        await adminService.rejectTutor(tutorId, { notes: notes || ADMIN_CONSTANTS.REJECTION_DEFAULT_NOTE });
       }
       
       // Refresh tutors data
-      const tutorsResponse = await adminService.getTutors({ limit: 50 });
-      const transformedTutors: Tutor[] = tutorsResponse.tutors.map(tutor => ({
-        id: tutor.id,
-        email: tutor.email,
-        tutorProfile: {
-          firstName: tutor.tutorProfile.firstName,
-          lastName: tutor.tutorProfile.lastName,
-          university: tutor.tutorProfile.university,
-          professionalTitle: tutor.tutorProfile.professionalTitle,
-          hourlyRate: tutor.tutorProfile.hourlyRate,
-          teachingExperience: tutor.tutorProfile.teachingExperience,
-          verificationStatus: tutor.tutorProfile.verificationStatus,
-          bio: tutor.tutorProfile.bio
-        },
-        status: tutor.status,
-        createdAt: tutor.createdAt
-      }));
-      setTutors(transformedTutors);
+      const tutorsResponse = await adminService.getTutors({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
+      setTutors(tutorsResponse.tutors);
       
       // Update stats
       const dashboardStats = await adminService.getDashboardStats();
@@ -276,22 +150,8 @@ function AdminDashboard() {
       await adminService.updateUser(userId, { status });
       
       // Refresh users data
-      const usersResponse = await adminService.getUsers({ limit: 50 });
-      const transformedUsers: User[] = usersResponse.users.map(user => ({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        status: user.status as 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'PENDING_VERIFICATION' | 'INACTIVE',
-        emailVerified: user.emailVerified,
-        createdAt: user.createdAt,
-        profile: user.studentProfile || user.tutorProfile ? {
-          firstName: user.studentProfile?.firstName || user.tutorProfile?.firstName,
-          lastName: user.studentProfile?.lastName || user.tutorProfile?.lastName,
-          university: user.studentProfile?.university || user.tutorProfile?.university,
-          profileCompletion: 95
-        } : undefined
-      }));
-      setUsers(transformedUsers);
+      const usersResponse = await adminService.getUsers({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
+      setUsers(usersResponse.users);
     } catch (error) {
       console.error('Error updating user status:', error);
     }
@@ -302,22 +162,8 @@ function AdminDashboard() {
       await adminService.deleteUser(userId);
       
       // Refresh users data
-      const usersResponse = await adminService.getUsers({ limit: 50 });
-      const transformedUsers: User[] = usersResponse.users.map(user => ({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        status: user.status as 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'PENDING_VERIFICATION' | 'INACTIVE',
-        emailVerified: user.emailVerified,
-        createdAt: user.createdAt,
-        profile: user.studentProfile || user.tutorProfile ? {
-          firstName: user.studentProfile?.firstName || user.tutorProfile?.firstName,
-          lastName: user.studentProfile?.lastName || user.tutorProfile?.lastName,
-          university: user.studentProfile?.university || user.tutorProfile?.university,
-          profileCompletion: 95
-        } : undefined
-      }));
-      setUsers(transformedUsers);
+      const usersResponse = await adminService.getUsers({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
+      setUsers(usersResponse.users);
       
       // Update stats
       const dashboardStats = await adminService.getDashboardStats();
@@ -334,28 +180,12 @@ function AdminDashboard() {
     try {
       await adminService.bulkApproveTutors({ 
         tutorIds: pendingTutorIds,
-        notes: 'Bulk approved by admin'
+        notes: ADMIN_CONSTANTS.BULK_APPROVAL_NOTE
       });
       
       // Refresh tutors data
-      const tutorsResponse = await adminService.getTutors({ limit: 50 });
-      const transformedTutors: Tutor[] = tutorsResponse.tutors.map(tutor => ({
-        id: tutor.id,
-        email: tutor.email,
-        tutorProfile: {
-          firstName: tutor.tutorProfile.firstName,
-          lastName: tutor.tutorProfile.lastName,
-          university: tutor.tutorProfile.university,
-          professionalTitle: tutor.tutorProfile.professionalTitle,
-          hourlyRate: tutor.tutorProfile.hourlyRate,
-          teachingExperience: tutor.tutorProfile.teachingExperience,
-          verificationStatus: tutor.tutorProfile.verificationStatus,
-          bio: tutor.tutorProfile.bio
-        },
-        status: tutor.status,
-        createdAt: tutor.createdAt
-      }));
-      setTutors(transformedTutors);
+      const tutorsResponse = await adminService.getTutors({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
+      setTutors(tutorsResponse.tutors);
       
       // Update stats
       const dashboardStats = await adminService.getDashboardStats();
@@ -389,14 +219,7 @@ function AdminDashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading admin dashboard...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner fullScreen message={ADMIN_CONSTANTS.LOADING_MESSAGE} />;
   }
 
   return (
