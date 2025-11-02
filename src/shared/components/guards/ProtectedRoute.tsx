@@ -20,12 +20,19 @@ export default function ProtectedRoute() {
   // Determine if user's profile needs setup and where to send them
   const profileTarget = user.role === 'STUDENT' ? '/student/profile' : 
                        user.role === 'TUTOR' ? '/tutor/profile' : 
-                       '/admin/dashboard'; // Admin users go to dashboard instead of profile setup
+                       '/admin/dashboard';
   const completion = typeof user.profileCompletion === 'number' ? user.profileCompletion : 0;
-  const needsSetup = completion < 100 && user.role !== 'ADMIN'; // Admin users don't need profile setup
+  const needsSetup = completion < 100 && user.role !== 'ADMIN';
+  
+  // Allow access to dashboard and profile routes even if profile is incomplete
+  const allowedIncompleteRoutes = [
+    profileTarget,
+    user.role === 'STUDENT' ? '/student/dashboard' : null,
+    user.role === 'TUTOR' ? '/tutor/dashboard' : null,
+  ].filter(Boolean);
 
-  // If profile is incomplete and user is navigating elsewhere, force redirect to setup page
-  if (needsSetup && location.pathname !== profileTarget) {
+  // Only redirect if profile is incomplete AND user is not on an allowed route
+  if (needsSetup && !allowedIncompleteRoutes.includes(location.pathname)) {
     return <Navigate to={profileTarget} replace />;
   }
 
