@@ -100,22 +100,27 @@ const router = createBrowserRouter([
               <TutorDashboard />
             </RoleRoute>
           ) },
-          
-          // Admin only routes
-          { path: 'admin', element: (
-            <RoleRoute allowed={['ADMIN']}>
-              <AdminDashboard />
-            </RoleRoute>
-          ) },
-          { path: 'admin/dashboard', element: (
-            <RoleRoute allowed={['ADMIN']}>
-              <AdminDashboard />
-            </RoleRoute>
-          ) },
         ],
       },
       { path: '*', element: <NotFound /> },
     ],
+  },
+  // Admin routes without header
+  {
+    path: 'admin',
+    element: (
+      <RoleRoute allowed={['ADMIN']}>
+        <AdminDashboard />
+      </RoleRoute>
+    ),
+  },
+  {
+    path: 'admin/dashboard',
+    element: (
+      <RoleRoute allowed={['ADMIN']}>
+        <AdminDashboard />
+      </RoleRoute>
+    ),
   },
 ]);
 

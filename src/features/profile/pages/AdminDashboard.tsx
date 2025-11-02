@@ -1,235 +1,586 @@
-import { Link } from 'react-router';
-import { IconUsers, IconBook, IconCalendarEvent, IconChartBar, IconSettings, IconShield } from '@tabler/icons-react';
+
+import { useState, useEffect } from 'react';
+import { 
+  IconUsers, 
+  IconBook, 
+  IconCalendarEvent, 
+  IconChartBar, 
+  IconSettings,
+  IconLogout
+} from '@tabler/icons-react';
+import { adminService } from '../../../shared/services/adminService';
 import { useAuth } from '../../../shared/contexts/AuthContext';
+import TutorVerificationModal from '../components/TutorVerificationModal';
+import AdminDashboardTab from '../components/AdminDashboardTab';
+import AdminUsersTab from '../components/AdminUsersTab';
+import AdminTutorsTab from '../components/AdminTutorsTab';
+import AdminCoursesTab from '../components/AdminCoursesTab';
 
-const AdminDashboard = () => {
-  const { user } = useAuth();
+interface User {
+  id: string;
+  email: string;
+  role: 'STUDENT' | 'TUTOR' | 'ADMIN';
+  status: 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'PENDING_VERIFICATION' | 'INACTIVE';
+  emailVerified: boolean;
+  createdAt: string;
+  profile?: {
+    firstName?: string;
+    lastName?: string;
+    university?: string;
+    profileCompletion?: number;
+  };
+}
 
-  const dashboardStats = [
-    { icon: IconUsers, label: 'Total Users', value: '1,247', color: 'bg-blue-500' },
-    { icon: IconBook, label: 'Total Courses', value: '186', color: 'bg-green-500' },
-    { icon: IconCalendarEvent, label: 'Active Sessions', value: '42', color: 'bg-purple-500' },
-    { icon: IconChartBar, label: 'Revenue (Month)', value: '$12,480', color: 'bg-orange-500' }
-  ];
+interface Tutor {
+  id: string;
+  email: string;
+  tutorProfile: {
+    firstName: string;
+    lastName: string;
+    university?: string;
+    professionalTitle?: string;
+    hourlyRate?: number;
+    teachingExperience?: number;
+    verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+    bio?: string;
+  };
+  status: string;
+  createdAt: string;
+}
 
-  const recentUsers = [
-    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'STUDENT', joinDate: '2025-01-10' },
-    { id: 2, name: 'Sarah Wilson', email: 'sarah@example.com', role: 'TUTOR', joinDate: '2025-01-12' },
-    { id: 3, name: 'Mike Johnson', email: 'mike@example.com', role: 'STUDENT', joinDate: '2025-01-14' }
-  ];
+interface DashboardStats {
+  totalUsers: number;
+  totalStudents: number;
+  totalTutors: number;
+  totalCourses: number;
+  activeSessions: number;
+  pendingApprovals: number;
+  monthlyRevenue: number;
+  userGrowth: number;
+}
 
-  const systemActivity = [
-    { id: 1, action: 'New user registration', user: 'John Doe', time: '2 hours ago' },
-    { id: 2, action: 'Course created', user: 'Dr. Sarah Johnson', time: '5 hours ago' },
-    { id: 3, action: 'Session completed', user: 'Physics - Advanced', time: '1 day ago' },
-    { id: 4, action: 'Payment processed', user: '$299.00', time: '1 day ago' }
-  ];
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  subject: string;
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  price: number;
+  duration: number;
+  status: 'ACTIVE' | 'INACTIVE' | 'DRAFT';
+  createdAt: string;
+  tutor: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profileImage?: string;
+  };
+  enrollmentCount?: number;
+  rating?: number;
+  isPublished: boolean;
+}
 
-  const pendingActions = [
-    { id: 1, type: 'approval', message: 'New tutor profile pending approval', priority: 'high' },
-    { id: 2, type: 'review', message: 'Course content review required', priority: 'medium' },
-    { id: 3, type: 'report', message: 'User report requiring investigation', priority: 'high' },
-    { id: 4, type: 'update', message: 'System maintenance scheduled', priority: 'low' }
-  ];
+function AdminDashboard() {
+  const { user, logout } = useAuth();
+  
+  // Initialize activeTab from localStorage or default to 'dashboard'
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'tutors' | 'courses' | 'settings'>(() => {
+    const savedTab = localStorage.getItem('adminActiveTab');
+    return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'settings') || 'dashboard';
+  });
+  
+  const [users, setUsers] = useState<User[]>([]);
+  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalUsers: 0,
+    totalStudents: 0,
+    totalTutors: 0,
+    totalCourses: 0,
+    activeSessions: 0,
+    pendingApprovals: 0,
+    monthlyRevenue: 0,
+    userGrowth: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const [selectedTutor, setSelectedTutor] = useState<Tutor | null>(null);
+  const [showTutorModal, setShowTutorModal] = useState(false);
+
+  // Save activeTab to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('adminActiveTab', activeTab);
+  }, [activeTab]);
+
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      try {
+        // Fetch real dashboard stats
+        const dashboardStats = await adminService.getDashboardStats();
+        setStats(dashboardStats);
+
+        // Fetch real users data with pagination
+        const usersResponse = await adminService.getUsers({ limit: 50 });
+        
+        // Transform admin users to match our interface
+        const transformedUsers: User[] = usersResponse.users.map(user => ({
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          status: user.status as 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'PENDING_VERIFICATION' | 'INACTIVE',
+          emailVerified: user.emailVerified,
+          createdAt: user.createdAt,
+          profile: user.studentProfile || user.tutorProfile ? {
+            firstName: user.studentProfile?.firstName || user.tutorProfile?.firstName,
+            lastName: user.studentProfile?.lastName || user.tutorProfile?.lastName,
+            university: user.studentProfile?.university || user.tutorProfile?.university,
+            profileCompletion: 95 // You can calculate this based on profile completeness
+          } : undefined
+        }));
+        setUsers(transformedUsers);
+
+        // Fetch real tutors data
+        const tutorsResponse = await adminService.getTutors({ limit: 50 });
+        
+        // Transform admin tutors to match our interface
+        const transformedTutors: Tutor[] = tutorsResponse.tutors.map(tutor => ({
+          id: tutor.id,
+          email: tutor.email,
+          tutorProfile: {
+            firstName: tutor.tutorProfile.firstName,
+            lastName: tutor.tutorProfile.lastName,
+            university: tutor.tutorProfile.university,
+            professionalTitle: tutor.tutorProfile.professionalTitle,
+            hourlyRate: tutor.tutorProfile.hourlyRate,
+            teachingExperience: tutor.tutorProfile.teachingExperience,
+            verificationStatus: tutor.tutorProfile.verificationStatus,
+            bio: tutor.tutorProfile.bio
+          },
+          status: tutor.status,
+          createdAt: tutor.createdAt
+        }));
+        setTutors(transformedTutors);
+
+        // Fetch courses data
+        const coursesResponse = await adminService.getCourses({ limit: 100 });
+        
+        // Transform API courses to match our interface
+        const transformedCourses: Course[] = coursesResponse.courses.map(course => ({
+          id: course.id,
+          title: course.title,
+          description: course.description || '',
+          subject: course.subject,
+          level: 'INTERMEDIATE' as 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED', // Default since API doesn't have level
+          price: course.price,
+          duration: 12, // Default duration in weeks
+          status: course.isActive ? 'ACTIVE' : 'INACTIVE' as 'ACTIVE' | 'INACTIVE' | 'DRAFT',
+          createdAt: course.createdAt,
+          tutor: {
+            id: course.tutor?.id || course.tutorId,
+            firstName: course.tutor?.tutorProfile?.firstName || 'Unknown',
+            lastName: course.tutor?.tutorProfile?.lastName || 'Tutor',
+            email: course.tutor?.email || '',
+            profileImage: undefined
+          },
+          enrollmentCount: course._count?.sessions || 0,
+          rating: course.rating || undefined,
+          isPublished: course.isActive
+        }));
+        setCourses(transformedCourses);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setStats({
+          totalUsers: 0,
+          totalStudents: 0,
+          totalTutors: 0,
+          totalCourses: 0,
+          activeSessions: 0,
+          pendingApprovals: 0,
+          monthlyRevenue: 0,
+          userGrowth: 0
+        });
+        setUsers([]);
+        setTutors([]);
+        setCourses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const pendingTutors = tutors.filter(tutor => tutor.tutorProfile.verificationStatus === 'PENDING');
+
+  // Modal handlers
+  const openTutorModal = (tutor: Tutor) => {
+    setSelectedTutor(tutor);
+    setShowTutorModal(true);
+  };
+
+  const closeTutorModal = () => {
+    setSelectedTutor(null);
+    setShowTutorModal(false);
+  };
+
+  // Wrapper functions for modal actions
+  const handleModalApprove = async (tutorId: string, notes?: string) => {
+    await handleApprovalAction(tutorId, 'approve', notes);
+  };
+
+  const handleModalReject = async (tutorId: string, notes: string) => {
+    await handleApprovalAction(tutorId, 'reject', notes);
+  };
+
+  // CRUD Functions
+  const handleApprovalAction = async (tutorId: string, action: 'approve' | 'reject', notes?: string) => {
+    try {
+      if (action === 'approve') {
+        await adminService.approveTutor(tutorId, { notes });
+      } else {
+        await adminService.rejectTutor(tutorId, { notes });
+      }
+      
+      // Refresh tutors data
+      const tutorsResponse = await adminService.getTutors({ limit: 50 });
+      const transformedTutors: Tutor[] = tutorsResponse.tutors.map(tutor => ({
+        id: tutor.id,
+        email: tutor.email,
+        tutorProfile: {
+          firstName: tutor.tutorProfile.firstName,
+          lastName: tutor.tutorProfile.lastName,
+          university: tutor.tutorProfile.university,
+          professionalTitle: tutor.tutorProfile.professionalTitle,
+          hourlyRate: tutor.tutorProfile.hourlyRate,
+          teachingExperience: tutor.tutorProfile.teachingExperience,
+          verificationStatus: tutor.tutorProfile.verificationStatus,
+          bio: tutor.tutorProfile.bio
+        },
+        status: tutor.status,
+        createdAt: tutor.createdAt
+      }));
+      setTutors(transformedTutors);
+      
+      // Update stats
+      const dashboardStats = await adminService.getDashboardStats();
+      setStats(dashboardStats);
+    } catch (error) {
+      console.error('Error updating tutor status:', error);
+    }
+  };
+
+  const handleUserStatusUpdate = async (userId: string, status: 'ACTIVE' | 'SUSPENDED' | 'INACTIVE') => {
+    try {
+      await adminService.updateUser(userId, { status });
+      
+      // Refresh users data
+      const usersResponse = await adminService.getUsers({ limit: 50 });
+      const transformedUsers: User[] = usersResponse.users.map(user => ({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        status: user.status as 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'PENDING_VERIFICATION' | 'INACTIVE',
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        profile: user.studentProfile || user.tutorProfile ? {
+          firstName: user.studentProfile?.firstName || user.tutorProfile?.firstName,
+          lastName: user.studentProfile?.lastName || user.tutorProfile?.lastName,
+          university: user.studentProfile?.university || user.tutorProfile?.university,
+          profileCompletion: 95
+        } : undefined
+      }));
+      setUsers(transformedUsers);
+    } catch (error) {
+      console.error('Error updating user status:', error);
+    }
+  };
+
+  const handleUserDelete = async (userId: string) => {
+    try {
+      await adminService.deleteUser(userId);
+      
+      // Refresh users data
+      const usersResponse = await adminService.getUsers({ limit: 50 });
+      const transformedUsers: User[] = usersResponse.users.map(user => ({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        status: user.status as 'ACTIVE' | 'SUSPENDED' | 'PENDING' | 'PENDING_VERIFICATION' | 'INACTIVE',
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt,
+        profile: user.studentProfile || user.tutorProfile ? {
+          firstName: user.studentProfile?.firstName || user.tutorProfile?.firstName,
+          lastName: user.studentProfile?.lastName || user.tutorProfile?.lastName,
+          university: user.studentProfile?.university || user.tutorProfile?.university,
+          profileCompletion: 95
+        } : undefined
+      }));
+      setUsers(transformedUsers);
+      
+      // Update stats
+      const dashboardStats = await adminService.getDashboardStats();
+      setStats(dashboardStats);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    const pendingTutorIds = pendingTutors.map(tutor => tutor.id);
+    if (pendingTutorIds.length === 0) return;
+    
+    try {
+      await adminService.bulkApproveTutors({ 
+        tutorIds: pendingTutorIds,
+        notes: 'Bulk approved by admin'
+      });
+      
+      // Refresh tutors data
+      const tutorsResponse = await adminService.getTutors({ limit: 50 });
+      const transformedTutors: Tutor[] = tutorsResponse.tutors.map(tutor => ({
+        id: tutor.id,
+        email: tutor.email,
+        tutorProfile: {
+          firstName: tutor.tutorProfile.firstName,
+          lastName: tutor.tutorProfile.lastName,
+          university: tutor.tutorProfile.university,
+          professionalTitle: tutor.tutorProfile.professionalTitle,
+          hourlyRate: tutor.tutorProfile.hourlyRate,
+          teachingExperience: tutor.tutorProfile.teachingExperience,
+          verificationStatus: tutor.tutorProfile.verificationStatus,
+          bio: tutor.tutorProfile.bio
+        },
+        status: tutor.status,
+        createdAt: tutor.createdAt
+      }));
+      setTutors(transformedTutors);
+      
+      // Update stats
+      const dashboardStats = await adminService.getDashboardStats();
+      setStats(dashboardStats);
+    } catch (error) {
+      console.error('Error bulk approving tutors:', error);
+    }
+  };
+
+  // Course management functions
+  const handleCourseStatusUpdate = async (courseId: string, status: 'ACTIVE' | 'INACTIVE') => {
+    try {
+      // TODO: Implement actual API call when courses endpoint is available
+      console.log('Course status update:', courseId, status);
+      setCourses(prev => prev.map(course => 
+        course.id === courseId ? { ...course, status } : course
+      ));
+    } catch (error) {
+      console.error('Error updating course status:', error);
+    }
+  };
+
+  const handleCourseDelete = async (courseId: string) => {
+    try {
+      // TODO: Implement actual API call when courses endpoint is available
+      console.log('Course delete:', courseId);
+      setCourses(prev => prev.filter(course => course.id !== courseId));
+    } catch (error) {
+      console.error('Error deleting course:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-2">Platform administration and management • {user?.email}</p>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Tutor Verification Modal */}
+      <TutorVerificationModal
+        tutor={selectedTutor}
+        isOpen={showTutorModal}
+        onClose={closeTutorModal}
+        onApprove={handleModalApprove}
+        onReject={handleModalReject}
+      />
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {dashboardStats.map((stat, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-              <div className="flex items-center">
-                <div className={`${stat.color} p-3 rounded-lg`}>
-                  <stat.icon size={24} className="text-white" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Recent Users */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Recent Users</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {recentUsers.map((user) => (
-                  <div key={user.id} className="flex items-center space-x-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                      <IconUsers size={16} className="text-gray-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
-                          user.role === 'TUTOR' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-                        }`}>
-                          {user.role}
-                        </span>
-                        <span className="text-xs text-gray-400">{user.joinDate}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Link to="/admin/users" className="block mt-4 text-center text-sm text-blue-600 hover:text-blue-700">
-                View all users
-              </Link>
-            </div>
+      {/* Top Header */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-30 flex items-center px-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gray-900 rounded-sm flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold text-base">AT</span>
           </div>
-
-          {/* System Activity */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">System Activity</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {systemActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-3">
-                    <div className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-900">{activity.action}</p>
-                      <p className="text-xs text-gray-500 mt-1">{activity.user} • {activity.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Pending Actions */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Pending Actions</h2>
-            </div>
-            <div className="p-6">
-              <div className="space-y-4">
-                {pendingActions.map((action) => (
-                  <div key={action.id} className="p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-start justify-between">
-                      <p className="text-sm text-gray-900 flex-1">{action.message}</p>
-                      <span className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ml-2 ${
-                        action.priority === 'high' ? 'bg-red-100 text-red-800' :
-                        action.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {action.priority}
-                      </span>
-                    </div>
-                    <button className="mt-2 text-xs text-blue-600 hover:text-blue-700">
-                      Take action
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div>
+            <h1 className="text-base font-semibold text-gray-900">AskYourTutor Admin</h1>
+            <p className="text-xs text-gray-500">Management Dashboard</p>
           </div>
         </div>
-
-        {/* Management Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-          {/* User Management */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <IconUsers size={24} className="text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">User Management</h3>
-            </div>
-            <p className="text-gray-600 text-sm mb-4">Manage students, tutors, and admin accounts</p>
-            <div className="space-y-2">
-              <Link to="/admin/users" className="block w-full px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                View All Users
-              </Link>
-              <Link to="/admin/users/pending" className="block w-full px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                Pending Approvals
-              </Link>
-            </div>
+        <div className="ml-auto flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-sm font-medium text-gray-900">{user?.email || 'Admin User'}</p>
+            <p className="text-xs text-gray-500">Administrator</p>
           </div>
-
-          {/* Course Management */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <IconBook size={24} className="text-green-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">Course Management</h3>
-            </div>
-            <p className="text-gray-600 text-sm mb-4">Oversee course content and quality</p>
-            <div className="space-y-2">
-              <Link to="/courses" className="block w-full px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors">
-                View All Courses
-              </Link>
-              <Link to="/admin/courses/pending" className="block w-full px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors">
-                Review Queue
-              </Link>
-            </div>
-          </div>
-
-          {/* System Settings */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <IconSettings size={24} className="text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900">System Settings</h3>
-            </div>
-            <p className="text-gray-600 text-sm mb-4">Configure platform settings and security</p>
-            <div className="space-y-2">
-              <Link to="/admin/settings" className="block w-full px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
-                General Settings
-              </Link>
-              <Link to="/admin/security" className="block w-full px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg transition-colors">
-                Security & Privacy
-              </Link>
-            </div>
-          </div>
+          <button
+            onClick={logout}
+            className="p-2 hover:bg-gray-100 rounded-sm transition-colors"
+            title="Logout"
+          >
+            <IconLogout size={18} className="text-gray-600" />
+          </button>
         </div>
+      </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 mt-8">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Quick Actions</h2>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <button className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                <IconShield size={20} className="text-blue-600" />
-                <span className="font-medium text-blue-900">Security Audit</span>
-              </button>
-              <button className="flex items-center space-x-3 p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
-                <IconChartBar size={20} className="text-green-600" />
-                <span className="font-medium text-green-900">Generate Report</span>
-              </button>
-              <button className="flex items-center space-x-3 p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
-                <IconSettings size={20} className="text-purple-600" />
-                <span className="font-medium text-purple-900">System Backup</span>
-              </button>
-              <button className="flex items-center space-x-3 p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
-                <IconUsers size={20} className="text-yellow-600" />
-                <span className="font-medium text-yellow-900">Bulk Actions</span>
+      <div className="flex flex-1 pt-16">
+        {/* Side Panel */}
+        <div className="w-60 bg-white border-r border-gray-200 fixed left-0 top-16 bottom-0 flex flex-col">
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto py-4">
+          <div className="px-3 space-y-1">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                activeTab === 'dashboard' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <IconChartBar size={18} className="mr-3 flex-shrink-0" />
+              <span>Dashboard</span>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                activeTab === 'users' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center min-w-0 flex-1">
+                <IconUsers size={18} className="mr-3 flex-shrink-0" />
+                <span>Users</span>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-sm font-medium ${
+                activeTab === 'users' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {stats.totalUsers}
+              </span>
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('tutors')}
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                activeTab === 'tutors' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center min-w-0 flex-1">
+                <IconBook size={18} className="mr-3 flex-shrink-0" />
+                <span>Tutors</span>
+              </div>
+              {pendingTutors.length > 0 && (
+                <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-sm font-medium">
+                  {pendingTutors.length}
+                </span>
+              )}
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('courses')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                activeTab === 'courses' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <IconCalendarEvent size={18} className="mr-3 flex-shrink-0" />
+              <span>Courses</span>
+            </button>
+            
+            <div className="pt-4 mt-4 border-t border-gray-200">
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                  activeTab === 'settings' 
+                    ? 'bg-gray-900 text-white' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <IconSettings size={18} className="mr-3 flex-shrink-0" />
+                <span>Settings</span>
               </button>
             </div>
+          </div>
+        </nav>
+
+        {/* Footer */}
+        <div className="p-3 border-t border-gray-200 flex-shrink-0">
+          <div className="flex items-center gap-2 text-xs text-gray-600">
+            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+            <span>System Active</span>
           </div>
         </div>
       </div>
+
+      {/* Main Content */}
+      <div className="flex-1 ml-60">
+        <div className="px-4 py-4">
+          {activeTab === 'dashboard' && (
+            <AdminDashboardTab
+              stats={stats}
+              pendingTutors={pendingTutors}
+              onViewTutor={openTutorModal}
+              onApproveTutor={(id) => handleApprovalAction(id, 'approve')}
+              onRejectTutor={(id) => handleApprovalAction(id, 'reject', 'Rejected by admin')}
+              onBulkApprove={handleBulkApprove}
+              onNavigate={(tab) => setActiveTab(tab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'settings')}
+            />
+          )}
+          {activeTab === 'users' && (
+            <AdminUsersTab
+              users={users}
+              onUpdateStatus={handleUserStatusUpdate}
+              onDeleteUser={handleUserDelete}
+            />
+          )}
+          {activeTab === 'tutors' && (
+            <AdminTutorsTab
+              tutors={tutors}
+              pendingCount={pendingTutors.length}
+              onViewTutor={openTutorModal}
+              onApproveTutor={(id) => handleApprovalAction(id, 'approve')}
+              onRejectTutor={(id) => handleApprovalAction(id, 'reject', 'Rejected by admin')}
+              onBulkApprove={handleBulkApprove}
+            />
+          )}
+          {activeTab === 'courses' && (
+            <AdminCoursesTab
+              courses={courses}
+              onUpdateStatus={handleCourseStatusUpdate}
+              onDeleteCourse={handleCourseDelete}
+            />
+          )}
+          {activeTab === 'settings' && (
+            <div className="bg-white rounded-sm border border-gray-200 p-8">
+              <div className="text-center py-8">
+                <IconSettings size={40} className="mx-auto text-gray-400 mb-3" />
+                <h3 className="text-base font-semibold text-gray-900 mb-2">System Settings</h3>
+                <p className="text-sm text-gray-600">Platform configuration coming soon</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      </div>
     </div>
   );
-};
+}
 
 export default AdminDashboard;
