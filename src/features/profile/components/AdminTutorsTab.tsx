@@ -1,26 +1,10 @@
 import { IconUsers, IconSearch } from '@tabler/icons-react';
-
-interface Tutor {
-  id: string;
-  email: string;
-  tutorProfile: {
-    firstName: string;
-    lastName: string;
-    university?: string;
-    professionalTitle?: string;
-    hourlyRate?: number;
-    teachingExperience?: number;
-    verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
-    bio?: string;
-  };
-  status: string;
-  createdAt: string;
-}
+import type { AdminTutor } from '../../../shared/services/adminService';
 
 interface AdminTutorsTabProps {
-  tutors: Tutor[];
+  tutors: AdminTutor[];
   pendingCount: number;
-  onViewTutor: (tutor: Tutor) => void;
+  onViewTutor: (tutor: AdminTutor) => void;
   onApproveTutor: (tutorId: string) => void;
   onRejectTutor: (tutorId: string) => void;
   onBulkApprove: () => void;

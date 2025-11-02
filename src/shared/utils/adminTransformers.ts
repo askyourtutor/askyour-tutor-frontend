@@ -107,8 +107,7 @@ export function transformApiTutor(tutor: {
 /**
  * Determine course level from API data or return default
  */
-function determineCourseLevel(_subject?: string): CourseLevel {
-  // You can add logic here to determine level based on subject or other criteria
+function determineCourseLevel(): CourseLevel {
   return ADMIN_CONSTANTS.DEFAULT_COURSE_LEVEL;
 }
 
@@ -145,7 +144,7 @@ export function transformApiCourse(course: {
     title: course.title,
     description: course.description || '',
     subject: course.subject,
-    level: determineCourseLevel(course.subject),
+    level: determineCourseLevel(),
     price: course.price,
     duration: ADMIN_CONSTANTS.DEFAULT_COURSE_DURATION,
     status,

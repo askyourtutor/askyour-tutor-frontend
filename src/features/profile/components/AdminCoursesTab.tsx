@@ -1,30 +1,23 @@
 import { IconBook, IconSearch, IconCalendarEvent, IconChartBar } from '@tabler/icons-react';
 import { useState } from 'react';
+import type { AdminCourse } from '../../../shared/services/adminService';
 
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  subject: string;
-  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-  price: number;
-  duration: number;
-  status: 'ACTIVE' | 'INACTIVE' | 'DRAFT';
-  createdAt: string;
-  tutor: {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    profileImage?: string;
-  };
-  enrollmentCount?: number;
-  rating?: number;
-  isPublished: boolean;
-}
+// Helper to get tutor display name
+const getTutorName = (course: AdminCourse): string => {
+  const profile = course.tutor?.tutorProfile;
+  if (profile?.firstName && profile?.lastName) {
+    return `${profile.firstName} ${profile.lastName}`;
+  }
+  return course.tutor?.email || 'Unknown Tutor';
+};
+
+// Helper to get course status display
+const getCourseStatus = (course: AdminCourse): 'ACTIVE' | 'INACTIVE' => {
+  return course.isActive ? 'ACTIVE' : 'INACTIVE';
+};
 
 interface AdminCoursesTabProps {
-  courses: Course[];
+  courses: AdminCourse[];
   onUpdateStatus: (courseId: string, status: 'ACTIVE' | 'INACTIVE') => void;
   onDeleteCourse: (courseId: string) => void;
 }
@@ -32,14 +25,15 @@ interface AdminCoursesTabProps {
 function AdminCoursesTab({ courses, onUpdateStatus, onDeleteCourse }: AdminCoursesTabProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSubject, setFilterSubject] = useState<string>('ALL');
-  const [filterStatus, setFilterStatus] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'DRAFT'>('ALL');
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         `${course.tutor.firstName} ${course.tutor.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+                         (course.description || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         getTutorName(course).toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSubject = filterSubject === 'ALL' || course.subject === filterSubject;
-    const matchesStatus = filterStatus === 'ALL' || course.status === filterStatus;
+    const status = getCourseStatus(course);
+    const matchesStatus = filterStatus === 'ALL' || status === filterStatus;
     return matchesSearch && matchesSubject && matchesStatus;
   });
 
@@ -64,7 +58,7 @@ function AdminCoursesTab({ courses, onUpdateStatus, onDeleteCourse }: AdminCours
             <div>
               <p className="text-xs text-gray-500 font-medium">ACTIVE COURSES</p>
               <p className="text-xl font-bold text-gray-900 mt-0.5">
-                {courses.filter(c => c.status === 'ACTIVE').length}
+                {courses.filter(c => c.isActive).length}
               </p>
             </div>
             <div className="p-2 bg-gray-100 rounded-sm">
@@ -78,7 +72,7 @@ function AdminCoursesTab({ courses, onUpdateStatus, onDeleteCourse }: AdminCours
             <div>
               <p className="text-xs text-gray-500 font-medium">TOTAL REVENUE</p>
               <p className="text-xl font-bold text-gray-900 mt-0.5">
-                ${courses.reduce((acc, course) => acc + (course.price * (course.enrollmentCount || 0)), 0).toLocaleString()}
+                ${courses.reduce((acc, course) => acc + (course.price * (course._count?.sessions || 0)), 0).toLocaleString()}
               </p>
             </div>
             <div className="p-2 bg-gray-100 rounded-sm">
@@ -121,13 +115,12 @@ function AdminCoursesTab({ courses, onUpdateStatus, onDeleteCourse }: AdminCours
             </select>
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as 'ALL' | 'ACTIVE' | 'INACTIVE' | 'DRAFT')}
+              onChange={(e) => setFilterStatus(e.target.value as 'ALL' | 'ACTIVE' | 'INACTIVE')}
               className="px-2 py-1.5 text-xs border border-gray-200 rounded-sm focus:outline-none focus:border-gray-400"
             >
               <option value="ALL">All Status</option>
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
-              <option value="DRAFT">Draft</option>
             </select>
           </div>
         </div>
@@ -164,7 +157,7 @@ function AdminCoursesTab({ courses, onUpdateStatus, onDeleteCourse }: AdminCours
                           {course.title}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {course.duration} weeks • {course.rating ? `★ ${course.rating}` : 'No rating'}
+                          {course.subject} • {course.rating ? `★ ${course.rating}` : 'No rating'}
                         </div>
                       </div>
                     </div>
@@ -173,14 +166,14 @@ function AdminCoursesTab({ courses, onUpdateStatus, onDeleteCourse }: AdminCours
                     <div className="flex items-center gap-2">
                       <div className="w-6 h-6 bg-gray-200 rounded-sm flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-semibold text-gray-700">
-                          {course.tutor.firstName[0]}{course.tutor.lastName[0]}
+                          {course.tutor?.tutorProfile ? `${course.tutor.tutorProfile.firstName[0]}${course.tutor.tutorProfile.lastName[0]}` : '?'}
                         </span>
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-gray-900 truncate">
-                          {course.tutor.firstName} {course.tutor.lastName}
+                          {getTutorName(course)}
                         </div>
-                        <div className="text-xs text-gray-500 truncate">{course.tutor.email}</div>
+                        <div className="text-xs text-gray-500 truncate">{course.tutor?.email || 'N/A'}</div>
                       </div>
                     </div>
                   </td>
@@ -188,12 +181,8 @@ function AdminCoursesTab({ courses, onUpdateStatus, onDeleteCourse }: AdminCours
                     <div className="text-sm text-gray-900">{course.subject}</div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-sm ${
-                      course.level === 'BEGINNER' ? 'bg-gray-100 text-gray-700 border border-gray-200' :
-                      course.level === 'INTERMEDIATE' ? 'bg-gray-200 text-gray-700 border border-gray-300' :
-                      'bg-gray-900 text-white'
-                    }`}>
-                      {course.level}
+                    <span className="inline-flex px-2 py-1 text-xs font-medium rounded-sm bg-gray-100 text-gray-700 border border-gray-200">
+                      Standard
                     </span>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -201,32 +190,28 @@ function AdminCoursesTab({ courses, onUpdateStatus, onDeleteCourse }: AdminCours
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">
-                      {course.enrollmentCount || 0}
+                      {course._count?.sessions || 0}
                     </div>
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-sm ${
-                      course.status === 'ACTIVE' ? 'bg-green-100 text-green-700 border border-green-200' :
-                      course.status === 'INACTIVE' ? 'bg-red-100 text-red-700 border border-red-200' :
-                      'bg-gray-100 text-gray-700 border border-gray-200'
+                      getCourseStatus(course) === 'ACTIVE' ? 'bg-green-100 text-green-700 border border-green-200' :
+                      'bg-red-100 text-red-700 border border-red-200'
                     }`}>
-                      {course.status}
+                      {getCourseStatus(course)}
                     </span>
-                    {!course.isPublished && (
-                      <div className="text-xs text-gray-500 mt-0.5">Unpublished</div>
-                    )}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button 
-                        onClick={() => onUpdateStatus(course.id, course.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
+                        onClick={() => onUpdateStatus(course.id, getCourseStatus(course) === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
                         className={`px-3 py-1 text-xs rounded-sm transition-colors ${
-                          course.status === 'ACTIVE' 
+                          getCourseStatus(course) === 'ACTIVE' 
                             ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
                             : 'bg-gray-900 text-white hover:bg-gray-800'
                         }`}
                       >
-                        {course.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                        {getCourseStatus(course) === 'ACTIVE' ? 'Deactivate' : 'Activate'}
                       </button>
                       <button className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-sm hover:bg-gray-200 border border-gray-200 transition-colors">
                         Edit

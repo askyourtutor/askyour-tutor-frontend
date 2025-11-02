@@ -103,20 +103,22 @@ function AdminUsersTab({ users, onUpdateStatus, onDeleteUser }: AdminUsersTabPro
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {filteredUsers.map((user) => (
+              {filteredUsers.map((user) => {
+                const profile = getUserProfile(user);
+                return (
                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-gray-200 rounded-sm flex items-center justify-center flex-shrink-0">
                         <span className="text-xs font-semibold text-gray-700">
-                          {user.profile?.firstName?.[0] || user.email[0].toUpperCase()}
-                          {user.profile?.lastName?.[0] || ''}
+                          {profile?.firstName?.[0] || user.email[0].toUpperCase()}
+                          {profile?.lastName?.[0] || ''}
                         </span>
                       </div>
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-gray-900 truncate">
-                          {user.profile?.firstName && user.profile?.lastName 
-                            ? `${user.profile.firstName} ${user.profile.lastName}` 
+                          {profile?.firstName && profile?.lastName 
+                            ? `${profile.firstName} ${profile.lastName}` 
                             : 'No name set'
                           }
                         </div>
@@ -173,7 +175,8 @@ function AdminUsersTab({ users, onUpdateStatus, onDeleteUser }: AdminUsersTabPro
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
@@ -190,7 +193,7 @@ function AdminUsersTab({ users, onUpdateStatus, onDeleteUser }: AdminUsersTabPro
       <ConfirmationModal
         isOpen={showDeleteModal}
         title="Delete User"
-        message={`Are you sure you want to delete ${selectedUser?.profile?.firstName || selectedUser?.email}? This action cannot be undone.`}
+        message={`Are you sure you want to delete ${getUserDisplayName(selectedUser!)}? This action cannot be undone.`}
         confirmLabel="Delete"
         cancelLabel="Cancel"
         type="danger"
@@ -205,7 +208,7 @@ function AdminUsersTab({ users, onUpdateStatus, onDeleteUser }: AdminUsersTabPro
       <ConfirmationModal
         isOpen={showStatusModal}
         title={`${pendingStatus === 'SUSPENDED' ? 'Suspend' : 'Activate'} User`}
-        message={`Are you sure you want to ${pendingStatus === 'SUSPENDED' ? 'suspend' : 'activate'} ${selectedUser?.profile?.firstName || selectedUser?.email}?`}
+        message={`Are you sure you want to ${pendingStatus === 'SUSPENDED' ? 'suspend' : 'activate'} ${getUserDisplayName(selectedUser!)}?`}
         confirmLabel={pendingStatus === 'SUSPENDED' ? 'Suspend' : 'Activate'}
         cancelLabel="Cancel"
         type="warning"
