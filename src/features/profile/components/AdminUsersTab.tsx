@@ -4,12 +4,14 @@ import type { AdminUser } from '../../../shared/services/adminService';
 import ConfirmationModal from './ConfirmationModal';
 
 // Helper to get user profile (either student or tutor)
-const getUserProfile = (user: AdminUser) => {
+const getUserProfile = (user: AdminUser | null) => {
+  if (!user) return null;
   return user.studentProfile || user.tutorProfile;
 };
 
 // Helper to get user display name
-const getUserDisplayName = (user: AdminUser) => {
+const getUserDisplayName = (user: AdminUser | null) => {
+  if (!user) return 'Unknown User';
   const profile = getUserProfile(user);
   if (profile?.firstName && profile?.lastName) {
     return `${profile.firstName} ${profile.lastName}`;
@@ -48,6 +50,7 @@ function AdminUsersTab({ users, onUpdateStatus, onDeleteUser }: AdminUsersTabPro
   };
 
   const filteredUsers = users.filter(user => {
+    if (!user) return false; // Filter out null/undefined users
     const profile = getUserProfile(user);
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          `${profile?.firstName} ${profile?.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
