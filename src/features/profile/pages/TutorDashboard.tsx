@@ -6,7 +6,8 @@ import {
   IconChartBar, 
   IconSettings,
   IconLogout,
-  IconMessageCircle
+  IconMessageCircle,
+  IconCreditCard
 } from '@tabler/icons-react';
 import tutorDashboardService, {
   type TutorDashboardStats,
@@ -19,18 +20,20 @@ import tutorDashboardService, {
 import { useAuth } from '../../../shared/contexts/AuthContext';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import TutorDashboardTab from '../components/TutorDashboardTab';
+import CreateCourseModal from '../components/CreateCourseModal';
 import TutorCoursesTab from '../components/TutorCoursesTab';
 import TutorSessionsTab from '../components/TutorSessionsTab';
 import TutorStudentsTab from '../components/TutorStudentsTab';
 import TutorQATab from '../components/TutorQATab';
+import TutorPaymentsTab from '../components/TutorPaymentsTab';
 
 function TutorDashboard() {
   const { user, logout } = useAuth();
   
   // Initialize activeTab from localStorage or default to 'dashboard'
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'sessions' | 'students' | 'qa' | 'settings'>(() => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'courses' | 'sessions' | 'students' | 'payments' | 'qa' | 'settings'>(() => {
     const savedTab = localStorage.getItem('tutorDashboard_activeTab');
-    return (savedTab as 'dashboard' | 'courses' | 'sessions' | 'students' | 'qa' | 'settings') || 'dashboard';
+    return (savedTab as 'dashboard' | 'courses' | 'sessions' | 'students' | 'payments' | 'qa' | 'settings') || 'dashboard';
   });
   
   const [stats, setStats] = useState<TutorDashboardStats>({
@@ -66,6 +69,7 @@ function TutorDashboard() {
     answeredAt?: string | null;
   }>>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateCourseModalOpen, setIsCreateCourseModalOpen] = useState(false);
 
   // Save activeTab to localStorage whenever it changes
   useEffect(() => {
@@ -142,13 +146,25 @@ function TutorDashboard() {
 
   // CRUD Handlers
   const handleCreateCourse = () => {
-    // TODO: Open course creation modal
-    alert('Course creation modal coming soon!');
+    setIsCreateCourseModalOpen(true);
+  };
+
+  const handleCourseCreated = async () => {
+    // Refresh courses after successful creation
+    try {
+      const coursesData = await tutorDashboardService.getTutorCourses();
+      setCourses(coursesData);
+      // Refresh stats
+      const dashboardStats = await tutorDashboardService.getDashboardStats();
+      setStats(dashboardStats);
+    } catch (error) {
+      console.error('Error refreshing data after course creation:', error);
+    }
   };
 
   const handleEditCourse = async (course: CourseWithStats) => {
     // TODO: Open course edit modal
-    alert(`Edit course: ${course.title}`);
+    console.log(`Edit course: ${course.title}`);
   };
 
   const handleDeleteCourse = async (courseId: string) => {
@@ -162,7 +178,7 @@ function TutorDashboard() {
       setStats(dashboardStats);
     } catch (error) {
       console.error('Error deleting course:', error);
-      alert('Failed to delete course. It may have active sessions.');
+      console.error('Failed to delete course. It may have active sessions.');
     }
   };
 
@@ -213,7 +229,7 @@ function TutorDashboard() {
     const studentName = 'student' in session && typeof session.student === 'object' 
       ? session.student.name 
       : (session as RecentSession).studentName;
-    alert(`Session Details:\nStudent: ${studentName}\nScheduled: ${session.scheduledAt}`);
+    console.log(`Session Details:\nStudent: ${studentName}\nScheduled: ${session.scheduledAt}`);
   };
 
   const handleAnswerQuestion = async (questionId: string, answer: string) => {
@@ -228,10 +244,10 @@ function TutorDashboard() {
           : q
       ));
       
-      alert('Answer submitted successfully!');
+      console.log('Answer submitted successfully!');
     } catch (error) {
       console.error('Error answering question:', error);
-      alert('Failed to submit answer. Please try again.');
+      console.error('Failed to submit answer. Please try again.');
     }
   };
 
@@ -336,6 +352,18 @@ function TutorDashboard() {
               </button>
               
               <button
+                onClick={() => setActiveTab('payments')}
+                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                  activeTab === 'payments' 
+                    ? 'bg-gray-900 text-white' 
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <IconCreditCard size={18} className="mr-3 flex-shrink-0" />
+                <span>Payments</span>
+              </button>
+              
+              <button
                 onClick={() => setActiveTab('qa')}
                 className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
                   activeTab === 'qa' 
@@ -413,6 +441,9 @@ function TutorDashboard() {
                 students={students}
               />
             )}
+            {activeTab === 'payments' && (
+              <TutorPaymentsTab />
+            )}
             {activeTab === 'qa' && (
               <TutorQATab
                 questions={questions}
@@ -431,6 +462,13 @@ function TutorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Create Course Modal */}
+      <CreateCourseModal
+        isOpen={isCreateCourseModalOpen}
+        onClose={() => setIsCreateCourseModalOpen(false)}
+        onSuccess={handleCourseCreated}
+      />
     </div>
   );
 }

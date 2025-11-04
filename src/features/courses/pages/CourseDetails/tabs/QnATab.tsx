@@ -70,7 +70,7 @@ const QnATab: React.FC<QnATabProps> = ({ questions, courseId }) => {
       setShowAskForm(false);
     } catch (error) {
       console.error('Failed to submit question:', error);
-      alert('Failed to post question. Please try again.');
+      console.error('Failed to post question. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -114,7 +114,7 @@ const QnATab: React.FC<QnATabProps> = ({ questions, courseId }) => {
       });
     } catch (error) {
       console.error('Failed to reply:', error);
-      alert('Failed to post answer. Please try again.');
+      console.error('Failed to post answer. Please try again.');
     }
   };
 

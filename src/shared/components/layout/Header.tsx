@@ -41,7 +41,10 @@ const Header = () => {
   const handleDashboardClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (user) {
-      const dashboardPath = user.role === 'ADMIN' ? '/admin/dashboard' : `/${user.role.toLowerCase()}/dashboard`;
+      // Students go to profile for verification, others go to their dashboards
+      const dashboardPath = user.role === 'STUDENT' ? '/student/profile' : 
+                           user.role === 'ADMIN' ? '/admin/dashboard' : 
+                           `/${user.role.toLowerCase()}/dashboard`;
       navigate(dashboardPath);
     }
   };

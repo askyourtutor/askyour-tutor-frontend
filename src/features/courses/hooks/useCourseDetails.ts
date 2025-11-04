@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import type { ApiCourse } from '../types/course.types';
-import { getCourseById, checkEnrollment, enrollInCourse, getSavedStatus, saveCourse, unsaveCourse } from '../services/course.service';
+import { getCourseById, checkEnrollment, getSavedStatus, saveCourse, unsaveCourse } from '../services/course.service';
 import { useAuth } from '../../../shared/contexts/AuthContext';
 
 export function useCourseDetails(courseId: string | undefined) {
@@ -13,7 +13,6 @@ export function useCourseDetails(courseId: string | undefined) {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
-  const [isEnrolling, setIsEnrolling] = useState(false);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
@@ -110,17 +109,9 @@ export function useCourseDetails(courseId: string | undefined) {
       navigate('/login', { replace: false });
       return;
     }
-    setIsEnrolling(true);
-    try {
-      await enrollInCourse(courseId);
-      setIsEnrolled(true);
-      // Optionally: switch to syllabus tab after enroll
-      setActiveTab('syllabus');
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setIsEnrolling(false);
-    }
+    
+    // Navigate to checkout page instead of direct enrollment
+    navigate(`/checkout/${courseId}`);
   };
 
   const handleMessageTutor = () => {
@@ -155,7 +146,7 @@ export function useCourseDetails(courseId: string | undefined) {
     // user state
     isSaved,
     isEnrolled,
-    isEnrolling,
+    isEnrolling: false, // Always false since we navigate to checkout instead
 
     // handlers
     renderStars,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   IconX,
   IconPlus,
@@ -15,6 +15,8 @@ import {
   IconFileText,
   IconUpload
 } from '@tabler/icons-react';
+import { createCourse, createLesson } from '../../../shared/services/tutorDashboardService';
+import { getSubjects, type Subject } from '../../../shared/services/subjectsService';
 
 interface Lesson {
   id: string;
@@ -63,19 +65,41 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [submitError, setSubmitError] = useState<string>('');
+  const [submitSuccess, setSubmitSuccess] = useState<string>('');
 
-  const subjects = [
-    'Mathematics',
-    'Physics',
-    'Chemistry',
-    'Biology',
-    'Computer Science',
-    'Engineering',
-    'Economics',
-    'Statistics',
-    'English',
-    'History'
-  ];
+  // Hardcoded fallback subjects
+  const fallbackSubjects = useMemo<Subject[]>(() => [
+    { id: '1', name: 'Mathematics', category: 'Science' },
+    { id: '2', name: 'Physics', category: 'Science' },
+    { id: '3', name: 'Chemistry', category: 'Science' },
+    { id: '4', name: 'Biology', category: 'Science' },
+    { id: '5', name: 'Computer Science', category: 'Technology' },
+    { id: '6', name: 'English Literature', category: 'Languages' },
+    { id: '7', name: 'History', category: 'Social Studies' },
+    { id: '8', name: 'Geography', category: 'Social Studies' },
+    { id: '9', name: 'Economics', category: 'Business' },
+    { id: '10', name: 'Psychology', category: 'Social Studies' }
+  ], []);
+
+  const loadSubjects = useCallback(async () => {
+    try {
+      const subjectsData = await getSubjects();
+      setSubjects(subjectsData);
+    } catch (error) {
+      console.error('Failed to load subjects from API, using fallback subjects:', error);
+      // Use hardcoded fallback subjects when API fails
+      setSubjects(fallbackSubjects);
+    }
+  }, [fallbackSubjects]);
+
+  // Load subjects when modal opens
+  useEffect(() => {
+    if (isOpen && subjects.length === 0) {
+      loadSubjects();
+    }
+  }, [isOpen, subjects.length, loadSubjects]);
 
   if (!isOpen) return null;
 
@@ -159,7 +183,7 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
 
   const validateStep2 = (): boolean => {
     if (formData.lessons.length === 0) {
-      alert('Please add at least one lesson');
+      setSubmitError('Please add at least one lesson');
       return false;
     }
 
@@ -175,13 +199,16 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
 
     setErrors(newErrors);
     if (hasError) {
-      alert('Please fill in all required lesson fields');
+      setSubmitError('Please fill in all required lesson fields');
     }
     return !hasError;
   };
 
   const handleNext = () => {
     if (step === 1 && validateStep1()) {
+      // Clear any previous error messages
+      setSubmitError('');
+      setSubmitSuccess('');
       setStep(2);
     }
   };
@@ -267,16 +294,58 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
     }
     
     setIsSubmitting(true);
+    setSubmitError('');
+    setSubmitSuccess('');
+    
     try {
-      console.log('Submitting course:', formData);
+      // Step 1: Create the course
+      const courseData = {
+        title: formData.title,
+        description: formData.description,
+        subject: formData.subject,
+        code: formData.code || undefined,
+        price: parseFloat(formData.price),
+        image: formData.imageFile ? 'placeholder-image-url' : undefined, // TODO: Implement image upload
+        isActive: formData.isActive
+      };
+
+      const createdCourse = await createCourse(courseData);
+
+      // Step 2: Create lessons for the course
+      if (formData.lessons.length > 0) {
+        for (const lesson of formData.lessons) {
+          const lessonData = {
+            title: lesson.title,
+            description: lesson.description,
+            duration: lesson.duration,
+            orderIndex: lesson.orderIndex
+          };
+
+          await createLesson(createdCourse.id, lessonData);
+          
+          // Handle video file upload when implemented
+          if (lesson.videoFile) {
+            // TODO: Implement video file upload API call
+            console.log('Video file upload will be implemented:', lesson.videoFile.name);
+          }
+        }
+      }
+
+      // Success
+      setSubmitSuccess('Course created successfully!');
       
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      // Wait a moment to show success message, then close
+      setTimeout(() => {
+        onSuccess();
+        handleClose();
+      }, 1500);
       
-      onSuccess();
-      handleClose();
     } catch (error) {
       console.error('Error creating course:', error);
-      alert('Failed to create course. Please try again.');
+      setSubmitError(
+        error instanceof Error ? error.message : 
+        'Failed to create course. Please check your information and try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -382,6 +451,45 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
           </div>
         </div>
 
+        {/* Error and Success Messages */}
+        {(submitError || submitSuccess) && (
+          <div className="px-3 md:px-4 py-3 bg-white border-b border-gray-200">
+            <div className="max-w-5xl mx-auto">
+              {/* Error Message */}
+              {submitError && (
+                <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-sm">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-800">{submitError}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Success Message */}
+              {submitSuccess && (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-sm">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-green-400 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-green-800">{submitSuccess}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto bg-gray-50/50">
           <div className="px-3 md:px-4 py-4">
@@ -465,7 +573,7 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
                     >
                       <option value="">Select subject</option>
                       {subjects.map(subject => (
-                        <option key={subject} value={subject}>{subject}</option>
+                        <option key={subject.id} value={subject.name}>{subject.name}</option>
                       ))}
                     </select>
                     {errors.subject && (

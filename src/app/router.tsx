@@ -18,6 +18,9 @@ import AdminDashboard from '../features/profile/pages/AdminDashboard';
 import TutorDashboard from '../features/profile/pages/TutorDashboard';
 import CourseDetails from '../features/courses/pages/CourseDetails';
 import CoursesPage from '../features/courses/pages/CoursesPage';
+import CheckoutPage from '../features/courses/pages/CheckoutPage';
+import PaymentSuccessPage from '../features/payment/pages/PaymentSuccessPage';
+import PaymentCancelPage from '../features/payment/pages/PaymentCancelPage';
 import TeachersPage from '../features/teachers/pages/TeachersPage';
 import TeacherDetailPage from '../features/teachers/pages/TeacherDetailPage';
 
@@ -45,6 +48,29 @@ const router = createBrowserRouter([
             <CourseDetails />
           </RoleRoute>
         )
+      },
+      // Checkout page for course enrollment payment
+      { 
+        path: 'checkout/:id', 
+        element: (
+          <RoleRoute allowed={['STUDENT', 'ADMIN']}>
+            <CheckoutPage />
+          </RoleRoute>
+        )
+      },
+      // Payment success page
+      { 
+        path: 'payment/success', 
+        element: (
+          <RoleRoute allowed={['STUDENT', 'ADMIN']}>
+            <PaymentSuccessPage />
+          </RoleRoute>
+        )
+      },
+      // Payment cancel page
+      { 
+        path: 'payment/cancel', 
+        element: <PaymentCancelPage />
       },
       // Teachers accessible by STUDENT, TUTOR, ADMIN but details only for STUDENT, ADMIN
       { 

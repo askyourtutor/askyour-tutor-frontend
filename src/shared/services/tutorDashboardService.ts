@@ -109,6 +109,25 @@ export interface CourseEarnings {
   avgPerSession: number;
 }
 
+export interface LessonDetails {
+  id: string;
+  title: string;
+  description?: string | null;
+  content?: string | null;
+  duration?: number | null;
+  orderIndex: number;
+  isPublished: boolean;
+  uploadStatus?: string | null;
+  processingStatus?: string | null;
+  videoUrl?: string | null;
+  thumbnailUrl?: string | null;
+  bunnyVideoId?: string | null;
+  fileSize?: number | null;
+  uploadedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface EarningsData {
   totalEarnings: number;
   totalSessions: number;
@@ -313,10 +332,110 @@ export const getTutorStudents = async (): Promise<Student[]> => {
 };
 
 /**
+ * Create a new lesson for a course
+ */
+export const createLesson = async (
+  courseId: string,
+  lessonData: {
+    title: string;
+    description?: string;
+    content?: string;
+    duration?: number;
+    orderIndex?: number;
+  }
+): Promise<LessonDetails> => {
+  const response = await apiFetch<{ lesson: LessonDetails }>(
+    `/tutor-dashboard/courses/${courseId}/lessons`,
+    {
+      method: 'POST',
+      body: JSON.stringify(lessonData)
+    }
+  );
+  return response.lesson;
+};
+
+/**
+ * Update lesson details
+ */
+export const updateLesson = async (
+  courseId: string,
+  lessonId: string,
+  lessonData: Partial<{
+    title: string;
+    description: string;
+    content: string;
+    duration: number;
+    orderIndex: number;
+    isPublished: boolean;
+  }>
+): Promise<LessonDetails> => {
+  const response = await apiFetch<{ lesson: LessonDetails }>(
+    `/tutor-dashboard/courses/${courseId}/lessons/${lessonId}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(lessonData)
+    }
+  );
+  return response.lesson;
+};
+
+/**
+ * Delete a lesson
+ */
+export const deleteLesson = async (courseId: string, lessonId: string): Promise<void> => {
+  await apiFetch<void>(`/tutor-dashboard/courses/${courseId}/lessons/${lessonId}`, {
+    method: 'DELETE'
+  });
+};
+
+/**
+ * Get all lessons for a course
+ */
+export const getCourseLessons = async (courseId: string): Promise<LessonDetails[]> => {
+  const response = await apiFetch<{ lessons: LessonDetails[] }>(
+    `/tutor-dashboard/courses/${courseId}/lessons`
+  );
+  return response.lessons;
+};
+
+/**
  * Get earnings overview
  */
 export const getTutorEarnings = async (): Promise<EarningsData> => {
   return await apiFetch<EarningsData>('/tutor-dashboard/earnings');
+};
+
+export interface Payment {
+  id: string;
+  studentName: string;
+  studentEmail: string;
+  courseName: string;
+  amount: number;
+  status: 'completed' | 'pending' | 'failed' | 'refunded';
+  paymentMethod: string;
+  transactionId: string;
+  createdAt: string;
+  completedAt?: string | null;
+}
+
+export interface PaymentStats {
+  totalRevenue: number;
+  monthlyRevenue: number;
+  pendingPayments: number;
+  totalTransactions: number;
+  successRate: number;
+}
+
+export interface PaymentsResponse {
+  payments: Payment[];
+  stats: PaymentStats;
+}
+
+/**
+ * Get tutor payments
+ */
+export const getTutorPayments = async (): Promise<PaymentsResponse> => {
+  return await apiFetch<PaymentsResponse>('/payments/tutor/payments');
 };
 
 const tutorDashboardService = {
@@ -327,11 +446,16 @@ const tutorDashboardService = {
   updateCourse,
   deleteCourse,
   toggleCoursePublish,
+  createLesson,
+  updateLesson,
+  deleteLesson,
+  getCourseLessons,
   getTutorSessions,
   updateSessionStatus,
   cancelSession,
   getTutorStudents,
   getTutorEarnings,
+  getTutorPayments,
 };
 
 export default tutorDashboardService;

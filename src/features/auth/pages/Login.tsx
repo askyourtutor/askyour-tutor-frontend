@@ -46,9 +46,10 @@ export default function Login() {
           return;
         }
         
-        // Role-based dashboard redirect after login
+        // Role-based redirect after login
         if (role === 'STUDENT') {
-          navigate('/student/dashboard', { replace: true });
+          // Always redirect students to profile for verification
+          navigate('/student/profile', { replace: true });
         } else if (role === 'TUTOR') {
           navigate('/tutor/dashboard', { replace: true });
         } else if (role === 'ADMIN') {
