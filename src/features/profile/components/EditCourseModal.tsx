@@ -11,7 +11,8 @@ import {
   IconVideo,
   IconTrash,
   IconChevronUp,
-  IconChevronDown
+  IconChevronDown,
+  IconPlayerPlay
 } from '@tabler/icons-react';
 import {
   updateCourse,
@@ -78,6 +79,7 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
   const [submitError, setSubmitError] = useState<string>('');
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
   const [isLoadingLessons, setIsLoadingLessons] = useState(false);
+  const [previewVideo, setPreviewVideo] = useState<{ url: string; title: string } | null>(null);
 
   const fallbackSubjects = useMemo<Subject[]>(() => [
     { id: '1', name: 'Mathematics', category: 'Science' },
@@ -117,7 +119,7 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
         videoUrl: lesson.videoUrl || null,
         bunnyVideoId: lesson.bunnyVideoId || null,
         thumbnailUrl: lesson.thumbnailUrl || null,
-        uploadStatus: lesson.uploadStatus as 'pending' | 'uploading' | 'processing' | 'completed' | 'failed' || 'pending',
+        uploadStatus: 'pending', // Reset status - not actively uploading when editing
         uploadProgress: 0,
         isNew: false
       }));
@@ -304,7 +306,7 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
     setSubmitError('');
     
     try {
-      // Update course details
+      // Step 1: Update course details
       await updateCourse(course.id, {
         title: formData.title,
         description: formData.description || undefined,
@@ -315,9 +317,12 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
         isActive: formData.isActive
       });
 
-      // Update/Create lessons
+      // Step 2: Update/Create lessons (without waiting for video uploads)
+      const videoUploads: Array<{ lessonId: string; videoFile: File }> = [];
+      
       for (const lesson of formData.lessons) {
         if (lesson.isNew) {
+          // Create new lesson
           const createdLesson = await createLesson(course.id, {
             title: lesson.title,
             description: lesson.description,
@@ -325,27 +330,12 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
             orderIndex: lesson.orderIndex
           });
 
+          // Queue video upload for background processing
           if (lesson.videoFile) {
-            try {
-              await videoUploadService.uploadVideoWithProgress(
-                createdLesson.id,
-                lesson.videoFile,
-                (progress: VideoUploadProgress) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    lessons: prev.lessons.map(l =>
-                      l.id === lesson.id
-                        ? { ...l, uploadStatus: progress.status, uploadProgress: progress.progress }
-                        : l
-                    )
-                  }));
-                }
-              );
-            } catch (uploadError) {
-              console.error('Video upload failed:', uploadError);
-            }
+            videoUploads.push({ lessonId: createdLesson.id, videoFile: lesson.videoFile });
           }
         } else if (lesson.id) {
+          // Update existing lesson
           await updateLessonAPI(course.id, lesson.id, {
             title: lesson.title,
             description: lesson.description,
@@ -353,40 +343,57 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
             orderIndex: lesson.orderIndex
           });
 
+          // Queue video upload for background processing (new or replacement video)
           if (lesson.videoFile) {
-            try {
-              await videoUploadService.uploadVideoWithProgress(
-                lesson.id,
-                lesson.videoFile,
-                (progress: VideoUploadProgress) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    lessons: prev.lessons.map(l =>
-                      l.id === lesson.id
-                        ? { ...l, uploadStatus: progress.status, uploadProgress: progress.progress }
-                        : l
-                    )
-                  }));
-                }
-              );
-            } catch (uploadError) {
-              console.error('Video upload failed:', uploadError);
-            }
+            videoUploads.push({ lessonId: lesson.id, videoFile: lesson.videoFile });
           }
         }
       }
 
-      setSubmitSuccess('Course updated successfully!');
+      // Show success and close immediately (don't wait for video uploads)
+      setSubmitSuccess('Course updated successfully! Videos are uploading in the background.');
+      
+      // Close modal after brief delay
       setTimeout(() => {
         onSuccess();
         handleClose();
       }, 1500);
+
+      // Step 3: Upload videos in the background (async, non-blocking)
+      if (videoUploads.length > 0) {
+        // Start background uploads without blocking
+        uploadVideosInBackground(videoUploads);
+      }
+      
     } catch (error) {
       console.error('Error updating course:', error);
       setSubmitError(error instanceof Error ? error.message : 'Failed to update course');
-    } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Background video upload function (doesn't block UI)
+  const uploadVideosInBackground = async (uploads: Array<{ lessonId: string; videoFile: File }>) => {
+    for (const { lessonId, videoFile } of uploads) {
+      try {
+        console.log(`📤 Background upload started for lesson: ${lessonId}`);
+        
+        await videoUploadService.uploadVideoWithProgress(
+          lessonId,
+          videoFile,
+          (progress: VideoUploadProgress) => {
+            console.log(`📊 Upload progress: ${progress.progress}% (${progress.status})`);
+          }
+        );
+        
+        console.log(`✅ Video uploaded successfully for lesson: ${lessonId}`);
+      } catch (uploadError) {
+        console.error(`❌ Background upload failed for lesson ${lessonId}:`, uploadError);
+        // Continue with other uploads even if one fails
+      }
+    }
+    
+    console.log(`🎉 All background video uploads completed`);
   };
 
   const handleClose = () => {
@@ -782,20 +789,152 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
                                       Video Content
                                     </label>
                                     
-                                    {/* Show existing video from database */}
-                                    {lesson.videoUrl && !lesson.videoFile ? (
-                                      <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-sm">
-                                        <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-sm">
-                                          <IconVideo size={16} className="text-blue-600" />
+                                    {/* Unified Video Box - Same layout for all states */}
+                                    <div className="border-2 border-dashed border-gray-200 rounded-sm overflow-hidden bg-white">
+                                      {/* Case 1: Existing video from database */}
+                                      {(lesson.videoUrl || lesson.bunnyVideoId) && !lesson.videoFile ? (
+                                        <div className="space-y-0">
+                                          {/* Thumbnail Preview */}
+                                          {lesson.thumbnailUrl && (
+                                            <div className="relative aspect-video bg-gray-900 cursor-pointer group"
+                                              onClick={() => {
+                                                // Use videoUrl (secure URL from backend) or bunnyVideoId for iframe
+                                                const videoUrlToPlay = lesson.videoUrl || lesson.bunnyVideoId;
+                                                setPreviewVideo({ url: videoUrlToPlay!, title: lesson.title });
+                                              }}
+                                            >
+                                              <img 
+                                                src={lesson.thumbnailUrl} 
+                                                alt={`${lesson.title} thumbnail`}
+                                                className="w-full h-full object-cover"
+                                              />
+                                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
+                                                  <IconPlayerPlay size={24} className="text-gray-900 ml-1" />
+                                                </div>
+                                              </div>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Video Info Bar */}
+                                          <div className="flex items-center gap-2 p-3 bg-blue-50 border-t-2 border-blue-200">
+                                            <div className="flex items-center justify-center w-8 h-8 bg-blue-100 rounded-sm">
+                                              <IconVideo size={16} className="text-blue-600" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-xs font-medium text-gray-900">Existing Video</p>
+                                              <p className="text-xs text-gray-500">Click to preview</p>
+                                            </div>
+                                            <button
+                                              onClick={() => {
+                                                // Use videoUrl (secure URL from backend) or bunnyVideoId for iframe
+                                                const videoUrlToPlay = lesson.videoUrl || lesson.bunnyVideoId;
+                                                setPreviewVideo({ url: videoUrlToPlay!, title: lesson.title });
+                                              }}
+                                              className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-sm transition-all duration-200"
+                                              title="Preview video"
+                                            >
+                                              <IconPlayerPlay size={14} />
+                                            </button>
+                                            <label className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-sm transition-all duration-200 cursor-pointer"
+                                              title="Replace video"
+                                            >
+                                              <IconUpload size={14} />
+                                              <input
+                                                type="file"
+                                                accept="video/*"
+                                                onChange={(e) => handleVideoSelect(lesson.id || '', e.target.files?.[0] || null)}
+                                                className="hidden"
+                                              />
+                                            </label>
+                                          </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-xs font-medium text-gray-900">Existing Video</p>
-                                          <p className="text-xs text-gray-500">Video already uploaded</p>
+                                      ) : lesson.videoFile ? (
+                                        /* Case 2: New video file selected */
+                                        <div className="space-y-0">
+                                          {/* Video File Preview */}
+                                          {lesson.videoPreview ? (
+                                            <div className="relative aspect-video bg-gray-900 cursor-pointer group"
+                                              onClick={() => setPreviewVideo({ url: lesson.videoPreview, title: lesson.title })}
+                                            >
+                                              <video 
+                                                src={lesson.videoPreview}
+                                                className="w-full h-full object-contain"
+                                                preload="metadata"
+                                              />
+                                              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
+                                                  <IconPlayerPlay size={24} className="text-gray-900 ml-1" />
+                                                </div>
+                                              </div>
+                                              {/* Ready badge overlay */}
+                                              <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-sm">
+                                                Ready to Upload
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                              <div className="text-center">
+                                                <div className="w-16 h-16 mx-auto mb-3 bg-green-100 rounded-full flex items-center justify-center">
+                                                  <IconVideo size={32} className="text-green-600" />
+                                                </div>
+                                                <p className="text-sm font-medium text-gray-700">Video Ready to Upload</p>
+                                                <p className="text-xs text-gray-500 mt-1">Will be uploaded when you save</p>
+                                              </div>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Video File Info Bar */}
+                                          <div className="flex items-center gap-2 p-3 bg-green-50 border-t-2 border-green-200">
+                                            <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-sm">
+                                              <IconCheck size={16} className="text-green-600" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-xs font-medium text-gray-900 truncate">{lesson.videoFile.name}</p>
+                                              <p className="text-xs text-gray-500">
+                                                {(lesson.videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                                              </p>
+                                            </div>
+                                            {lesson.videoPreview && (
+                                              <button
+                                                onClick={() => setPreviewVideo({ url: lesson.videoPreview, title: lesson.title })}
+                                                className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-100 rounded-sm transition-all duration-200"
+                                                title="Preview video"
+                                              >
+                                                <IconPlayerPlay size={14} />
+                                              </button>
+                                            )}
+                                            <button
+                                              onClick={() => removeVideo(lesson.id || '')}
+                                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-sm transition-all duration-200"
+                                              title="Remove video"
+                                            >
+                                              <IconTrash size={14} />
+                                            </button>
+                                          </div>
                                         </div>
-                                        <label className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-100 rounded-sm transition-all duration-200 cursor-pointer"
-                                          title="Replace video"
-                                        >
-                                          <IconUpload size={14} />
+                                      ) : (
+                                        /* Case 3: No video - Upload area */
+                                        <label className="block cursor-pointer group">
+                                          {/* Upload Area */}
+                                          <div className="aspect-video bg-gray-50 flex items-center justify-center group-hover:bg-gray-100 transition-colors">
+                                            <div className="text-center">
+                                              <div className="w-16 h-16 mx-auto mb-3 bg-gray-200 rounded-full flex items-center justify-center group-hover:bg-gray-300 transition-colors">
+                                                <IconUpload size={32} className="text-gray-400 group-hover:text-gray-500" />
+                                              </div>
+                                              <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Click to Upload Video</p>
+                                              <p className="text-xs text-gray-500 mt-1">MP4, MOV, AVI, MKV, WEBM • Max 500MB</p>
+                                            </div>
+                                          </div>
+                                          
+                                          {/* Upload Info Bar */}
+                                          <div className="flex items-center justify-center gap-2 p-3 bg-gray-50 border-t-2 border-gray-200 group-hover:bg-gray-100 transition-colors">
+                                            <IconVideo size={18} className="text-gray-400 group-hover:text-gray-500" />
+                                            <span className="text-xs font-medium text-gray-600 group-hover:text-gray-700">
+                                              No video uploaded yet
+                                            </span>
+                                          </div>
+                                          
                                           <input
                                             type="file"
                                             accept="video/*"
@@ -803,44 +942,10 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
                                             className="hidden"
                                           />
                                         </label>
-                                      </div>
-                                    ) : lesson.videoFile ? (
-                                      /* Show new video file selected */
-                                      <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-sm">
-                                        <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-sm">
-                                          <IconCheck size={16} className="text-green-600" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-xs font-medium text-gray-900 truncate">{lesson.videoFile.name}</p>
-                                          <p className="text-xs text-gray-500">
-                                            {(lesson.videoFile.size / (1024 * 1024)).toFixed(2)} MB
-                                          </p>
-                                        </div>
-                                        <button
-                                          onClick={() => removeVideo(lesson.id || '')}
-                                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-sm transition-all duration-200"
-                                          title="Remove video"
-                                        >
-                                          <IconTrash size={14} />
-                                        </button>
-                                      </div>
-                                    ) : (
-                                      /* No video - show upload button */
-                                      <label className="flex items-center justify-center gap-2 h-12 border-2 border-dashed border-gray-200 rounded-sm cursor-pointer hover:border-gray-300 hover:bg-gray-50/50 transition-all duration-200 group">
-                                        <IconVideo size={18} className="text-gray-400 group-hover:text-gray-500" />
-                                        <span className="text-xs font-medium text-gray-600 group-hover:text-gray-700">
-                                          Upload Video
-                                        </span>
-                                        <input
-                                          type="file"
-                                          accept="video/*"
-                                          onChange={(e) => handleVideoSelect(lesson.id || '', e.target.files?.[0] || null)}
-                                          className="hidden"
-                                        />
-                                      </label>
-                                    )}
+                                      )}
+                                    </div>
 
-                                    {/* Show upload progress */}
+                                    {/* Status Messages (outside the box) */}
                                     {lesson.uploadStatus === 'uploading' && (
                                       <div className="mt-2">
                                         <div className="flex items-center justify-between text-xs mb-1">
@@ -856,7 +961,6 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
                                       </div>
                                     )}
 
-                                    {/* Show processing status */}
                                     {lesson.uploadStatus === 'processing' && (
                                       <div className="mt-2 flex items-center gap-2 text-xs text-blue-600">
                                         <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
@@ -864,7 +968,6 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
                                       </div>
                                     )}
 
-                                    {/* Show completion status */}
                                     {lesson.uploadStatus === 'completed' && (
                                       <div className="mt-2 flex items-center gap-2 text-xs text-green-600">
                                         <IconCheck size={14} />
@@ -872,7 +975,6 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
                                       </div>
                                     )}
 
-                                    {/* Show error status */}
                                     {lesson.uploadStatus === 'failed' && (
                                       <div className="mt-2 flex items-center gap-2 text-xs text-red-600">
                                         <IconAlertCircle size={14} />
@@ -894,6 +996,62 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
           </div>
         </div>
       </div>
+      
+      {/* Video Preview Modal */}
+      {previewVideo && (
+        <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setPreviewVideo(null)}
+        >
+          <div className="relative w-full max-w-4xl bg-gray-900 rounded-lg overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-black/60 to-transparent p-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-white font-medium text-lg">{previewVideo.title}</h3>
+                <button
+                  onClick={() => setPreviewVideo(null)}
+                  className="text-white/80 hover:text-white p-2 hover:bg-white/10 rounded-full transition-all"
+                >
+                  <IconX size={24} />
+                </button>
+              </div>
+            </div>
+            
+            {/* Video Player */}
+            <div className="aspect-video bg-black">
+              {(() => {
+                // Check if it's a bunnyVideoId (UUID format) - use iframe
+                const isBunnyId = previewVideo.url.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+                
+                if (isBunnyId) {
+                  // Use Bunny.net iframe embed player for video ID
+                  const embedUrl = `https://iframe.mediadelivery.net/embed/524556/${previewVideo.url}?autoplay=true&preload=true`;
+                  return (
+                    <iframe
+                      src={embedUrl}
+                      loading="lazy"
+                      style={{ border: 'none', width: '100%', height: '100%' }}
+                      allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
+                      allowFullScreen
+                    />
+                  );
+                }
+                
+                // Use HTML5 video for secure HLS URLs or direct file URLs
+                return (
+                  <video
+                    src={previewVideo.url}
+                    controls
+                    autoPlay
+                    className="w-full h-full"
+                  />
+                );
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

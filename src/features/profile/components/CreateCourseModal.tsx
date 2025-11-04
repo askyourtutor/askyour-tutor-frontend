@@ -312,7 +312,9 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
 
       const createdCourse = await createCourse(courseData);
 
-      // Step 2: Create lessons for the course
+      // Step 2: Create lessons (collect video uploads for background processing)
+      const videoUploads: Array<{ lessonId: string; videoFile: File; title: string }> = [];
+      
       if (formData.lessons.length > 0) {
         for (const lesson of formData.lessons) {
           const lessonData = {
@@ -324,66 +326,30 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
 
           const createdLesson = await createLesson(createdCourse.id, lessonData);
           
-          // Handle video file upload
+          // Queue video upload for background processing
           if (lesson.videoFile) {
-            try {
-              console.log(`Uploading video for lesson: ${lesson.title}`);
-              
-              // Update lesson upload status
-              setFormData(prev => ({
-                ...prev,
-                lessons: prev.lessons.map(l =>
-                  l.id === lesson.id
-                    ? { ...l, uploadStatus: 'uploading', uploadProgress: 0 }
-                    : l
-                )
-              }));
-
-              // Upload video with progress tracking
-              await videoUploadService.uploadVideoWithProgress(
-                createdLesson.id,
-                lesson.videoFile,
-                (progress: VideoUploadProgress) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    lessons: prev.lessons.map(l =>
-                      l.id === lesson.id
-                        ? { 
-                            ...l, 
-                            uploadStatus: progress.status,
-                            uploadProgress: progress.progress
-                          }
-                        : l
-                    )
-                  }));
-                }
-              );
-
-              console.log(`Video uploaded successfully for lesson: ${lesson.title}`);
-            } catch (uploadError) {
-              console.error(`Failed to upload video for lesson ${lesson.title}:`, uploadError);
-              // Continue with other lessons even if one fails
-              setFormData(prev => ({
-                ...prev,
-                lessons: prev.lessons.map(l =>
-                  l.id === lesson.id
-                    ? { ...l, uploadStatus: 'failed', uploadProgress: 0 }
-                    : l
-                )
-              }));
-            }
+            videoUploads.push({
+              lessonId: createdLesson.id,
+              videoFile: lesson.videoFile,
+              title: lesson.title
+            });
           }
         }
       }
 
-      // Success
-      setSubmitSuccess('Course created successfully!');
+      // Show success and close immediately (don't wait for video uploads)
+      setSubmitSuccess('Course created successfully! Videos are uploading in the background.');
       
-      // Wait a moment to show success message, then close
+      // Close modal after brief delay
       setTimeout(() => {
         onSuccess();
         handleClose();
       }, 1500);
+
+      // Step 3: Upload videos in the background (async, non-blocking)
+      if (videoUploads.length > 0) {
+        uploadVideosInBackground(videoUploads);
+      }
       
     } catch (error) {
       console.error('Error creating course:', error);
@@ -391,9 +357,32 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
         error instanceof Error ? error.message : 
         'Failed to create course. Please check your information and try again.'
       );
-    } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Background video upload function (doesn't block UI)
+  const uploadVideosInBackground = async (uploads: Array<{ lessonId: string; videoFile: File; title: string }>) => {
+    for (const { lessonId, videoFile, title } of uploads) {
+      try {
+        console.log(`📤 Background upload started for lesson: ${title}`);
+        
+        await videoUploadService.uploadVideoWithProgress(
+          lessonId,
+          videoFile,
+          (progress: VideoUploadProgress) => {
+            console.log(`📊 ${title}: ${progress.progress}% (${progress.status})`);
+          }
+        );
+        
+        console.log(`✅ Video uploaded successfully for lesson: ${title}`);
+      } catch (uploadError) {
+        console.error(`❌ Background upload failed for lesson ${title}:`, uploadError);
+        // Continue with other uploads even if one fails
+      }
+    }
+    
+    console.log(`🎉 All background video uploads completed`);
   };
 
   const handleClose = () => {
