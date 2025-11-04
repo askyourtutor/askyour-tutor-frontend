@@ -23,17 +23,19 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   renderStars,
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-200">
       <div className="relative aspect-video bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
         {!isPlaying || !src ? (
           <div className={`relative w-full h-full ${src ? 'group cursor-pointer' : ''}`} onClick={() => src && onTogglePlay(true)}>
             {poster && <img src={poster} alt="Course preview" className="w-full h-full object-cover" />}
             {!src && !poster && (
               <div className="w-full h-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                <div className="text-center text-white">
-                  <div className="text-4xl mb-4">🎥</div>
-                  <h3 className="text-lg font-semibold mb-2">Select a Lesson</h3>
-                  <p className="text-gray-300">Choose a lesson from the syllabus to start watching</p>
+                <div className="text-center text-white space-y-3">
+                  <div className="w-16 h-16 mx-auto rounded-full bg-red-500/10 backdrop-blur-sm flex items-center justify-center border border-red-500/30">
+                    <IconPlayerPlay size={28} className="text-red-400 ml-0.5" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">No Video Available</h3>
+                  <p className="text-sm text-gray-400 max-w-xs mx-auto">Please select a lesson from the syllabus to begin</p>
                 </div>
               </div>
             )}
