@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
-import { AuthAPI, apiFetch, setAccessToken, setHasRefreshToken, clearSession, ApiError } from '../services/api';
+import { AuthAPI, setAccessToken, setHasRefreshToken, clearSession, ApiError, refreshAccessToken } from '../services/api';
 import { secureDebug } from '../utils/security';
 
 export type StudentProfile = {
@@ -111,16 +111,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Only try refresh if user had a previous session
         if (hadPreviousSession) {
           try {
-            const r = await apiFetch<{ accessToken: string }>(
-              '/auth/refresh',
-              { method: 'POST', body: JSON.stringify({ refreshToken: '' }), signal: controller.signal },
-              false,
-            );
-            if (r?.accessToken) {
-              setAccessToken(r.accessToken);
+            const result = await refreshAccessToken();
+            if (result === 'DENIED') {
+              if (!cancelled) {
+                clearSession();
+                persistUser(null);
+              }
+            } else if (typeof result === 'string' && result) {
+              setAccessToken(result);
               setHasRefreshToken(true);
-              
-              // If refresh succeeded, get user info
               if (!cancelled) {
                 try {
                   const me = await AuthAPI.me();
@@ -129,23 +128,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   }
                 } catch (error) {
                   if (!cancelled) {
-                    // Failed to get user info after successful refresh
-                    clearSession();
-                    persistUser(null);
+                    // Do NOT clear session if /me fails; keep access token and try later
                     if (import.meta.env.DEV) {
-                      secureDebug('[Auth] Failed to get user info:', error);
+                      secureDebug('[Auth] /me failed after refresh (non-fatal):', error);
                     }
                   }
                 }
               }
             }
           } catch (error) {
-            // Refresh failed - clear stored user and session
+            // Refresh failed - do NOT clear session here; try again on next API call
             if (!cancelled) {
-              clearSession();
-              persistUser(null);
               if (error instanceof ApiError && !error.isExpected && import.meta.env.DEV) {
-                secureDebug('[Auth] Refresh failed unexpectedly:', error);
+                secureDebug('[Auth] Refresh failed unexpectedly (non-fatal at boot):', error);
               }
             }
           }
@@ -175,6 +170,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       cancelled = true;
       controller.abort();
     };
+  }, []);
+
+  // Listen for global auth logout events (e.g., 401 after refresh denial)
+  useEffect(() => {
+    const handler = () => {
+      clearSession();
+      persistUser(null);
+    };
+    window.addEventListener('auth:logout', handler as EventListener);
+    return () => window.removeEventListener('auth:logout', handler as EventListener);
   }, []);
 
   const login = useCallback(async (email: string, password: string, rememberMe: boolean = false) => {

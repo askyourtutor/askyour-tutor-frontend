@@ -96,7 +96,7 @@ export const UsersAPI = {
 // Use VITE_API_URL when provided; otherwise default to relative '/api' for best portability
 const API_BASE: string = (import.meta.env.VITE_API_URL as string) || '/api';
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | 'DENIED' | null> {
   if (!refreshPromise) {
     refreshPromise = (async () => {
       try {
@@ -108,10 +108,12 @@ async function refreshAccessToken(): Promise<string | null> {
         });
         
         if (!res.ok) {
-          // Don't log expected 401s from refresh endpoint
-          if (res.status !== 401) {
-            secureError(`[Auth] Token refresh failed (${res.status})`);
+          // Distinguish expected 401 vs other failures (network/500s)
+          if (res.status === 401) {
+            return 'DENIED' as const;
           }
+          // Don't log expected 401s from refresh endpoint
+          secureError(`[Auth] Token refresh failed (${res.status})`);
           return null;
         }
         
@@ -151,12 +153,15 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
 
   // Only attempt refresh if we have evidence of a refresh token
   if (res.status === 401 && retry && hasRefreshToken) {
-    const newToken = await refreshAccessToken();
-    if (newToken) {
+    const result = await refreshAccessToken();
+    if (typeof result === 'string' && result !== 'DENIED') {
       return apiFetch<T>(path, options, false);
-    } else {
+    } else if (result === 'DENIED') {
       // Refresh failed, clear the flag
       hasRefreshToken = false;
+      // Fall through to error handling; caller may clear session
+    } else {
+      // Network or unexpected error; keep flag to retry later
     }
   }
 
