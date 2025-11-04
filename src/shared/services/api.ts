@@ -159,6 +159,8 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
     } else if (result === 'DENIED') {
       // Refresh failed, clear the flag
       hasRefreshToken = false;
+      // Broadcast global logout so UI clears immediately
+      try { window.dispatchEvent(new Event('auth:logout')); } catch { void 0; }
       // Fall through to error handling; caller may clear session
     } else {
       // Network or unexpected error; keep flag to retry later
