@@ -23,6 +23,7 @@ import PaymentSuccessPage from '../features/payment/pages/PaymentSuccessPage';
 import PaymentCancelPage from '../features/payment/pages/PaymentCancelPage';
 import TeachersPage from '../features/teachers/pages/TeachersPage';
 import TeacherDetailPage from '../features/teachers/pages/TeacherDetailPage';
+import ContactPage from '../features/contact/pages/ContactPage';
 
 const router = createBrowserRouter([
   {
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { index: true, element: <Home /> },
+      { path: 'contact', element: <ContactPage /> },
       
       // Courses accessible by STUDENT, TUTOR, ADMIN but details only for STUDENT, ADMIN
       { 

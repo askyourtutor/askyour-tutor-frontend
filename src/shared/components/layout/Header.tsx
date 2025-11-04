@@ -411,9 +411,9 @@ const Header = () => {
                   )}
                   
                   <li className="mx-2.5">
-                    <a href="#" className="font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
+                    <Link to="/contact" className="font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
                       <span>Contact</span>
-                    </a>
+                    </Link>
                   </li>
                 </ul>
               </nav>
@@ -564,9 +564,9 @@ const Header = () => {
                 )}
                 
                 <li>
-                  <a href="#" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
+                  <Link to="/contact" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
                     Contact
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </nav>
