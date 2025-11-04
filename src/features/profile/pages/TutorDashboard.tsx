@@ -102,9 +102,9 @@ function TutorDashboard() {
         const studentsData = await tutorDashboardService.getTutorStudents();
         setStudents(studentsData);
 
-        // TODO: Fetch Q&A data from backend when API is ready
-        // const questionsData = await tutorDashboardService.getQuestions();
-        // setQuestions(questionsData);
+        // Fetch Q&A data
+        const questionsData = await tutorDashboardService.getQuestions();
+        setQuestions(questionsData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         // Reset to empty state on error
@@ -234,8 +234,8 @@ function TutorDashboard() {
 
   const handleAnswerQuestion = async (questionId: string, answer: string) => {
     try {
-      // TODO: Call backend API to save answer when ready
-      // await tutorDashboardService.answerQuestion(questionId, answer);
+      // Call backend API to save answer
+      await tutorDashboardService.answerQuestion(questionId, answer);
       
       // Update local state
       setQuestions(prev => prev.map(q => 

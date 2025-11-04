@@ -431,11 +431,67 @@ export interface PaymentsResponse {
   stats: PaymentStats;
 }
 
+export interface TutorQuestion {
+  id: string;
+  studentName: string;
+  studentEmail: string;
+  courseName: string;
+  subject: string;
+  question: string;
+  answer: string | null;
+  status: 'PENDING' | 'ANSWERED';
+  createdAt: string;
+  answeredAt: string | null;
+}
+
+export interface QuestionsResponse {
+  questions: TutorQuestion[];
+  stats: {
+    total: number;
+    pending: number;
+    answered: number;
+  };
+}
+
 /**
  * Get tutor payments
  */
 export const getTutorPayments = async (): Promise<PaymentsResponse> => {
   return await apiFetch<PaymentsResponse>('/payments/tutor/payments');
+};
+
+/**
+ * Get all questions from tutor's courses
+ */
+export const getQuestions = async (params?: {
+  status?: 'pending' | 'answered';
+}): Promise<TutorQuestion[]> => {
+  const queryParams = new URLSearchParams();
+  if (params?.status) queryParams.append('status', params.status);
+  const query = queryParams.toString();
+  
+  const response = await apiFetch<QuestionsResponse>(
+    `/tutor-dashboard/questions${query ? `?${query}` : ''}`
+  );
+  
+  // Transform status to uppercase to match component expectations
+  return response.questions.map(q => ({
+    ...q,
+    status: q.status.toUpperCase() as 'PENDING' | 'ANSWERED'
+  }));
+};
+
+/**
+ * Answer a question
+ */
+export const answerQuestion = async (
+  questionId: string,
+  content: string
+): Promise<void> => {
+  await apiFetch<void>(`/tutor-dashboard/questions/${questionId}/answer`, {
+    method: 'POST',
+    body: JSON.stringify({ content })
+  });
 };
 
 const tutorDashboardService = {
@@ -456,6 +512,8 @@ const tutorDashboardService = {
   getTutorStudents,
   getTutorEarnings,
   getTutorPayments,
+  getQuestions,
+  answerQuestion,
 };
 
 export default tutorDashboardService;
