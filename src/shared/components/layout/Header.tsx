@@ -409,12 +409,6 @@ const Header = () => {
                       </a>
                     </li>
                   )}
-                  
-                  <li className="mx-2.5">
-                    <Link to="/contact" className="font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
-                      <span>Contact</span>
-                    </Link>
-                  </li>
                 </ul>
               </nav>
 
@@ -479,14 +473,14 @@ const Header = () => {
                     </button>
 
                     {/* Contact Us Button */}
-                    <a 
-                      href="#" 
+                    <Link 
+                      to="/contact" 
                       className="th-btn ml-1.5 xl:ml-2 px-2.5 xl:px-5 py-1 xl:py-2 rounded-sm font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center space-x-1 xl:space-x-1.5 text-[10px] xl:text-xs whitespace-nowrap flex-shrink-0 shadow-sm"
                     >
                       <span className="hidden xl:inline">Contact Us</span>
                       <span className="xl:hidden">Contact</span>
                       <IconArrowRight size={11} className="xl:w-3.5 xl:h-3.5" />
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -562,12 +556,6 @@ const Header = () => {
                     </a>
                   </li>
                 )}
-                
-                <li>
-                  <Link to="/contact" onClick={toggleMobileMenu} className="block py-2.5 sm:py-3 px-3 sm:px-4 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors text-sm sm:text-base">
-                    Contact
-                  </Link>
-                </li>
               </ul>
             </nav>
 

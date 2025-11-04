@@ -403,7 +403,7 @@ const ContactPage = () => {
         </div>
       </section>
 
-      {/* Map Section (Optional) */}
+      {/* Map Section */}
       <section className="py-12 sm:py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
@@ -411,15 +411,18 @@ const ContactPage = () => {
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Our Location</h2>
               <p className="text-gray-600">Visit us at our office or schedule a virtual meeting</p>
             </div>
-            <div className="bg-gray-300 rounded-xl overflow-hidden shadow-lg" style={{ height: '400px' }}>
-              {/* Replace with actual Google Maps embed */}
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                <div className="text-center">
-                  <IconMapPin size={48} className="text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600 font-medium">Map integration coming soon</p>
-                  <p className="text-sm text-gray-500">123 Education Street, New York, NY 10001</p>
-                </div>
-              </div>
+            <div className="rounded-xl overflow-hidden shadow-lg" style={{ height: '400px' }}>
+              {/* Google Maps Embed */}
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.2412648750455!2d-73.98784368459395!3d40.74844097932847!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9b3117469%3A0xd134e199a405a163!2sEmpire%20State%20Building!5e0!3m2!1sen!2sus!4v1234567890123!5m2!1sen!2sus"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Office Location Map"
+              />
             </div>
           </div>
         </div>
