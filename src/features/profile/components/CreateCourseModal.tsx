@@ -17,6 +17,7 @@ import {
 } from '@tabler/icons-react';
 import { createCourse, createLesson } from '../../../shared/services/tutorDashboardService';
 import { getSubjects, type Subject } from '../../../shared/services/subjectsService';
+import videoUploadService, { type VideoUploadProgress } from '../../../shared/services/videoUploadService';
 
 interface Lesson {
   id: string;
@@ -321,12 +322,56 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
             orderIndex: lesson.orderIndex
           };
 
-          await createLesson(createdCourse.id, lessonData);
+          const createdLesson = await createLesson(createdCourse.id, lessonData);
           
-          // Handle video file upload when implemented
+          // Handle video file upload
           if (lesson.videoFile) {
-            // TODO: Implement video file upload API call
-            console.log('Video file upload will be implemented:', lesson.videoFile.name);
+            try {
+              console.log(`Uploading video for lesson: ${lesson.title}`);
+              
+              // Update lesson upload status
+              setFormData(prev => ({
+                ...prev,
+                lessons: prev.lessons.map(l =>
+                  l.id === lesson.id
+                    ? { ...l, uploadStatus: 'uploading', uploadProgress: 0 }
+                    : l
+                )
+              }));
+
+              // Upload video with progress tracking
+              await videoUploadService.uploadVideoWithProgress(
+                createdLesson.id,
+                lesson.videoFile,
+                (progress: VideoUploadProgress) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    lessons: prev.lessons.map(l =>
+                      l.id === lesson.id
+                        ? { 
+                            ...l, 
+                            uploadStatus: progress.status,
+                            uploadProgress: progress.progress
+                          }
+                        : l
+                    )
+                  }));
+                }
+              );
+
+              console.log(`Video uploaded successfully for lesson: ${lesson.title}`);
+            } catch (uploadError) {
+              console.error(`Failed to upload video for lesson ${lesson.title}:`, uploadError);
+              // Continue with other lessons even if one fails
+              setFormData(prev => ({
+                ...prev,
+                lessons: prev.lessons.map(l =>
+                  l.id === lesson.id
+                    ? { ...l, uploadStatus: 'failed', uploadProgress: 0 }
+                    : l
+                )
+              }));
+            }
           }
         }
       }

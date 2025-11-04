@@ -11,6 +11,8 @@ let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
 let hasRefreshToken = false; // Track if refresh token exists
 
+export const getAccessToken = () => accessToken;
+
 export const setAccessToken = (token: string | null) => {
   accessToken = token;
   // If we set an access token, assume we might have a refresh token

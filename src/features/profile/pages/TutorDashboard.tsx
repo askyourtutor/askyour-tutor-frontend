@@ -21,6 +21,7 @@ import { useAuth } from '../../../shared/contexts/AuthContext';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import TutorDashboardTab from '../components/TutorDashboardTab';
 import CreateCourseModal from '../components/CreateCourseModal';
+import EditCourseModal from '../components/EditCourseModal';
 import TutorCoursesTab from '../components/TutorCoursesTab';
 import TutorSessionsTab from '../components/TutorSessionsTab';
 import TutorStudentsTab from '../components/TutorStudentsTab';
@@ -70,6 +71,8 @@ function TutorDashboard() {
   }>>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateCourseModalOpen, setIsCreateCourseModalOpen] = useState(false);
+  const [isEditCourseModalOpen, setIsEditCourseModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<CourseWithStats | null>(null);
 
   // Save activeTab to localStorage whenever it changes
   useEffect(() => {
@@ -163,8 +166,8 @@ function TutorDashboard() {
   };
 
   const handleEditCourse = async (course: CourseWithStats) => {
-    // TODO: Open course edit modal
-    console.log(`Edit course: ${course.title}`);
+    setSelectedCourse(course);
+    setIsEditCourseModalOpen(true);
   };
 
   const handleDeleteCourse = async (courseId: string) => {
@@ -469,6 +472,19 @@ function TutorDashboard() {
         onClose={() => setIsCreateCourseModalOpen(false)}
         onSuccess={handleCourseCreated}
       />
+
+      {/* Edit Course Modal */}
+      {selectedCourse && (
+        <EditCourseModal
+          isOpen={isEditCourseModalOpen}
+          onClose={() => {
+            setIsEditCourseModalOpen(false);
+            setSelectedCourse(null);
+          }}
+          onSuccess={handleCourseCreated}
+          course={selectedCourse}
+        />
+      )}
     </div>
   );
 }
