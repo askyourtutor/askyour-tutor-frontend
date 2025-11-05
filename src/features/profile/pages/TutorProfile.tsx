@@ -36,6 +36,7 @@ const TutorProfilePage = () => {
   const [verifyStatus, setVerifyStatus] = useState<'PENDING' | 'VERIFIED' | null>(null);
   const [serverCompletion, setServerCompletion] = useState<number | null>(null);
   const [loadedFullName, setLoadedFullName] = useState<string>('');
+  const [isEditMode, setIsEditMode] = useState(false);
   const displayCompletion = serverCompletion ?? profileCompletion;
 
   const watchedSubjects = watch('subjects') || [];
@@ -230,6 +231,7 @@ const TutorProfilePage = () => {
     try {
       await saveProfile(data, { profileImage, credentialsFile });
       setSubmitSuccess(true);
+      setIsEditMode(false);
       setTimeout(() => setSubmitSuccess(false), 5000);
     } catch {
       // TODO: Show error to user via notification system
@@ -312,7 +314,7 @@ const TutorProfilePage = () => {
               </div>
             </div>
           )}
-          <fieldset disabled={isSubmitting} className="contents">
+          <fieldset disabled={!isEditMode || isSubmitting} className="contents">
           
           {/* Personal Information Section */}
           <ProfileSectionCard title="Personal Information" icon={<IconUser size={20} className="sm:w-6 sm:h-6" />}>
@@ -569,49 +571,70 @@ const TutorProfilePage = () => {
               </div>
             </div>
           </ProfileSectionCard>
+          </fieldset>
 
           {/* Submit Section */}
           <div className="bg-white shadow-lg p-4 sm:p-6 lg:p-8 mx-1 sm:mx-0" style={{ borderRadius: '10px' }}>
             <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
               <div className="w-full lg:w-auto text-center lg:text-left">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Ready to Submit?</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                  {isEditMode ? 'Ready to Submit?' : 'Profile Information'}
+                </h3>
                 <p className="text-sm sm:text-base text-gray-600 mt-1">
-                  Review your information carefully before submitting your profile.
+                  {isEditMode 
+                    ? 'Review your information carefully before submitting your profile.' 
+                    : 'View your profile information. Click Edit to make changes.'}
                 </p>
               </div>
               
               <div className="flex flex-col sm:flex-row w-full lg:w-auto space-y-3 sm:space-y-0 sm:space-x-4">
-                <button
-                  type="button"
-                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm sm:text-base"
-                >
-                  Save as Draft
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !methods.formState.isValid}
-                  className={`w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-lg font-medium flex items-center justify-center space-x-2 transition-all text-sm sm:text-base ${
-                    (isSubmitting || !methods.formState.isValid)
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
-                  }`}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                      <span>Submitting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <IconDeviceFloppy size={16} className="sm:w-5 sm:h-5" />
-                      <span>Submit Profile</span>
-                    </>
-                  )}
-                </button>
+                {!isEditMode ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditMode(true)}
+                    className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors text-sm sm:text-base flex items-center justify-center space-x-2"
+                  >
+                    <IconDeviceFloppy size={16} className="sm:w-5 sm:h-5" />
+                    <span>Edit Profile</span>
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditMode(false);
+                        methods.reset();
+                      }}
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm sm:text-base"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || !methods.formState.isValid}
+                      className={`w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-lg font-medium flex items-center justify-center space-x-2 transition-all text-sm sm:text-base ${
+                        (isSubmitting || !methods.formState.isValid)
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
+                      }`}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
+                          <span>Saving...</span>
+                        </>
+                      ) : (
+                        <>
+                          <IconDeviceFloppy size={16} className="sm:w-5 sm:h-5" />
+                          <span>Save Changes</span>
+                        </>
+                      )}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
-          </fieldset>
           </form>
         </FormProvider>
       </div>
