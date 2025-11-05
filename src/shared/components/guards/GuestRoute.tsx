@@ -8,8 +8,14 @@ export default function GuestRoute() {
   type LocationState = { from?: Location };
 
   if (loading) {
-    // You can return a small placeholder to avoid layout shift
-    return null;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="text-slate-600 text-sm">Loading...</div>
+        </div>
+      </div>
+    );
   }
 
   if (user) {

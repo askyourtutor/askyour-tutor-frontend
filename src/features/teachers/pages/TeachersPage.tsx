@@ -25,7 +25,7 @@ const TeachersPage: React.FC = () => {
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Start as false for instant cache hits
+  const [isInitialLoad, setIsInitialLoad] = useState(true); // Only track initial load
   const [filteredTeachers, setFilteredTeachers] = useState<TutorSummary[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -60,8 +60,6 @@ const TeachersPage: React.FC = () => {
   // Fetch teachers from API with full filter support
   useEffect(() => {
     const fetchTeachers = async () => {
-      // Show loading only if taking longer than 100ms
-      const loadingTimeout = setTimeout(() => setIsLoading(true), 100);
       try {
         // Create cache key from filters and search query
         const cacheKey = `teachers:list:${filters.subject}:${filters.priceRange}:${filters.sortBy}:${searchQuery}`;
@@ -80,13 +78,11 @@ const TeachersPage: React.FC = () => {
         
         setFilteredTeachers(response.data);
         setTotalCount(response.pagination.total);
+        setIsInitialLoad(false);
       } catch (error) {
         console.error('Failed to fetch teachers:', error);
         setFilteredTeachers([]);
         setTotalCount(0);
-      } finally {
-        clearTimeout(loadingTimeout);
-        setIsLoading(false);
       }
     };
 
@@ -323,7 +319,7 @@ const TeachersPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs sm:text-sm text-gray-600">
-                {isLoading ? (
+                {isInitialLoad ? (
                   <span className="animate-pulse">Loading teachers...</span>
                 ) : (
                   <>
@@ -338,7 +334,7 @@ const TeachersPage: React.FC = () => {
         </div>
 
         {/* Teachers Grid */}
-        {isLoading ? (
+        {isInitialLoad ? (
           <TeacherSkeletonGrid count={12} />
         ) : filteredTeachers.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 pb-16">

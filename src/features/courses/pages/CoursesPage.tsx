@@ -12,7 +12,7 @@ import type { CourseSummary, CategorySummary } from '../../../shared/types';
 import { getCourses, getCategories } from '../services/course.service';
 import { fetchWithCache } from '../../../shared/lib/cache';
 
-type SortOption = 'popular' | 'newest' | 'price-low' | 'price-high' | 'rating';
+type SortOption = 'popular' | 'newest' | 'price-low' | 'price-high';
 
 interface FilterState {
   category: string;
@@ -29,18 +29,17 @@ const CoursesPage: React.FC = () => {
   const [showLevelDropdown, setShowLevelDropdown] = useState(false);
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // Start as false for instant cache hits
-  const [filteredCourses, setFilteredCourses] = useState<CourseSummary[]>([]);
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [courses, setCourses] = useState<CourseSummary[]>([]);
   const [categories, setCategories] = useState<CategorySummary[]>([
-    { id: 'all', name: 'All Categories', slug: 'all', courseCount: 0 },
+    { id: 'all', name: 'All Categories', slug: 'all', courseCount: 0 }
   ]);
-  const [totalCount, setTotalCount] = useState(0);
   
-  const categoryDropdownRef = useRef<HTMLDivElement>(null);
-  const priceDropdownRef = useRef<HTMLDivElement>(null);
-  const levelDropdownRef = useRef<HTMLDivElement>(null);
-  const ratingDropdownRef = useRef<HTMLDivElement>(null);
-  const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const categoryRef = useRef<HTMLDivElement>(null);
+  const priceRef = useRef<HTMLDivElement>(null);
+  const levelRef = useRef<HTMLDivElement>(null);
+  const ratingRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
   
   const [filters, setFilters] = useState<FilterState>({
     category: 'all',
@@ -50,67 +49,48 @@ const CoursesPage: React.FC = () => {
     sortBy: 'popular',
   });
 
-  // Fetch categories on mount
+  // Load initial data
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        // Use cache with stale-while-revalidate pattern
-        const cats = await fetchWithCache(
-          'courses:categories',
-          () => getCategories()
-        );
-        setCategories([
-          { id: 'all', name: 'All Categories', slug: 'all', courseCount: 0 },
-          ...cats,
-        ]);
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
+    const loadData = async () => {
+      // Set loading only if we don't have any courses yet
+      if (courses.length === 0) {
+        setIsDataLoading(true);
       }
-    };
-    fetchCategories();
-  }, []);
-
-  // Fetch courses from API with all filters
-  useEffect(() => {
-    const fetchCourses = async () => {
-      // Show loading only if taking longer than 100ms
-      const loadingTimeout = setTimeout(() => setIsLoading(true), 100);
+      
       try {
-        // Create cache key from filters and search query
+        // Load categories only once on mount
+        if (categories.length <= 1) {
+          const categoriesData = await fetchWithCache('courses:categories', () => getCategories());
+          setCategories([
+            { id: 'all', name: 'All Categories', slug: 'all', courseCount: 0 },
+            ...categoriesData
+          ]);
+        }
+
+        // Always load courses (but with caching)
         const cacheKey = `courses:list:${filters.category}:${filters.priceType}:${filters.level}:${filters.rating}:${filters.sortBy}:${searchQuery}`;
+        const coursesData = await fetchWithCache(cacheKey, () => getCourses({
+          category: filters.category !== 'all' ? filters.category : undefined,
+          priceType: filters.priceType !== 'all' ? filters.priceType : undefined,
+          level: filters.level !== 'all' ? filters.level : undefined,
+          rating: filters.rating > 0 ? filters.rating : undefined,
+          search: searchQuery.trim() || undefined,
+          sortBy: filters.sortBy,
+          page: 1,
+          limit: 100,
+        }));
         
-        const response = await fetchWithCache(
-          cacheKey,
-          () => getCourses({
-            category: filters.category !== 'all' ? filters.category : undefined,
-            priceType: filters.priceType !== 'all' ? filters.priceType : undefined,
-            level: filters.level !== 'all' ? filters.level : undefined,
-            rating: filters.rating > 0 ? filters.rating : undefined,
-            search: searchQuery.trim() || undefined,
-            sortBy: filters.sortBy,
-            page: 1,
-            limit: 100, // Fetch more for client-side display
-          })
-        );
-        
-        setFilteredCourses(response.data);
-        setTotalCount(response.pagination.total);
+        setCourses(coursesData.data);
+        setIsDataLoading(false);
       } catch (error) {
-        console.error('Failed to fetch courses:', error);
-        setFilteredCourses([]);
-        setTotalCount(0);
-      } finally {
-        clearTimeout(loadingTimeout);
-        setIsLoading(false);
+        console.error('Failed to load data:', error);
+        setCourses([]);
+        setIsDataLoading(false);
       }
     };
 
-    fetchCourses();
-  }, [filters, searchQuery]);
-
-  const handleCategoryChange = (categoryId: string) => {
-    setFilters(prev => ({ ...prev, category: categoryId }));
-  };
+    loadData();
+  }, [filters, searchQuery, categories.length, courses.length]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
@@ -132,17 +112,20 @@ const CoursesPage: React.FC = () => {
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) {
         setShowCategoryDropdown(false);
       }
-      if (priceDropdownRef.current && !priceDropdownRef.current.contains(event.target as Node)) {
+      if (priceRef.current && !priceRef.current.contains(event.target as Node)) {
         setShowPriceDropdown(false);
       }
-      if (levelDropdownRef.current && !levelDropdownRef.current.contains(event.target as Node)) {
+      if (levelRef.current && !levelRef.current.contains(event.target as Node)) {
         setShowLevelDropdown(false);
       }
-      if (ratingDropdownRef.current && !ratingDropdownRef.current.contains(event.target as Node)) {
+      if (ratingRef.current && !ratingRef.current.contains(event.target as Node)) {
         setShowRatingDropdown(false);
+      }
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) {
+        setShowSortDropdown(false);
       }
     };
 
@@ -181,7 +164,7 @@ const CoursesPage: React.FC = () => {
             {/* Filter Dropdowns - Right */}
             <div className="flex items-center gap-1.5">
               {/* Category Dropdown */}
-              <div className="relative" ref={categoryDropdownRef}>
+              <div className="relative" ref={categoryRef}>
                 <button
                   onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
                   className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md border transition-colors text-xs font-medium ${
@@ -209,7 +192,7 @@ const CoursesPage: React.FC = () => {
                       <button
                         key={category.id}
                         onClick={() => {
-                          handleCategoryChange(category.id);
+                          setFilters(prev => ({ ...prev, category: category.id }));
                           setShowCategoryDropdown(false);
                         }}
                         className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
@@ -229,7 +212,7 @@ const CoursesPage: React.FC = () => {
               </div>
 
               {/* Price Dropdown */}
-              <div className="relative" ref={priceDropdownRef}>
+              <div className="relative" ref={priceRef}>
                 <button
                   onClick={() => setShowPriceDropdown(!showPriceDropdown)}
                   className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md border transition-colors text-xs font-medium ${
@@ -272,7 +255,7 @@ const CoursesPage: React.FC = () => {
               </div>
 
               {/* Level Dropdown */}
-              <div className="relative" ref={levelDropdownRef}>
+              <div className="relative" ref={levelRef}>
                 <button
                   onClick={() => setShowLevelDropdown(!showLevelDropdown)}
                   className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md border transition-colors text-xs font-medium ${
@@ -316,7 +299,7 @@ const CoursesPage: React.FC = () => {
               </div>
 
               {/* Rating Dropdown */}
-              <div className="relative" ref={ratingDropdownRef}>
+              <div className="relative" ref={ratingRef}>
                 <button
                   onClick={() => setShowRatingDropdown(!showRatingDropdown)}
                   className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md border transition-colors text-xs font-medium ${
@@ -359,7 +342,7 @@ const CoursesPage: React.FC = () => {
               </div>
 
               {/* Sort Dropdown */}
-              <div className="relative" ref={sortDropdownRef}>
+              <div className="relative" ref={sortRef}>
                 <button
                   onClick={() => setShowSortDropdown(!showSortDropdown)}
                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-md border border-gray-300 bg-white hover:bg-gray-50 transition-colors text-xs font-medium text-gray-700"
@@ -418,70 +401,39 @@ const CoursesPage: React.FC = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3 lg:py-4">
-        {/* Full Width Content */}
-        <div className="pb-16">
-          {/* Results Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-              <div>
-                <p className="text-gray-700 text-sm sm:text-base">
-                  {isLoading ? (
-                    <span className="animate-pulse">Loading courses...</span>
-                  ) : (
-                    <>
-                      Showing <span className="text-blue-600 font-semibold">{filteredCourses.length}</span> 
-                      {totalCount > filteredCourses.length && ` of ${totalCount}`} courses
-                      {searchQuery && <span className="text-gray-500"> for "{searchQuery}"</span>}
-                    </>
-                  )}
-                </p>
-              </div>
-            </div>
-
-            {/* Course Grid/List */}
-            {isLoading ? (
-              <CourseSkeletonGrid count={8} />
-            ) : filteredCourses.length === 0 ? (
-              <div className="flex items-center justify-center py-12">
-                <EmptyState
-                  type={searchQuery ? 'search' : 'courses'}
-                  title={searchQuery ? 'No courses found' : 'No courses available'}
-                  message={
-                    searchQuery
-                      ? `We couldn't find any courses matching "${searchQuery}". Try adjusting your search or filters.`
-                      : 'There are no courses available at the moment. Check back later!'
-                  }
-                />
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 lg:gap-4">
-                {filteredCourses.map((course) => (
-                  <CourseCard key={course.id} course={course} />
-                ))}
-              </div>
-            )}
-        </div>
-      </div>
-
-      {/* Fixed Bottom Pagination */}
-      {!isLoading && filteredCourses.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-30">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2">
-            <div className="flex justify-center items-center gap-1.5">
-              <button className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors" disabled>
-                Prev
-              </button>
-              <div className="flex gap-1">
-                <button className="w-7 h-7 text-xs bg-blue-600 text-white rounded font-medium flex items-center justify-center">1</button>
-                <button className="w-7 h-7 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-colors flex items-center justify-center">2</button>
-                <button className="w-7 h-7 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-colors flex items-center justify-center">3</button>
-              </div>
-              <button className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 transition-colors">
-                Next
-              </button>
-            </div>
+        {/* Results Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <p className="text-gray-700 text-sm sm:text-base">
+              Showing <span className="text-blue-600 font-semibold">{courses.length}</span> courses
+              {searchQuery && <span className="text-gray-500"> for "{searchQuery}"</span>}
+            </p>
           </div>
         </div>
-      )}
+
+        {/* Course Grid */}
+        {isDataLoading ? (
+          <CourseSkeletonGrid count={12} />
+        ) : courses.length === 0 ? (
+          <div className="flex items-center justify-center py-12">
+            <EmptyState
+              type={searchQuery ? 'search' : 'courses'}
+              title={searchQuery ? 'No courses found' : 'No courses available'}
+              message={
+                searchQuery
+                  ? `We couldn't find any courses matching "${searchQuery}". Try adjusting your search or filters.`
+                  : 'There are no courses available at the moment. Check back later!'
+              }
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 lg:gap-4">
+            {courses.map((course) => (
+              <CourseCard key={course.id} course={course} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
