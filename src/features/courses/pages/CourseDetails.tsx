@@ -11,6 +11,7 @@ import {
   IconMessageCircle,
   IconFileText
 } from '@tabler/icons-react';
+import { useAuth } from '../../../shared/contexts/AuthContext';
 import MobileEnrollBar from './components/MobileEnrollBar';
 import SidebarSyllabus from './components/SidebarSyllabus';
 import TabNav, { type TabItem } from './components/TabNav';
@@ -21,12 +22,14 @@ import QnATab from './CourseDetails/tabs/QnATab';
 import OverviewTab from './CourseDetails/tabs/OverviewTab';
 import HeaderBar from './components/HeaderBar';
 import VideoPlayer from './components/VideoPlayer';
+import CourseDetailsSkeleton from '../components/CourseDetailsSkeleton';
 import { useCourseDetails } from '../hooks/useCourseDetails';
 import type { ApiLesson } from '../types/course.types';
 
 const CourseDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const {
     course,
@@ -69,17 +72,7 @@ const CourseDetails: React.FC = () => {
   const totalDuration = course?.lessons.reduce((sum, lesson) => sum + (lesson.duration || 0), 0) || 0;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative w-20 h-20 mx-auto mb-6">
-            <div className="absolute inset-0 border-4 border-blue-200 rounded-full animate-pulse"></div>
-            <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
-          </div>
-          <p className="text-gray-600 font-medium text-lg">Loading course...</p>
-        </div>
-      </div>
-    );
+    return <CourseDetailsSkeleton />;
   }
 
   if (!course) {
@@ -115,6 +108,7 @@ const CourseDetails: React.FC = () => {
         onSave={handleSaveToggle}
         onShare={handleShare}
         onEnroll={handleEnroll}
+        showEnrollmentFeatures={user?.role === 'STUDENT'}
       />
 
       {/* Main Content Container */}
@@ -273,6 +267,7 @@ const CourseDetails: React.FC = () => {
                     isEnrolled={isEnrolled}
                     isEnrolling={isEnrolling}
                     onEnroll={handleEnroll}
+                    showEnrollmentFeatures={user?.role === 'STUDENT'}
                   />
                 )}
               </div>
@@ -296,6 +291,7 @@ const CourseDetails: React.FC = () => {
                 }}
                 isVideoPlaying={isVideoPlaying}
                 onTogglePlayPause={() => setIsVideoPlaying(!isVideoPlaying)}
+                showEnrollmentFeatures={user?.role === 'STUDENT'}
               />
 
             </div>
@@ -303,13 +299,15 @@ const CourseDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile CTA - Fixed Bottom */}
-      <MobileEnrollBar 
-        price={course.price}
-        isEnrolled={isEnrolled}
-        isEnrolling={isEnrolling}
-        onEnroll={handleEnroll}
-      />
+      {/* Mobile CTA - Fixed Bottom - Only for Students */}
+      {user?.role === 'STUDENT' && (
+        <MobileEnrollBar 
+          price={course.price}
+          isEnrolled={isEnrolled}
+          isEnrolling={isEnrolling}
+          onEnroll={handleEnroll}
+        />
+      )}
 
       {/* Custom Styles */}
       <style>{`

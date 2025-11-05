@@ -18,9 +18,10 @@ interface ResourcesTabProps {
   isEnrolled: boolean;
   isEnrolling: boolean;
   onEnroll: () => void;
+  showEnrollmentFeatures?: boolean;
 }
 
-const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrolling, onEnroll }) => {
+const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrolling, onEnroll, showEnrollmentFeatures = true }) => {
   const list = (course.resources && course.resources.length > 0)
     ? course.resources
     : course.lessons.map((l) => ({ id: l.id, title: l.title, type: 'pdf' as const, sizeLabel: null, url: null, duration: l.duration ?? null }));
@@ -41,7 +42,7 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrol
         )}
       </div>
 
-      {!isEnrolled && (
+      {showEnrollmentFeatures && !isEnrolled && (
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-sm p-4 sm:p-5 text-center">
           <IconLock size={48} className="mx-auto text-amber-600 mb-3" />
           <h4 className="font-bold text-gray-900 text-base sm:text-lg mb-2">Resources Locked</h4>

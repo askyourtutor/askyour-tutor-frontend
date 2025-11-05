@@ -10,6 +10,7 @@ interface HeaderBarProps {
   onSave: () => void;
   onShare: () => void;
   onEnroll: () => void;
+  showEnrollmentFeatures?: boolean;
 }
 
 const HeaderBar: React.FC<HeaderBarProps> = ({
@@ -21,6 +22,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({
   onSave,
   onShare,
   onEnroll,
+  showEnrollmentFeatures = true,
 }) => {
   return (
     <nav className="bg-white/95 backdrop-blur-sm border-b border-gray-200/80 sticky top-0 z-50 shadow-sm">
@@ -69,8 +71,8 @@ const HeaderBar: React.FC<HeaderBarProps> = ({
               <IconShare3 size={14} className="xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
             </button>
 
-            {/* Enroll/Enrolled button - Responsive text and spacing */}
-            {!isEnrolled && (
+            {/* Enroll/Enrolled button - Only for users with enrollment features */}
+            {showEnrollmentFeatures && !isEnrolled && (
               <button
                 onClick={onEnroll}
                 disabled={isEnrolling}
@@ -84,7 +86,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({
                 </span>
               </button>
             )}
-            {isEnrolled && (
+            {showEnrollmentFeatures && isEnrolled && (
               <div className="inline-flex items-center gap-1 xs:gap-1.5 bg-green-50 text-green-700 border border-green-200 px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 rounded-md font-medium ml-0.5 xs:ml-1 text-xs xs:text-sm">
                 <IconCheck size={14} className="xs:w-4 xs:h-4 stroke-2" />
                 <span>Enrolled</span>

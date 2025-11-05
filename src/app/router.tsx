@@ -34,23 +34,11 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'contact', element: <ContactPage /> },
       
-      // Courses accessible by STUDENT, TUTOR, ADMIN but details only for STUDENT, ADMIN
-      { 
-        path: 'courses', 
-        element: (
-          <RoleRoute allowed={['STUDENT', 'TUTOR', 'ADMIN']}>
-            <CoursesPage />
-          </RoleRoute>
-        )
-      },
-      { 
-        path: 'course/:id', 
-        element: (
-          <RoleRoute allowed={['STUDENT', 'ADMIN']}>
-            <CourseDetails />
-          </RoleRoute>
-        )
-      },
+      // Public pages - accessible to everyone
+      { path: 'courses', element: <CoursesPage /> },
+      { path: 'teachers', element: <TeachersPage /> },
+      { path: 'course/:id', element: <CourseDetails /> },
+      { path: 'teachers/:id', element: <TeacherDetailPage /> },
       // Checkout page for course enrollment payment
       { 
         path: 'checkout/:id', 
@@ -73,23 +61,6 @@ const router = createBrowserRouter([
       { 
         path: 'payment/cancel', 
         element: <PaymentCancelPage />
-      },
-      // Teachers accessible by STUDENT, TUTOR, ADMIN but details only for STUDENT, ADMIN
-      { 
-        path: 'teachers', 
-        element: (
-          <RoleRoute allowed={['STUDENT', 'TUTOR', 'ADMIN']}>
-            <TeachersPage />
-          </RoleRoute>
-        )
-      },
-      { 
-        path: 'teachers/:id', 
-        element: (
-          <RoleRoute allowed={['STUDENT', 'ADMIN']}>
-            <TeacherDetailPage />
-          </RoleRoute>
-        )
       },
 
       {

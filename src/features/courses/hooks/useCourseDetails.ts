@@ -11,7 +11,7 @@ export function useCourseDetails(courseId: string | undefined) {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false); // Start as false for instant cache hits
+  const [isLoading, setIsLoading] = useState(true); // Start as true to show skeleton initially
   const [isSaved, setIsSaved] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const navigate = useNavigate();
@@ -19,29 +19,55 @@ export function useCourseDetails(courseId: string | undefined) {
 
   useEffect(() => {
     const load = async () => {
-      // Show loading only if taking longer than 100ms
-      const loadingTimeout = setTimeout(() => setIsLoading(true), 100);
       try {
-        if (!courseId) return;
+        if (!courseId) {
+          setIsLoading(false);
+          return;
+        }
         
-        // Use cache with stale-while-revalidate pattern
-        const data = await fetchWithCache(
-          `course:details:${courseId}`,
-          () => getCourseById(courseId)
-        );
+        // Check cache first for instant loading
+        const cacheKey = `course:details:${courseId}`;
+        const cached = cache.get<ApiCourse>(cacheKey);
         
-        if (data) {
-          setCourse(data);
-          // Auto-select the first lesson with video, or just the first lesson
-          if (data.lessons && data.lessons.length > 0) {
-            const firstVideoLesson = data.lessons.find(l => l.videoUrl) || data.lessons[0];
+        if (cached) {
+          // Set data immediately from cache
+          setCourse(cached);
+          setIsLoading(false);
+          if (cached.lessons && cached.lessons.length > 0) {
+            const firstVideoLesson = cached.lessons.find(l => l.videoUrl) || cached.lessons[0];
             setActiveLessonId(firstVideoLesson.id);
           }
+          
+          // If cache is stale, fetch fresh data in background
+          if (cache.isStale(cacheKey)) {
+            try {
+              const freshData = await getCourseById(courseId);
+              if (freshData) {
+                cache.set(cacheKey, freshData);
+                setCourse(freshData);
+              }
+            } catch (e) {
+              console.warn('Background refresh failed:', e);
+            }
+          }
+        } else {
+          // No cache, fetch fresh data with loading state
+          setIsLoading(true);
+          const data = await fetchWithCache(cacheKey, () => getCourseById(courseId));
+          
+          if (data) {
+            setCourse(data);
+            if (data.lessons && data.lessons.length > 0) {
+              const firstVideoLesson = data.lessons.find(l => l.videoUrl) || data.lessons[0];
+              setActiveLessonId(firstVideoLesson.id);
+            }
+          }
+          setIsLoading(false);
         }
-        // If authenticated student, check enrollment
+        
+        // Load user-specific data if authenticated
         if (user && courseId) {
           try {
-            // Cache enrollment status with shorter TTL (user-specific data)
             const resp = await fetchWithCache(
               `course:enrollment:${courseId}:${user.id}`,
               () => checkEnrollment(courseId)
@@ -50,9 +76,8 @@ export function useCourseDetails(courseId: string | undefined) {
           } catch {
             /* ignore */
           }
-          // Check saved status
+          
           try {
-            // Cache saved status with shorter TTL (user-specific data)
             const s = await fetchWithCache(
               `course:saved:${courseId}:${user.id}`,
               () => getSavedStatus(courseId)
@@ -66,13 +91,14 @@ export function useCourseDetails(courseId: string | undefined) {
           setIsSaved(false);
         }
       } catch (e) {
-        console.error(e);
-      } finally {
-        clearTimeout(loadingTimeout);
+        console.error('Failed to load course:', e);
         setIsLoading(false);
       }
     };
-    if (!authLoading) load();
+    
+    if (!authLoading) {
+      load();
+    }
   }, [courseId, authLoading, user]);
 
   const renderStars = (rating: number) => {

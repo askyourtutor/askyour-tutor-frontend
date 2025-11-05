@@ -10,8 +10,8 @@ interface CacheEntry<T> {
 
 class CacheManager {
   private cache = new Map<string, CacheEntry<unknown>>();
-  private defaultTTL = 5 * 60 * 1000; // 5 minutes
-  private defaultStaleTime = 30 * 1000; // 30 seconds
+  private defaultTTL = 10 * 60 * 1000; // 10 minutes for course data
+  private defaultStaleTime = 2 * 60 * 1000; // 2 minutes for stale check
 
   /**
    * Get cached data if available and not expired

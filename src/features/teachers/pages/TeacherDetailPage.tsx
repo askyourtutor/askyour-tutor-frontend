@@ -1,15 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router';
+import { useParams, Link, useNavigate } from 'react-router';
 import { IconArrowLeft, IconStar, IconMapPin, IconBriefcase } from '@tabler/icons-react';
+import { useAuth } from '../../../shared/contexts/AuthContext';
 import type { TutorSummary, TutorCourse } from '../../../shared/types/teacher';
 import { teacherService } from '../services/teacher.service';
 
 const TeacherDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [teacher, setTeacher] = useState<TutorSummary | null>(null);
   const [courses, setCourses] = useState<TutorCourse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const handleBookSession = () => {
+    if (!user) {
+      navigate('/login', { state: { from: { pathname: `/teachers/${id}` } } });
+      return;
+    }
+    
+    if (user.role !== 'STUDENT') {
+      // Only students can book sessions
+      return;
+    }
+    
+    // TODO: Navigate to booking flow
+    console.log('Navigate to booking flow for teacher:', id);
+  };
+
+  const handleMessage = () => {
+    if (!user) {
+      navigate('/login', { state: { from: { pathname: `/teachers/${id}` } } });
+      return;
+    }
+    
+    if (user.role !== 'STUDENT') {
+      // Only students can message tutors
+      return;
+    }
+    
+    // TODO: Navigate to messaging
+    console.log('Navigate to messaging for teacher:', id);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,14 +152,35 @@ const TeacherDetailPage: React.FC = () => {
               <span className="text-lg sm:text-base md:text-lg font-semibold text-blue-600">${tutorProfile.hourlyRate}/hr</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
-              <button className="px-4 sm:px-3 md:px-4 py-2 sm:py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium text-sm">
-                Book Session
-              </button>
-              <button className="px-4 sm:px-3 md:px-4 py-2 sm:py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium text-sm">
-                Message
-              </button>
-            </div>
+            {/* Booking buttons - Only for students */}
+            {user?.role === 'STUDENT' && (
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+                <button 
+                  onClick={handleBookSession}
+                  className="px-4 sm:px-3 md:px-4 py-2 sm:py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium text-sm"
+                >
+                  Book Session
+                </button>
+                <button 
+                  onClick={handleMessage}
+                  className="px-4 sm:px-3 md:px-4 py-2 sm:py-1.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium text-sm"
+                >
+                  Message
+                </button>
+              </div>
+            )}
+
+            {/* Login prompt for guests */}
+            {!user && (
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+                <button 
+                  onClick={() => navigate('/login', { state: { from: { pathname: `/teachers/${id}` } } })}
+                  className="px-4 sm:px-3 md:px-4 py-2 sm:py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium text-sm"
+                >
+                  Login to Book Session
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -229,9 +283,25 @@ const TeacherDetailPage: React.FC = () => {
                   </div>
                 )}
 
-                <button className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm sm:text-base">
-                  Book Now
-                </button>
+                {/* Book Now button - Only for students */}
+                {user?.role === 'STUDENT' && (
+                  <button 
+                    onClick={handleBookSession}
+                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm sm:text-base"
+                  >
+                    Book Now
+                  </button>
+                )}
+
+                {/* Login prompt for guests */}
+                {!user && (
+                  <button 
+                    onClick={() => navigate('/login', { state: { from: { pathname: `/teachers/${id}` } } })}
+                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm sm:text-base"
+                  >
+                    Login to Book
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -22,6 +22,7 @@ interface SidebarSyllabusProps {
   onSelectLesson: (lessonId: string) => void;
   isVideoPlaying: boolean;
   onTogglePlayPause: () => void;
+  showEnrollmentFeatures?: boolean;
 }
 
 const SidebarSyllabus: React.FC<SidebarSyllabusProps> = ({
@@ -33,6 +34,7 @@ const SidebarSyllabus: React.FC<SidebarSyllabusProps> = ({
   onSelectLesson,
   isVideoPlaying,
   onTogglePlayPause,
+  showEnrollmentFeatures = true,
 }) => {
   return (
     <div className="bg-white rounded-sm shadow-sm border border-gray-200 overflow-hidden lg:h-full flex flex-col">
@@ -53,8 +55,8 @@ const SidebarSyllabus: React.FC<SidebarSyllabusProps> = ({
 
       {/* Content */}
       <div className="p-3 flex-1 overflow-hidden">
-        {/* Enrollment Notice */}
-        {!isEnrolled && (
+        {/* Enrollment Notice - Only for users with enrollment features */}
+        {showEnrollmentFeatures && !isEnrolled && (
           <div className="mb-3 p-3 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-sm">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-6 h-6 bg-amber-100 rounded-sm flex items-center justify-center flex-shrink-0">
@@ -79,7 +81,8 @@ const SidebarSyllabus: React.FC<SidebarSyllabusProps> = ({
         <div className="space-y-2 lg:h-full lg:overflow-y-auto pr-2 custom-scrollbar">
           {course.lessons.map((l, index) => {
             const isActive = activeLessonId === l.id;
-            const isLocked = !isEnrolled && index > 0;
+            // Lock lessons based on enrollment status and user type
+            const isLocked = showEnrollmentFeatures ? (!isEnrolled && index > 0) : (index > 0);
             const isPreview = !isEnrolled && index === 0;
 
             return (

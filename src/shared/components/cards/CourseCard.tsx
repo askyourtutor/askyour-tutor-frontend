@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { IconFile, IconUsers, IconStar, IconClock } from '@tabler/icons-react';
 import type { CourseSummary } from '../../types';
-import { useAuth } from '../../contexts/AuthContext';
 
 // Normalize URLs coming from API (e.g., "/uploads/..." should point to backend origin, not Vite dev server)
 function resolveAssetUrl(url?: string | null): string | undefined {
@@ -75,7 +74,6 @@ export interface CourseCardProps {
 export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   const [imageFailed, setImageFailed] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
   
   const placeholderUrl = '/assets/img/course/course_1.jpg';
   const resolvedImage = resolveAssetUrl(course.image);
@@ -97,25 +95,17 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
   const duration = course.duration;
 
   const handleCardClick = () => {
-    // Only allow navigation to course details for STUDENT and ADMIN users
-    if (user?.role === 'TUTOR') {
-      // Tutors can see courses but cannot access details
-      return;
-    }
+    // All users (including tutors and guests) can view course details
     navigate(`/course/${course.id}`);
   };
 
   return (
     <div 
       onClick={handleCardClick}
-      className={`group bg-white rounded-lg border border-gray-100 shadow-sm transition-all duration-300 overflow-hidden w-full ${
-        user?.role === 'TUTOR' 
-          ? 'cursor-default' 
-          : 'cursor-pointer hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5'
-      }`}
+      className="group bg-white rounded-lg border border-gray-100 shadow-sm transition-all duration-300 overflow-hidden w-full cursor-pointer hover:shadow-md hover:border-gray-200 hover:-translate-y-0.5"
       aria-label={course.title}
-      role={user?.role === 'TUTOR' ? 'presentation' : 'button'}
-      tabIndex={user?.role === 'TUTOR' ? -1 : 0}
+      role="button"
+      tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
