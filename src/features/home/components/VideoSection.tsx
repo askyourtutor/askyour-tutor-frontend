@@ -105,7 +105,7 @@ export default function VideoSection() {
                 {/* CTA Button */}
                 <div className="mb-8">
                   <Link 
-                    to="/tutors" 
+                    to="/courses" 
                     className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-sm transition-colors duration-200"
                   >
                     Explore Our Courses
