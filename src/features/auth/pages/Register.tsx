@@ -36,15 +36,16 @@ export default function Register() {
 
   const onSubmit = async (values: FormValues) => {
     setError(null); setSuccess(null);
-    try {
-      await doRegister(values);
-      setSuccess('Registration successful. Please verify your email with the 6-digit code.');
-      // Auto-redirect to verify page with email prefilled
-      setTimeout(() => navigate(`/verify-email?email=${encodeURIComponent(values.email)}`), 800);
-    } catch (e: unknown) {
+    
+    // INSTANT redirect to verify page (optimistic UI)
+    navigate(`/verify-email?email=${encodeURIComponent(values.email)}`);
+    
+    // Register in background (silent POST)
+    doRegister(values).catch((e: unknown) => {
+      // If registration fails, show error on verify page
       const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message?: string }).message) : 'Registration failed';
-      setError(msg);
-    }
+      console.error('Background registration failed:', msg);
+    });
   };
 
   return (
