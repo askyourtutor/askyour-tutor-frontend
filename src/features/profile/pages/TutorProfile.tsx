@@ -51,13 +51,8 @@ const TutorProfilePage = () => {
         const res = await UsersAPI.getProfile();
         if (cancelled) return;
         
-        console.log('📊 [TutorProfile] Database response:', res);
-        console.log('👤 [TutorProfile] User data:', res.user);
-        
         const u = res.user;
         if (u?.role === 'TUTOR' && u.profile) {
-          console.log('✅ [TutorProfile] Profile data found:', u.profile);
-          
           const p = u.profile as {
             firstName?: string; lastName?: string;
             phone?: string | null;
@@ -87,17 +82,8 @@ const TutorProfilePage = () => {
           // Clean phone number - remove all non-digit characters except leading +
           const cleanPhone = (phone?: string | null): string => {
             if (!phone) return '';
-            // Keep only + at start and digits
             return phone.replace(/[^\d+]/g, '').replace(/\+(.+)\+/g, '+$1');
           };
-          
-          console.log('👨‍🏫 [TutorProfile] Full name:', fullName);
-          console.log('📧 [TutorProfile] Email:', u.email);
-          console.log('📱 [TutorProfile] Phone (raw):', p.phone);
-          console.log('📱 [TutorProfile] Phone (cleaned):', cleanPhone(p.phone));
-          console.log('🎓 [TutorProfile] Professional title:', p.professionalTitle);
-          console.log('🏛️ [TutorProfile] Institution:', p.university);
-          console.log('📚 [TutorProfile] Department:', p.department);
           
           // Parse JSON arrays safely
           const parseArr = (s?: string): string[] => {
@@ -138,18 +124,6 @@ const TutorProfilePage = () => {
           
           // Convert session types to lowercase to match schema
           const sessArr = sessArrRaw.map((s: string) => s.toLowerCase());
-          
-          console.log('📋 [TutorProfile] Parsed qualifications:', qualsArr);
-          console.log('📚 [TutorProfile] Parsed subjects:', subjectsArr);
-          console.log('🔢 [TutorProfile] Parsed course codes:', codesArr);
-          console.log('🌐 [TutorProfile] Parsed languages:', langsArr);
-          console.log('📅 [TutorProfile] Parsed availability:', availabilityData);
-          console.log('💻 [TutorProfile] Parsed session types (raw):', sessArrRaw);
-          console.log('💻 [TutorProfile] Parsed session types (normalized):', sessArr);
-          console.log('⏱️ [TutorProfile] Teaching experience:', p.teachingExperience);
-          console.log('💰 [TutorProfile] Hourly rate:', p.hourlyRate);
-          console.log('🖼️ [TutorProfile] Profile picture:', p.profilePicture ? 'Yes' : 'No');
-          console.log('✅ [TutorProfile] Verification status:', p.verificationStatus);
 
           const resetData = {
             fullName: fullName || '',
@@ -172,8 +146,6 @@ const TutorProfilePage = () => {
             timezone: p.timezone || '',
           };
 
-          console.log('🔄 [TutorProfile] Resetting form with data:', resetData);
-          
           // Reset form with explicit options to ensure inputs re-render
           methods.reset(resetData, {
             keepErrors: false,
@@ -182,52 +154,10 @@ const TutorProfilePage = () => {
             keepTouched: false,
             keepIsValid: false,
             keepSubmitCount: false,
-            keepDefaultValues: false  // Important: allow new default values
+            keepDefaultValues: false
           });
           
           if (p.profilePicture) setProfileImage(p.profilePicture);
-          
-          console.log('🔄 [TutorProfile] Form reset complete with loaded data');
-          console.log('📋 [TutorProfile] Current form values:', methods.getValues());
-          
-          // Check for validation errors after reset
-          setTimeout(async () => {
-            // Trigger validation
-            const isValid = await methods.trigger();
-            console.log('✅ [TutorProfile] Form validation after reset:', isValid);
-            
-            // Wait a bit more for formState to update
-            await new Promise(resolve => setTimeout(resolve, 50));
-            
-            const formErrors = methods.formState.errors;
-            const formValues = methods.getValues();
-            
-            console.log('📋 [TutorProfile] Form state after validation:');
-            console.log('  - isValid:', methods.formState.isValid);
-            console.log('  - isDirty:', methods.formState.isDirty);
-            console.log('  - isValidating:', methods.formState.isValidating);
-            console.log('  - errors:', formErrors);
-            
-            if (Object.keys(formErrors).length > 0) {
-              console.error('❌ [TutorProfile] Validation errors found:');
-              Object.keys(formErrors).forEach((key) => {
-                const error = formErrors[key as keyof typeof formErrors];
-                if (typeof error === 'object' && error !== null && 'message' in error) {
-                  console.error(`  - ${key}: ${error.message}`);
-                } else if (typeof error === 'object') {
-                  console.error(`  - ${key}:`, error);
-                } else {
-                  console.error(`  - ${key}:`, error);
-                }
-              });
-            } else if (!isValid) {
-              console.warn('⚠️ [TutorProfile] Form invalid but no errors in formState.errors');
-              console.warn('  This might be a timing issue or nested field errors');
-              console.log('  Current form values:', formValues);
-            } else {
-              console.log('✅ [TutorProfile] Form is valid with no errors!');
-            }
-          }, 200);
           
           // Set verification status from tutor profile
           if (p.verificationStatus === 'APPROVED') {
@@ -242,12 +172,8 @@ const TutorProfilePage = () => {
           }
         }
         if (typeof u.profileCompletion === 'number') setServerCompletion(u.profileCompletion);
-        
-        console.log('📊 [TutorProfile] Profile completion:', u.profileCompletion);
-        console.log('✅ [TutorProfile] Data loading complete!');
-      } catch (error) {
-        console.error('❌ [TutorProfile] Failed to load profile:', error);
-        // ignore load errors; form stays empty
+      } catch {
+        // Ignore load errors; form stays empty
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -305,9 +231,8 @@ const TutorProfilePage = () => {
       await saveProfile(data, { profileImage, credentialsFile });
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 5000);
-    } catch (err) {
-      console.error('Submission error:', err);
-      // TODO: show error to user via notification system
+    } catch {
+      // TODO: Show error to user via notification system
     } finally {
       setIsSubmitting(false);
     }
