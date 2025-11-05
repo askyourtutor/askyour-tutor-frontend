@@ -29,7 +29,7 @@ const CoursesPage: React.FC = () => {
   const [showLevelDropdown, setShowLevelDropdown] = useState(false);
   const [showRatingDropdown, setShowRatingDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start as false for instant cache hits
   const [filteredCourses, setFilteredCourses] = useState<CourseSummary[]>([]);
   const [categories, setCategories] = useState<CategorySummary[]>([
     { id: 'all', name: 'All Categories', slug: 'all', courseCount: 0 },
@@ -73,7 +73,8 @@ const CoursesPage: React.FC = () => {
   // Fetch courses from API with all filters
   useEffect(() => {
     const fetchCourses = async () => {
-      setIsLoading(true);
+      // Show loading only if taking longer than 100ms
+      const loadingTimeout = setTimeout(() => setIsLoading(true), 100);
       try {
         // Create cache key from filters and search query
         const cacheKey = `courses:list:${filters.category}:${filters.priceType}:${filters.level}:${filters.rating}:${filters.sortBy}:${searchQuery}`;
@@ -99,6 +100,7 @@ const CoursesPage: React.FC = () => {
         setFilteredCourses([]);
         setTotalCount(0);
       } finally {
+        clearTimeout(loadingTimeout);
         setIsLoading(false);
       }
     };

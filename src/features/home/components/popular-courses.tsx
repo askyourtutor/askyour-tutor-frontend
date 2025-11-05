@@ -20,7 +20,7 @@ const PopularCourses: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [categories, setCategories] = useState<CategorySummary[]>([]);
   const [courses, setCourses] = useState<CourseSummary[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false); // Start as false, only show if data takes time
   const [error, setError] = useState<string | null>(null);
   const [currentSlide, setCurrentSlide] = useState<number>(0);
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -55,7 +55,8 @@ const PopularCourses: React.FC = () => {
     const fetchCourses = async () => {
       if (!activeCategory) return;
       
-      setLoading(true);
+      // Show loading only if taking longer than 100ms (for network requests)
+      const loadingTimeout = setTimeout(() => setLoading(true), 100);
       setError(null); // Clear any previous errors
       try {
         // Use cache with category-specific key
@@ -69,6 +70,7 @@ const PopularCourses: React.FC = () => {
         setError('Failed to load courses');
         // Error is already logged by the service layer if unexpected
       } finally {
+        clearTimeout(loadingTimeout);
         setLoading(false);
       }
     };

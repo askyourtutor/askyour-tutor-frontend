@@ -70,7 +70,7 @@ function TutorDashboard() {
     createdAt: string;
     answeredAt?: string | null;
   }>>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Start as false for instant cache hits
   const [isCreateCourseModalOpen, setIsCreateCourseModalOpen] = useState(false);
   const [isEditCourseModalOpen, setIsEditCourseModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<CourseWithStats | null>(null);
@@ -83,7 +83,8 @@ function TutorDashboard() {
   // Fetch dashboard data
   useEffect(() => {
     const fetchDashboardData = async () => {
-      setLoading(true);
+      // Show loading only if taking longer than 100ms
+      const loadingTimeout = setTimeout(() => setLoading(true), 100);
       try {
         // Fetch dashboard stats with cache
         const dashboardStats = await fetchWithCache(
@@ -152,6 +153,7 @@ function TutorDashboard() {
         setStudents([]);
         setQuestions([]);
       } finally {
+        clearTimeout(loadingTimeout);
         setLoading(false);
       }
     };

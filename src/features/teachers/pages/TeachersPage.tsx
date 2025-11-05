@@ -25,7 +25,7 @@ const TeachersPage: React.FC = () => {
   const [showSubjectDropdown, setShowSubjectDropdown] = useState(false);
   const [showPriceDropdown, setShowPriceDropdown] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start as false for instant cache hits
   const [filteredTeachers, setFilteredTeachers] = useState<TutorSummary[]>([]);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -60,7 +60,8 @@ const TeachersPage: React.FC = () => {
   // Fetch teachers from API with full filter support
   useEffect(() => {
     const fetchTeachers = async () => {
-      setIsLoading(true);
+      // Show loading only if taking longer than 100ms
+      const loadingTimeout = setTimeout(() => setIsLoading(true), 100);
       try {
         // Create cache key from filters and search query
         const cacheKey = `teachers:list:${filters.subject}:${filters.priceRange}:${filters.sortBy}:${searchQuery}`;
@@ -84,6 +85,7 @@ const TeachersPage: React.FC = () => {
         setFilteredTeachers([]);
         setTotalCount(0);
       } finally {
+        clearTimeout(loadingTimeout);
         setIsLoading(false);
       }
     };

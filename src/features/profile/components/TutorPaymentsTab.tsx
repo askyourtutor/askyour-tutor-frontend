@@ -34,7 +34,8 @@ function TutorPaymentsTab() {
   }, []);
 
   const fetchPayments = async () => {
-    setLoading(true);
+    // Show loading only if taking longer than 100ms
+    const loadingTimeout = setTimeout(() => setLoading(true), 100);
     try {
       // Cache key - single key since filters are applied client-side
       const response = await fetchWithCache(
@@ -55,6 +56,7 @@ function TutorPaymentsTab() {
         successRate: 0,
       });
     } finally {
+      clearTimeout(loadingTimeout);
       setLoading(false);
     }
   };

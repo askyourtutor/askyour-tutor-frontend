@@ -11,7 +11,7 @@ export function useCourseDetails(courseId: string | undefined) {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start as false for instant cache hits
   const [isSaved, setIsSaved] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const navigate = useNavigate();
@@ -19,8 +19,9 @@ export function useCourseDetails(courseId: string | undefined) {
 
   useEffect(() => {
     const load = async () => {
+      // Show loading only if taking longer than 100ms
+      const loadingTimeout = setTimeout(() => setIsLoading(true), 100);
       try {
-        setIsLoading(true);
         if (!courseId) return;
         
         // Use cache with stale-while-revalidate pattern
@@ -67,6 +68,7 @@ export function useCourseDetails(courseId: string | undefined) {
       } catch (e) {
         console.error(e);
       } finally {
+        clearTimeout(loadingTimeout);
         setIsLoading(false);
       }
     };
