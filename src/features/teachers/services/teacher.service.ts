@@ -1,4 +1,5 @@
 import { apiFetch } from '../../../shared/services/api';
+import { fetchWithCache } from '../../../shared/lib/cache';
 import type { TutorSummary, TutorsResponse, TutorCourse } from '../../../shared/types/teacher';
 
 interface GetTutorsParams {
@@ -28,7 +29,10 @@ export const teacherService = {
   },
 
   async getTutorById(id: string): Promise<TutorSummary> {
-    const response = await apiFetch<{ data: TutorSummary }>(`/tutors/${id}`);
+    const response = await fetchWithCache(
+      `tutor:details:${id}`,
+      () => apiFetch<{ data: TutorSummary }>(`/tutors/${id}`)
+    );
     return response.data;
   },
 
@@ -55,7 +59,10 @@ export const teacherService = {
   },
 
   async getTutorCourses(tutorId: string): Promise<TutorCourse[]> {
-    const response = await apiFetch<{ success: boolean; data: TutorCourse[] }>(`/tutors/${tutorId}/courses`);
+    const response = await fetchWithCache(
+      `tutor:courses:${tutorId}`,
+      () => apiFetch<{ success: boolean; data: TutorCourse[] }>(`/tutors/${tutorId}/courses`)
+    );
     return response.data;
   },
 };

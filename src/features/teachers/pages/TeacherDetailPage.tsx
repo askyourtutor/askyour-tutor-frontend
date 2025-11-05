@@ -4,6 +4,8 @@ import { IconArrowLeft, IconStar, IconMapPin, IconBriefcase } from '@tabler/icon
 import { useAuth } from '../../../shared/contexts/AuthContext';
 import type { TutorSummary, TutorCourse } from '../../../shared/types/teacher';
 import { teacherService } from '../services/teacher.service';
+import { cache } from '../../../shared/lib/cache';
+import TeacherDetailSkeleton from '../components/TeacherDetailSkeleton';
 
 const TeacherDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -46,22 +48,55 @@ const TeacherDetailPage: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!id) return;
-      
-      setIsLoading(true);
-      setError(null);
+      if (!id) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
-        const [teacherData, coursesData] = await Promise.all([
-          teacherService.getTutorById(id),
-          teacherService.getTutorCourses(id),
-        ]);
-        setTeacher(teacherData);
-        setCourses(coursesData);
+        // Check cache first for instant loading
+        const teacherCacheKey = `tutor:details:${id}`;
+        const coursesCacheKey = `tutor:courses:${id}`;
+        
+        const cachedTeacher = cache.get<{ data: TutorSummary }>(teacherCacheKey);
+        const cachedCourses = cache.get<{ data: TutorCourse[] }>(coursesCacheKey);
+        
+        if (cachedTeacher && cachedCourses) {
+          // Set data immediately from cache
+          setTeacher(cachedTeacher.data);
+          setCourses(cachedCourses.data);
+          setIsLoading(false);
+          setError(null);
+          
+          // If cache is stale, fetch fresh data in background
+          if (cache.isStale(teacherCacheKey) || cache.isStale(coursesCacheKey)) {
+            try {
+              const [teacherData, coursesData] = await Promise.all([
+                teacherService.getTutorById(id),
+                teacherService.getTutorCourses(id),
+              ]);
+              setTeacher(teacherData);
+              setCourses(coursesData);
+            } catch (e) {
+              console.warn('Background refresh failed:', e);
+            }
+          }
+        } else {
+          // No cache, fetch fresh data with loading state
+          setIsLoading(true);
+          setError(null);
+          
+          const [teacherData, coursesData] = await Promise.all([
+            teacherService.getTutorById(id),
+            teacherService.getTutorCourses(id),
+          ]);
+          setTeacher(teacherData);
+          setCourses(coursesData);
+          setIsLoading(false);
+        }
       } catch (err) {
         console.error('Failed to fetch teacher:', err);
         setError('Failed to load teacher details');
-      } finally {
         setIsLoading(false);
       }
     };
@@ -70,14 +105,7 @@ const TeacherDetailPage: React.FC = () => {
   }, [id]);
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600 mx-auto"></div>
-          <p className="mt-3 text-gray-600 text-sm">Loading...</p>
-        </div>
-      </div>
-    );
+    return <TeacherDetailSkeleton />;
   }
 
   if (error || !teacher) {
