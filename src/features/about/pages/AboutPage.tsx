@@ -110,7 +110,7 @@ const AboutPage = () => {
                   {features.map((feature, index) => {
                     const Icon = feature.icon;
                     return (
-                      <div key={index} className="border border-gray-200 p-4 hover:border-black transition-colors">
+                      <div key={index} className="border border-gray-200 rounded-sm p-4 hover:border-black transition-colors">
                         <Icon className="w-6 h-6 mb-3 text-black" strokeWidth={1.5} />
                         <h4 className="font-semibold text-sm text-black mb-1 uppercase tracking-wider">{feature.title}</h4>
                         <p className="text-xs text-gray-600 font-light leading-relaxed">{feature.description}</p>
@@ -139,7 +139,7 @@ const AboutPage = () => {
               {values.map((value, index) => {
                 const Icon = value.icon;
                 return (
-                  <div key={index} className="bg-white p-8 border border-gray-200 hover:border-black transition-all duration-300 group">
+                  <div key={index} className="bg-white p-8 border border-gray-200 rounded-sm hover:border-black transition-all duration-300 group">
                     <div className="w-12 h-12 border border-black flex items-center justify-center mb-6 group-hover:bg-black transition-colors">
                       <Icon className="w-6 h-6 text-black group-hover:text-white transition-colors" strokeWidth={1.5} />
                     </div>
@@ -169,7 +169,7 @@ const AboutPage = () => {
                 const Icon = item.icon;
                 return (
                   <div key={index} className="relative">
-                    <div className="bg-white border border-gray-800 p-6 hover:bg-gray-50 transition-colors h-full">
+                    <div className="bg-white border border-gray-800 rounded-sm p-6 hover:bg-gray-50 transition-colors h-full">
                       <div className="flex flex-col items-center text-center space-y-4">
                         <div className="w-10 h-10 border border-black flex items-center justify-center">
                           <Icon className="w-5 h-5 text-black" strokeWidth={1.5} />
@@ -195,11 +195,11 @@ const AboutPage = () => {
                 return (
                   <div key={index} className="flex gap-6">
                     <div className="flex-shrink-0">
-                      <div className="w-14 h-14 bg-white border border-gray-800 flex items-center justify-center">
+                      <div className="w-14 h-14 bg-white border border-gray-800 rounded-sm flex items-center justify-center">
                         <Icon className="w-7 h-7 text-black" strokeWidth={1.5} />
                       </div>
                     </div>
-                    <div className="flex-1 bg-white border border-gray-800 p-6">
+                    <div className="flex-1 bg-white border border-gray-800 rounded-sm p-6">
                       <div className="text-xl font-bold text-black mb-2 tracking-tight">{item.year}</div>
                       <h3 className="text-base font-bold text-black mb-3 uppercase tracking-wider">{item.title}</h3>
                       <p className="text-sm text-gray-600 leading-relaxed font-light">{item.description}</p>
@@ -227,14 +227,14 @@ const AboutPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link 
                 to="/courses" 
-                className="inline-flex items-center justify-center px-10 py-5 bg-black !text-white text-base font-medium hover:bg-gray-900 transition-colors gap-3 uppercase tracking-wider"
+                className="inline-flex items-center justify-center px-10 py-5 bg-black !text-white text-base font-medium hover:bg-gray-900 transition-colors gap-3 uppercase tracking-wider rounded-sm"
               >
                 Browse Courses
                 <IconArrowRight className="w-5 h-5" strokeWidth={1.5} />
               </Link>
               <Link 
                 to="/teachers" 
-                className="inline-flex items-center justify-center px-10 py-5 border-2 border-black text-black text-base font-medium hover:bg-black hover:!text-white transition-colors gap-3 uppercase tracking-wider"
+                className="inline-flex items-center justify-center px-10 py-5 border-2 border-black text-black text-base font-medium hover:bg-black hover:!text-white transition-colors gap-3 uppercase tracking-wider rounded-sm"
               >
                 Meet Our Tutors
                 <IconArrowRight className="w-5 h-5" strokeWidth={1.5} />
