@@ -24,6 +24,7 @@ import PaymentCancelPage from '../features/payment/pages/PaymentCancelPage';
 import TeachersPage from '../features/teachers/pages/TeachersPage';
 import TeacherDetailPage from '../features/teachers/pages/TeacherDetailPage';
 import ContactPage from '../features/contact/pages/ContactPage';
+import AboutPage from '../features/about/pages/AboutPage';
 
 const router = createBrowserRouter([
   {
@@ -33,6 +34,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'contact', element: <ContactPage /> },
+      { path: 'about', element: <AboutPage /> },
       
       // Public pages - accessible to everyone
       { path: 'courses', element: <CoursesPage /> },

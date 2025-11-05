@@ -4,6 +4,7 @@ import {
   IconCheck, 
   IconArrowRight
 } from '@tabler/icons-react';
+import { Link } from 'react-router';
 import { contentService } from '../../../shared/services';
 
 const AboutUs: React.FC = () => {
@@ -138,13 +139,13 @@ const AboutUs: React.FC = () => {
 
             {/* CTA Button */}
             <div className="flex justify-center xl:justify-start">
-              <a 
-                href="/about" 
+              <Link 
+                to="/about" 
                 className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-sm font-semibold hover:bg-blue-700 transition-all duration-300 hover:shadow-lg group text-sm sm:text-base"
               >
                 ABOUT MORE
                 <IconArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>

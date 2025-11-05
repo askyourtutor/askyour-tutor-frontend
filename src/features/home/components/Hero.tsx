@@ -1,5 +1,6 @@
 import { IconArrowRight, IconUsers, IconVideo } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router';
 import { statsService, contentService } from '../../../shared/services';
 
 interface HeroProps {
@@ -105,8 +106,8 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
 
               {/* Call to Action Buttons */}
               <div className="btn-group flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <a 
-                  href="#courses" 
+                <Link 
+                  to="/courses" 
                   className="th-btn inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-sm font-semibold text-white uppercase tracking-wide transition-all duration-300 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
                   style={{ 
                     backgroundColor: 'var(--color-primary)'
@@ -115,18 +116,18 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
                 >
                   <span>Get Started</span>
                   <IconArrowRight size={16} aria-hidden="true" />
-                </a>
-                <a 
-                  href="#courses" 
+                </Link>
+                <Link 
+                  to="/teachers" 
                   className="th-btn-outline inline-flex items-center justify-center space-x-2 px-8 py-4 rounded-sm font-semibold text-white uppercase tracking-wide transition-all duration-300 hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2"
                   style={{ 
                     backgroundColor: '#374151'
                   }}
-                  aria-label="View our courses"
+                  aria-label="View our instructors"
                 >
-                  <span>Our Courses</span>
+                  <span>Our Instructors</span>
                   <IconArrowRight size={16} aria-hidden="true" />
-                </a>
+                </Link>
               </div>
             </div>
           </div>
