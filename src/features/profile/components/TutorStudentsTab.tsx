@@ -6,8 +6,9 @@ import {
   IconMail,
   IconPhone,
   IconChevronDown,
-  IconChevronRight
+  IconChevronRight,
 } from '@tabler/icons-react';
+import { Fragment } from 'react';
 import { useState } from 'react';
 import type { Student } from '../../../shared/services/tutorDashboardService';
 
@@ -133,10 +134,9 @@ function TutorStudentsTab({ students }: TutorStudentsTabProps) {
                 filteredStudents.map((student) => {
                   const isExpanded = expandedRows.has(student.id);
                   return (
-                    <>
+                    <Fragment key={student.id}>
                       {/* Main Row */}
                       <tr 
-                        key={student.id}
                         className="hover:bg-gray-50 transition-colors cursor-pointer"
                         onClick={() => toggleRow(student.id)}
                       >
@@ -282,7 +282,7 @@ function TutorStudentsTab({ students }: TutorStudentsTabProps) {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })
               ) : (
