@@ -14,6 +14,7 @@ import { courseService, categoryService } from '../../../shared/services';
 import { CourseCard } from '../../../shared/components/cards';
 import { ErrorState, EmptyState } from '../../../shared/components/ui';
 import { CourseSkeletonGrid } from '../../../shared/components/skeletons';
+import { fetchWithCache } from '../../../shared/lib/cache';
 
 const PopularCourses: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('');
@@ -28,7 +29,12 @@ const PopularCourses: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categoriesData: CategorySummary[] = await categoryService.getCategories();
+        // Use cache with stale-while-revalidate pattern
+        const categoriesData: CategorySummary[] = await fetchWithCache(
+          'home:categories',
+          () => categoryService.getCategories()
+        );
+        
         const filtered = categoriesData.filter((c) => Number(c.courseCount) > 0);
         setCategories(filtered);
         // Set first category as active by default (only if exists)
@@ -52,7 +58,12 @@ const PopularCourses: React.FC = () => {
       setLoading(true);
       setError(null); // Clear any previous errors
       try {
-        const coursesData = await courseService.getCoursesByCategory(activeCategory);
+        // Use cache with category-specific key
+        const coursesData = await fetchWithCache(
+          `home:courses:${activeCategory}`,
+          () => courseService.getCoursesByCategory(activeCategory)
+        );
+        
         setCourses((coursesData.data ?? []) as CourseSummary[]);
       } catch {
         setError('Failed to load courses');
@@ -221,9 +232,12 @@ const PopularCourses: React.FC = () => {
               onRetry={() => {
                 setError(null);
                 setLoading(true);
-                // Refetch courses for current category
+                // Refetch courses for current category with cache
                 if (activeCategory) {
-                  courseService.getCoursesByCategory(activeCategory)
+                  fetchWithCache(
+                    `home:courses:${activeCategory}`,
+                    () => courseService.getCoursesByCategory(activeCategory)
+                  )
                     .then(data => setCourses((data.data ?? []) as CourseSummary[]))
                     .catch(() => setError('Failed to load courses'))
                     .finally(() => setLoading(false));
