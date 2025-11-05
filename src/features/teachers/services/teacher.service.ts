@@ -1,6 +1,6 @@
 import { apiFetch } from '../../../shared/services/api';
 import { fetchWithCache } from '../../../shared/lib/cache';
-import type { TutorSummary, TutorsResponse, TutorCourse } from '../../../shared/types/teacher';
+import type { TutorSummary, TutorsResponse, TutorCourse, TutorReview, TutorSession } from '../../../shared/types/teacher';
 
 interface GetTutorsParams {
   subject?: string;
@@ -37,25 +37,8 @@ export const teacherService = {
   },
 
   async getSubjects(): Promise<string[]> {
-    try {
-      const response = await apiFetch<{ success: boolean; data: string[] }>('/tutors/subjects');
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch subjects:', error);
-      // Return default subjects as fallback
-      return [
-        'Mathematics',
-        'Physics',
-        'Chemistry',
-        'Biology',
-        'Computer Science',
-        'English',
-        'History',
-        'Geography',
-        'Economics',
-        'Business',
-      ];
-    }
+    const response = await apiFetch<{ success: boolean; data: string[] }>('/tutors/subjects');
+    return response.data;
   },
 
   async getTutorCourses(tutorId: string): Promise<TutorCourse[]> {
@@ -63,6 +46,20 @@ export const teacherService = {
       `tutor:courses:${tutorId}`,
       () => apiFetch<{ success: boolean; data: TutorCourse[] }>(`/tutors/${tutorId}/courses`)
     );
+    return response.data;
+  },
+
+  async getTutorReviews(tutorId: string): Promise<TutorReview[]> {
+    const response = await fetchWithCache(
+      `tutor:reviews:${tutorId}`,
+      () => apiFetch<{ success: boolean; data: TutorReview[] }>(`/tutors/${tutorId}/reviews`)
+    );
+    return response.data;
+  },
+
+  async getTutorSessions(tutorId: string, status?: string): Promise<TutorSession[]> {
+    const query = status ? `?status=${status}` : '';
+    const response = await apiFetch<{ success: boolean; data: TutorSession[] }>(`/tutors/${tutorId}/sessions${query}`);
     return response.data;
   },
 };

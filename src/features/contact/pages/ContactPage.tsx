@@ -10,6 +10,7 @@ import {
   IconHeadphones,
   IconHelpCircle
 } from '@tabler/icons-react';
+import { Spinner } from '../../../shared/components/ui';
 
 interface ContactFormData {
   name: string;
@@ -326,7 +327,7 @@ const ContactPage = () => {
                   >
                     {isSubmitting ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <Spinner size="sm" className="text-white" />
                         <span>Sending...</span>
                       </>
                     ) : (

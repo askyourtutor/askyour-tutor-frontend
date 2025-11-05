@@ -427,12 +427,35 @@ const CoursesPage: React.FC = () => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 lg:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 pb-16">
             {courses.map((course) => (
               <CourseCard key={course.id} course={course} />
             ))}
           </div>
         )}
+      </div>
+
+      {/* Fixed Pagination */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-30 py-2">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center gap-1.5">
+            <button className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50">
+              Prev
+            </button>
+            <button className="w-7 h-7 text-xs font-medium border border-blue-500 bg-blue-50 text-blue-600 rounded">
+              1
+            </button>
+            <button className="w-7 h-7 text-xs border border-gray-300 rounded hover:bg-gray-50">
+              2
+            </button>
+            <button className="w-7 h-7 text-xs border border-gray-300 rounded hover:bg-gray-50">
+              3
+            </button>
+            <button className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">
+              Next
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

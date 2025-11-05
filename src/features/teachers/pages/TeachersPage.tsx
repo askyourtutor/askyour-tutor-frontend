@@ -337,7 +337,7 @@ const TeachersPage: React.FC = () => {
         {isInitialLoad ? (
           <TeacherSkeletonGrid count={12} />
         ) : filteredTeachers.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 pb-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 pb-16">
             {filteredTeachers.map((teacher) => (
               <TeacherCard key={teacher.id} teacher={teacher} />
             ))}

@@ -16,7 +16,7 @@ import {
   IconShare
 } from '@tabler/icons-react';
 import { useAuth } from '../../../shared/contexts/AuthContext';
-import type { TutorSummary, TutorCourse } from '../../../shared/types/teacher';
+import type { TutorSummary, TutorCourse, TutorReview, TutorSession } from '../../../shared/types/teacher';
 import { teacherService } from '../services/teacher.service';
 import { cache } from '../../../shared/lib/cache';
 import TeacherDetailSkeleton from '../components/TeacherDetailSkeleton';
@@ -27,6 +27,8 @@ const TeacherDetailPage: React.FC = () => {
   const { user } = useAuth();
   const [teacher, setTeacher] = useState<TutorSummary | null>(null);
   const [courses, setCourses] = useState<TutorCourse[]>([]);
+  const [reviews, setReviews] = useState<TutorReview[]>([]);
+  const [sessions, setSessions] = useState<TutorSession[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'reviews'>('overview');
@@ -41,8 +43,7 @@ const TeacherDetailPage: React.FC = () => {
       return;
     }
     
-    // TODO: Navigate to booking flow
-    console.log('Navigate to booking flow for teacher:', id);
+    // TODO: Implement booking flow
   };
 
   const handleMessage = () => {
@@ -55,8 +56,7 @@ const TeacherDetailPage: React.FC = () => {
       return;
     }
     
-    // TODO: Navigate to messaging
-    console.log('Navigate to messaging for teacher:', id);
+    // TODO: Implement messaging
   };
 
   const handleShare = () => {
@@ -81,39 +81,54 @@ const TeacherDetailPage: React.FC = () => {
       try {
         const teacherCacheKey = `tutor:details:${id}`;
         const coursesCacheKey = `tutor:courses:${id}`;
+        const reviewsCacheKey = `tutor:reviews:${id}`;
         
         const cachedTeacher = cache.get<{ data: TutorSummary }>(teacherCacheKey);
         const cachedCourses = cache.get<{ data: TutorCourse[] }>(coursesCacheKey);
+        const cachedReviews = cache.get<{ data: TutorReview[] }>(reviewsCacheKey);
         
         if (cachedTeacher && cachedCourses) {
           setTeacher(cachedTeacher.data);
           setCourses(cachedCourses.data);
+          if (cachedReviews) setReviews(cachedReviews.data);
           setIsLoading(false);
           setError(null);
           
-          if (cache.isStale(teacherCacheKey) || cache.isStale(coursesCacheKey)) {
+          if (cache.isStale(teacherCacheKey) || cache.isStale(coursesCacheKey) || cache.isStale(reviewsCacheKey)) {
             try {
-              const [teacherData, coursesData] = await Promise.all([
+              const [teacherData, coursesData, reviewsData] = await Promise.all([
                 teacherService.getTutorById(id),
                 teacherService.getTutorCourses(id),
+                teacherService.getTutorReviews(id),
               ]);
               setTeacher(teacherData);
               setCourses(coursesData);
-            } catch (e) {
-              console.warn('Background refresh failed:', e);
+              setReviews(reviewsData);
+            } catch {
+              // Silent background refresh failure
             }
           }
         } else {
           setIsLoading(true);
           setError(null);
           
-          const [teacherData, coursesData] = await Promise.all([
+          const [teacherData, coursesData, reviewsData] = await Promise.all([
             teacherService.getTutorById(id),
             teacherService.getTutorCourses(id),
+            teacherService.getTutorReviews(id),
           ]);
           setTeacher(teacherData);
           setCourses(coursesData);
+          setReviews(reviewsData);
           setIsLoading(false);
+        }
+        
+        // Fetch sessions separately (not cached, as they update frequently)
+        try {
+          const sessionsData = await teacherService.getTutorSessions(id);
+          setSessions(sessionsData);
+        } catch {
+          // Sessions are optional, don't fail if not available
         }
       } catch (err) {
         console.error('Failed to fetch teacher:', err);
@@ -251,7 +266,7 @@ const TeacherDetailPage: React.FC = () => {
                     {isGuest && (
                       <button 
                         onClick={() => navigate('/login', { state: { from: { pathname: `/teachers/${id}` } } })}
-                        className="inline-flex items-center gap-1.5 sm:gap-2 bg-white text-blue-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl text-xs sm:text-sm"
+                        className="inline-flex items-center gap-1.5 sm:gap-2 bg-white text-blue-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl text-xs sm:text-sm"
                       >
                         <IconCalendar size={14} className="sm:w-4 sm:h-4" />
                         <span>Login to Book</span>
@@ -260,13 +275,13 @@ const TeacherDetailPage: React.FC = () => {
 
                     <button 
                       onClick={handleShare}
-                      className="inline-flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm border border-white/30 text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg hover:bg-white/20 transition-all duration-200 text-xs sm:text-sm"
+                      className="inline-flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm border border-white/30 text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-sm hover:bg-white/20 transition-all duration-200 text-xs sm:text-sm"
                     >
                       <IconShare size={14} className="sm:w-4 sm:h-4" />
                     </button>
 
                     <button 
-                      className="inline-flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm border border-white/30 text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-md sm:rounded-lg hover:bg-white/20 transition-all duration-200 text-xs sm:text-sm"
+                      className="inline-flex items-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm border border-white/30 text-white px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-sm hover:bg-white/20 transition-all duration-200 text-xs sm:text-sm"
                     >
                       <IconBookmark size={14} className="sm:w-4 sm:h-4" />
                     </button>
@@ -321,7 +336,7 @@ const TeacherDetailPage: React.FC = () => {
                   {isGuest && (
                     <button 
                       onClick={() => navigate('/login', { state: { from: { pathname: `/teachers/${id}` } } })}
-                      className="w-full bg-white text-blue-700 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg text-xs sm:text-sm"
+                      className="w-full bg-white text-blue-700 py-2 sm:py-2.5 rounded-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg text-xs sm:text-sm"
                     >
                       Login to Book
                     </button>
@@ -589,22 +604,68 @@ const TeacherDetailPage: React.FC = () => {
                           <div className="text-xs text-gray-600">Overall Rating</div>
                         </div>
                         <div>
-                          <div className="text-2xl sm:text-3xl font-bold text-green-600">{totalReviews}</div>
+                          <div className="text-2xl sm:text-3xl font-bold text-green-600">{reviews.length}</div>
                           <div className="text-xs text-gray-600">Total Reviews</div>
                         </div>
                         <div>
-                          <div className="text-2xl sm:text-3xl font-bold text-purple-600">{totalStudents > 0 ? Math.round((totalStudents / (totalStudents + 5)) * 100) : 0}%</div>
+                          <div className="text-2xl sm:text-3xl font-bold text-purple-600">
+                            {reviews.length > 0 ? Math.round((reviews.filter(r => r.rating >= 4).length / reviews.length) * 100) : 0}%
+                          </div>
                           <div className="text-xs text-gray-600">Recommend Rate</div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Reviews Placeholder */}
-                    <div className="text-center py-8 sm:py-12">
-                      <IconStar size={40} className="sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3 sm:mb-4" />
-                      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
-                      <p className="text-gray-600 text-sm sm:text-base">Be the first to leave a review for this tutor.</p>
-                    </div>
+                    {/* Reviews List */}
+                    {reviews.length > 0 ? (
+                      <div className="space-y-4">
+                        {reviews.map((review) => (
+                          <div key={review.id} className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-start gap-3">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+                                  {review.student.studentProfile?.firstName?.[0] || 'S'}
+                                  {review.student.studentProfile?.lastName?.[0] || 'T'}
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900">
+                                    {review.student.studentProfile?.firstName || 'Student'} {review.student.studentProfile?.lastName || ''}
+                                  </h4>
+                                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    <span>{new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                    <span>•</span>
+                                    <span className="text-blue-600">{review.course.title}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <IconStar 
+                                    key={i} 
+                                    size={14} 
+                                    className={i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} 
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            
+                            {review.title && (
+                              <h5 className="font-semibold text-gray-900 mb-2">{review.title}</h5>
+                            )}
+                            
+                            {review.content && (
+                              <p className="text-gray-700 text-sm leading-relaxed">{review.content}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 sm:py-12">
+                        <IconStar size={40} className="sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3 sm:mb-4" />
+                        <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
+                        <p className="text-gray-600 text-sm sm:text-base">Be the first to leave a review for this tutor.</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -641,103 +702,109 @@ const TeacherDetailPage: React.FC = () => {
               </div>
 
               {/* Pricing & Sessions */}
-              {tutorProfile.hourlyRate !== null && tutorProfile.hourlyRate !== undefined && (
+              {tutorProfile.hourlyRate !== null && tutorProfile.hourlyRate !== undefined && tutorProfile.sessionTypes && tutorProfile.sessionTypes.length > 0 && (
                 <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Session Options</h3>
                   
                   <div className="space-y-3 sm:space-y-4">
                     {/* One-on-One Session */}
-                    <div className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold text-gray-900 text-sm sm:text-base">1-on-1 Session</h4>
-                          <p className="text-gray-600 text-xs sm:text-sm">Personal tutoring session</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg sm:text-xl font-bold text-blue-600">
-                            {tutorProfile.hourlyRate > 0 ? `$${tutorProfile.hourlyRate}` : 'Free'}
+                    {tutorProfile.sessionTypes.includes('Individual') && (
+                      <div className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h4 className="font-semibold text-gray-900 text-sm sm:text-base">1-on-1 Session</h4>
+                            <p className="text-gray-600 text-xs sm:text-sm">Personal tutoring session</p>
                           </div>
-                          <div className="text-xs text-gray-500">/hour</div>
+                          <div className="text-right">
+                            <div className="text-lg sm:text-xl font-bold text-blue-600">
+                              {tutorProfile.hourlyRate > 0 ? `$${tutorProfile.hourlyRate}` : 'Free'}
+                            </div>
+                            <div className="text-xs text-gray-500">/hour</div>
+                          </div>
                         </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+                          <IconClock size={12} />
+                          <span>60 minutes</span>
+                          <IconUsers size={12} />
+                          <span>1 student</span>
+                        </div>
+                        {(isStudent || isGuest) && (
+                          <button 
+                            onClick={isStudent ? handleBookSession : () => navigate('/login')}
+                            className="w-full bg-blue-600 text-white py-2 rounded-sm hover:bg-blue-700 font-medium transition-colors text-xs sm:text-sm"
+                          >
+                            {isStudent ? 'Book Session' : 'Login to Book'}
+                          </button>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
-                        <IconClock size={12} />
-                        <span>60 minutes</span>
-                        <IconUsers size={12} />
-                        <span>1 student</span>
-                      </div>
-                      {(isStudent || isGuest) && (
-                        <button 
-                          onClick={isStudent ? handleBookSession : () => navigate('/login')}
-                          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 font-medium transition-colors text-xs sm:text-sm"
-                        >
-                          {isStudent ? 'Book Session' : 'Login to Book'}
-                        </button>
-                      )}
-                    </div>
+                    )}
 
                     {/* Group Session */}
-                    <div className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Group Session</h4>
-                          <p className="text-gray-600 text-xs sm:text-sm">Small group learning</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg sm:text-xl font-bold text-green-600">
-                            {tutorProfile.hourlyRate > 0 ? `$${Math.round(tutorProfile.hourlyRate * 0.7)}` : 'Free'}
+                    {tutorProfile.sessionTypes.includes('Group') && (
+                      <div className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Group Session</h4>
+                            <p className="text-gray-600 text-xs sm:text-sm">Small group learning</p>
                           </div>
-                          <div className="text-xs text-gray-500">/hour</div>
+                          <div className="text-right">
+                            <div className="text-lg sm:text-xl font-bold text-green-600">
+                              {tutorProfile.hourlyRate > 0 ? `$${Math.round(tutorProfile.hourlyRate * 0.7)}` : 'Free'}
+                            </div>
+                            <div className="text-xs text-gray-500">/hour</div>
+                          </div>
                         </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+                          <IconClock size={12} />
+                          <span>90 minutes</span>
+                          <IconUsers size={12} />
+                          <span>2-4 students</span>
+                        </div>
+                        {(isStudent || isGuest) && (
+                          <button 
+                            onClick={isStudent ? handleBookSession : () => navigate('/login')}
+                            className="w-full border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-50 font-medium transition-colors text-xs sm:text-sm"
+                          >
+                            {isStudent ? 'Join Group' : 'Login to Join'}
+                          </button>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
-                        <IconClock size={12} />
-                        <span>90 minutes</span>
-                        <IconUsers size={12} />
-                        <span>2-4 students</span>
-                      </div>
-                      {(isStudent || isGuest) && (
-                        <button 
-                          onClick={isStudent ? handleBookSession : () => navigate('/login')}
-                          className="w-full border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-50 font-medium transition-colors text-xs sm:text-sm"
-                        >
-                          {isStudent ? 'Join Group' : 'Login to Join'}
-                        </button>
-                      )}
-                    </div>
+                    )}
 
                     {/* Trial Session */}
-                    <div className="border border-green-200 bg-green-50 rounded-lg p-3 sm:p-4 relative">
-                      <div className="absolute top-2 right-2">
-                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Popular</span>
-                      </div>
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Trial Session</h4>
-                          <p className="text-gray-600 text-xs sm:text-sm">First session discount</p>
+                    {tutorProfile.sessionTypes.includes('Trial') && (
+                      <div className="border border-green-200 bg-green-50 rounded-lg p-3 sm:p-4 relative">
+                        <div className="absolute top-2 right-2">
+                          <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Popular</span>
                         </div>
-                        <div className="text-right">
-                          <div className="text-lg sm:text-xl font-bold text-green-600">
-                            {tutorProfile.hourlyRate > 0 ? `$${Math.round(tutorProfile.hourlyRate * 0.5)}` : 'Free'}
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Trial Session</h4>
+                            <p className="text-gray-600 text-xs sm:text-sm">First session discount</p>
                           </div>
-                          <div className="text-xs text-gray-500">/hour</div>
+                          <div className="text-right">
+                            <div className="text-lg sm:text-xl font-bold text-green-600">
+                              {tutorProfile.hourlyRate > 0 ? `$${Math.round(tutorProfile.hourlyRate * 0.5)}` : 'Free'}
+                            </div>
+                            <div className="text-xs text-gray-500">/hour</div>
+                          </div>
                         </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+                          <IconClock size={12} />
+                          <span>30 minutes</span>
+                          <IconUsers size={12} />
+                          <span>1 student</span>
+                        </div>
+                        {(isStudent || isGuest) && (
+                          <button 
+                            onClick={isStudent ? handleBookSession : () => navigate('/login')}
+                            className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 font-medium transition-colors text-xs sm:text-sm"
+                          >
+                            {isStudent ? 'Book Trial' : 'Login for Trial'}
+                          </button>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
-                        <IconClock size={12} />
-                        <span>30 minutes</span>
-                        <IconUsers size={12} />
-                        <span>1 student</span>
-                      </div>
-                      {(isStudent || isGuest) && (
-                        <button 
-                          onClick={isStudent ? handleBookSession : () => navigate('/login')}
-                          className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 font-medium transition-colors text-xs sm:text-sm"
-                        >
-                          {isStudent ? 'Book Trial' : 'Login for Trial'}
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -789,6 +856,52 @@ const TeacherDetailPage: React.FC = () => {
                   </button>
                 )}
               </div>
+
+              {/* Recent Activity */}
+              {sessions.length > 0 && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Recent Activity</h3>
+                  
+                  <div className="space-y-3">
+                    {sessions.slice(0, 5).map((session) => (
+                      <div key={session.id} className="flex items-start gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                        <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                          session.status === 'COMPLETED' ? 'bg-green-500' : 
+                          session.status === 'CONFIRMED' ? 'bg-blue-500' : 
+                          session.status === 'PENDING' ? 'bg-yellow-500' : 'bg-gray-400'
+                        }`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">{session.subject}</h4>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                              session.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : 
+                              session.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-700' : 
+                              session.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-700'
+                            }`}>
+                              {session.status}
+                            </span>
+                          </div>
+                          {session.topic && (
+                            <p className="text-[10px] sm:text-xs text-gray-600 truncate mb-1">{session.topic}</p>
+                          )}
+                          <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                            <IconCalendar size={10} className="sm:w-3 sm:h-3" />
+                            <span>{new Date(session.scheduledAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                            <span>•</span>
+                            <span>{session.duration} min</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {sessions.length > 5 && (
+                    <div className="mt-3 text-center">
+                      <span className="text-xs text-gray-500">+{sessions.length - 5} more sessions</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

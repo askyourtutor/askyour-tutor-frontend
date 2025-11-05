@@ -10,6 +10,7 @@ export interface TutorProfile {
   teachingExperience?: number;
   hourlyRate?: number;
   subjects?: string[];
+  sessionTypes?: string[];
   verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   verifiedAt?: string;
   avatar?: string;
@@ -33,6 +34,7 @@ export interface TutorSummary {
     hourlyRate?: number;
     bio?: string;
     subjects?: string[];
+    sessionTypes?: string[];
     avatar?: string;
     verificationStatus: string;
   };
@@ -72,4 +74,38 @@ export interface TutorFilters {
   priceRange?: string;
   rating?: number;
   sortBy?: 'popular' | 'newest' | 'rating' | 'price-low' | 'price-high';
+}
+
+export interface TutorReview {
+  id: string;
+  rating: number;
+  title?: string;
+  content?: string;
+  createdAt: string;
+  student: {
+    studentProfile: {
+      firstName: string;
+      lastName: string;
+    } | null;
+  };
+  course: {
+    title: string;
+  };
+}
+
+export interface TutorSession {
+  id: string;
+  subject: string;
+  topic?: string;
+  sessionType: string;
+  duration: number;
+  scheduledAt: string;
+  status: string;
+  createdAt: string;
+  student: {
+    studentProfile: {
+      firstName: string;
+      lastName: string;
+    } | null;
+  };
 }

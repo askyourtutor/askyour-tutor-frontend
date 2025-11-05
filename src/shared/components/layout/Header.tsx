@@ -11,7 +11,6 @@ import {
   IconUser,
   IconChevronDown,
   IconSearch,
-  IconShoppingCart,
   IconHeart,
   IconArrowRight,
   IconMenu2,
@@ -454,20 +453,6 @@ const Header = () => {
                       </span>
                     </a>
 
-                    {/* Shopping Cart */}
-                    <button 
-                      type="button" 
-                      className="icon-btn relative w-6 h-6 xl:w-8 xl:h-8 flex items-center justify-center border border-white/30 rounded-full hover:border-white hover:bg-white/10 transition-colors flex-shrink-0 text-white"
-                    >
-                      <IconShoppingCart size={11} className="xl:w-3.5 xl:h-3.5" />
-                      <span 
-                        className="badge absolute -top-0.5 -right-0.5 w-3 h-3 xl:w-3.5 xl:h-3.5 rounded-full text-[7px] xl:text-[9px] font-bold text-white flex items-center justify-center"
-                        style={{ backgroundColor: 'var(--color-accent)' }}
-                      >
-                        5
-                      </span>
-                    </button>
-
                     {/* Contact Us Button */}
                     <Link 
                       to="/contact" 
@@ -567,20 +552,6 @@ const Header = () => {
                     3
                   </span>
                 </a>
-
-                {/* Mobile Shopping Cart */}
-                <button 
-                  type="button" 
-                  className="icon-btn relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
-                >
-                  <IconShoppingCart size={16} className="sm:w-[18px] sm:h-[18px]" />
-                  <span 
-                    className="badge absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full text-[8px] sm:text-xs font-bold text-white flex items-center justify-center"
-                    style={{ backgroundColor: 'var(--color-accent)' }}
-                  >
-                    5
-                  </span>
-                </button>
               </div>
 
               {/* Mobile Login/Register */}
