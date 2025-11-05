@@ -228,25 +228,25 @@ function TutorPaymentsTab() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full min-w-max">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
                     Student
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
                     Course
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
                     Transaction ID
                   </th>
                 </tr>
@@ -254,22 +254,22 @@ function TutorPaymentsTab() {
               <tbody className="divide-y divide-gray-200">
                 {filteredPayments.map((payment) => (
                   <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{payment.studentName}</p>
-                        <p className="text-xs text-gray-500">{payment.studentEmail}</p>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="max-w-[200px]">
+                        <p className="text-sm font-medium text-gray-900 truncate">{payment.studentName}</p>
+                        <p className="text-xs text-gray-500 truncate">{payment.studentEmail}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <p className="text-sm text-gray-900">{payment.courseName}</p>
+                    <td className="px-4 py-4">
+                      <p className="text-sm text-gray-900 max-w-[250px] truncate">{payment.courseName}</p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <p className="text-sm font-semibold text-gray-900">${payment.amount.toFixed(2)}</p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       {getStatusBadge(payment.status)}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-4 py-4 whitespace-nowrap">
                       <p className="text-sm text-gray-900">
                         {new Date(payment.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
@@ -284,8 +284,10 @@ function TutorPaymentsTab() {
                         })}
                       </p>
                     </td>
-                    <td className="px-6 py-4">
-                      <p className="text-xs text-gray-600 font-mono">{payment.transactionId}</p>
+                    <td className="px-4 py-4">
+                      <p className="text-xs text-gray-600 font-mono max-w-[300px] truncate" title={payment.transactionId}>
+                        {payment.transactionId}
+                      </p>
                     </td>
                   </tr>
                 ))}
