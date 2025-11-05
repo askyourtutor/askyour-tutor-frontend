@@ -13,6 +13,7 @@ import tutorDashboardService, {
   type Payment,
   type PaymentStats,
 } from '../../../shared/services/tutorDashboardService';
+import { fetchWithCache } from '../../../shared/lib/cache';
 
 function TutorPaymentsTab() {
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -35,7 +36,11 @@ function TutorPaymentsTab() {
   const fetchPayments = async () => {
     setLoading(true);
     try {
-      const response = await tutorDashboardService.getTutorPayments();
+      // Cache key - single key since filters are applied client-side
+      const response = await fetchWithCache(
+        'tutor:payments:all',
+        () => tutorDashboardService.getTutorPayments()
+      );
       setPayments(response.payments);
       setStats(response.stats);
     } catch (error) {
