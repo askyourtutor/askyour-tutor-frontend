@@ -885,39 +885,88 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
                                     <label className="block text-xs font-medium text-gray-900">
                                       Video Content
                                     </label>
-                                    {lesson.videoFile ? (
-                                      <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-sm">
-                                        <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-sm">
-                                          <IconCheck size={16} className="text-green-600" />
+                                    
+                                    {/* Unified Video Box - Same layout as EditCourseModal */}
+                                    <div className="border-2 border-dashed border-gray-200 rounded-sm overflow-hidden bg-white">
+                                      {lesson.videoFile ? (
+                                        /* Video file selected */
+                                        <div className="space-y-0">
+                                          {/* Video File Preview */}
+                                          {lesson.videoPreview ? (
+                                            <div className="relative aspect-video bg-gray-900">
+                                              <video 
+                                                src={lesson.videoPreview}
+                                                className="w-full h-full object-contain"
+                                                preload="metadata"
+                                              />
+                                              {/* Ready badge overlay */}
+                                              <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-medium px-2 py-1 rounded-sm">
+                                                Ready to Upload
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                                              <div className="text-center">
+                                                <div className="w-16 h-16 mx-auto mb-3 bg-green-100 rounded-full flex items-center justify-center">
+                                                  <IconVideo size={32} className="text-green-600" />
+                                                </div>
+                                                <p className="text-sm font-medium text-gray-700">Video Ready to Upload</p>
+                                                <p className="text-xs text-gray-500 mt-1">Will be uploaded when you save</p>
+                                              </div>
+                                            </div>
+                                          )}
+                                          
+                                          {/* Video File Info Bar */}
+                                          <div className="flex items-center gap-2 p-3 bg-green-50 border-t-2 border-green-200">
+                                            <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-sm">
+                                              <IconCheck size={16} className="text-green-600" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-xs font-medium text-gray-900 truncate">{lesson.videoFile.name}</p>
+                                              <p className="text-xs text-gray-500">
+                                                {(lesson.videoFile.size / (1024 * 1024)).toFixed(2)} MB
+                                              </p>
+                                            </div>
+                                            <button
+                                              onClick={() => removeVideo(lesson.id)}
+                                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-sm transition-all duration-200"
+                                              title="Remove video"
+                                            >
+                                              <IconTrash size={14} />
+                                            </button>
+                                          </div>
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-xs font-medium text-gray-900 truncate">{lesson.videoFile.name}</p>
-                                          <p className="text-xs text-gray-500">
-                                            {(lesson.videoFile.size / (1024 * 1024)).toFixed(2)} MB
-                                          </p>
-                                        </div>
-                                        <button
-                                          onClick={() => removeVideo(lesson.id)}
-                                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-sm transition-all duration-200"
-                                          title="Remove video"
-                                        >
-                                          <IconTrash size={14} />
-                                        </button>
-                                      </div>
-                                    ) : (
-                                      <label className="flex items-center justify-center gap-2 h-12 border-2 border-dashed border-gray-200 rounded-sm cursor-pointer hover:border-gray-300 hover:bg-gray-50/50 transition-all duration-200 group">
-                                        <IconVideo size={18} className="text-gray-400 group-hover:text-gray-500" />
-                                        <span className="text-xs font-medium text-gray-600 group-hover:text-gray-700">
-                                          Upload Video
-                                        </span>
-                                        <input
-                                          type="file"
-                                          accept="video/*"
-                                          onChange={(e) => handleVideoSelect(lesson.id, e.target.files?.[0] || null)}
-                                          className="hidden"
-                                        />
-                                      </label>
-                                    )}
+                                      ) : (
+                                        /* No video - Upload area */
+                                        <label className="block cursor-pointer group">
+                                          {/* Upload Area */}
+                                          <div className="aspect-video bg-gray-50 flex items-center justify-center group-hover:bg-gray-100 transition-colors">
+                                            <div className="text-center">
+                                              <div className="w-16 h-16 mx-auto mb-3 bg-gray-200 rounded-full flex items-center justify-center group-hover:bg-gray-300 transition-colors">
+                                                <IconUpload size={32} className="text-gray-400 group-hover:text-gray-500" />
+                                              </div>
+                                              <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">Click to Upload Video</p>
+                                              <p className="text-xs text-gray-500 mt-1">MP4, MOV, AVI, MKV, WEBM • Max 500MB</p>
+                                            </div>
+                                          </div>
+                                          
+                                          {/* Upload Info Bar */}
+                                          <div className="flex items-center justify-center gap-2 p-3 bg-gray-50 border-t-2 border-gray-200 group-hover:bg-gray-100 transition-colors">
+                                            <IconVideo size={18} className="text-gray-400 group-hover:text-gray-500" />
+                                            <span className="text-xs font-medium text-gray-600 group-hover:text-gray-700">
+                                              No video uploaded yet
+                                            </span>
+                                          </div>
+                                          
+                                          <input
+                                            type="file"
+                                            accept="video/*"
+                                            onChange={(e) => handleVideoSelect(lesson.id, e.target.files?.[0] || null)}
+                                            className="hidden"
+                                          />
+                                        </label>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
