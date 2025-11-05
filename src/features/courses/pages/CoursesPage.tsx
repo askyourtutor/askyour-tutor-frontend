@@ -10,6 +10,7 @@ import { CourseSkeletonGrid } from '../../../shared/components/skeletons/CourseC
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import type { CourseSummary, CategorySummary } from '../../../shared/types';
 import { getCourses, getCategories } from '../services/course.service';
+import { fetchWithCache } from '../../../shared/lib/cache';
 
 type SortOption = 'popular' | 'newest' | 'price-low' | 'price-high' | 'rating';
 
@@ -53,7 +54,11 @@ const CoursesPage: React.FC = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const cats = await getCategories();
+        // Use cache with stale-while-revalidate pattern
+        const cats = await fetchWithCache(
+          'courses:categories',
+          () => getCategories()
+        );
         setCategories([
           { id: 'all', name: 'All Categories', slug: 'all', courseCount: 0 },
           ...cats,
@@ -70,16 +75,22 @@ const CoursesPage: React.FC = () => {
     const fetchCourses = async () => {
       setIsLoading(true);
       try {
-        const response = await getCourses({
-          category: filters.category !== 'all' ? filters.category : undefined,
-          priceType: filters.priceType !== 'all' ? filters.priceType : undefined,
-          level: filters.level !== 'all' ? filters.level : undefined,
-          rating: filters.rating > 0 ? filters.rating : undefined,
-          search: searchQuery.trim() || undefined,
-          sortBy: filters.sortBy,
-          page: 1,
-          limit: 100, // Fetch more for client-side display
-        });
+        // Create cache key from filters and search query
+        const cacheKey = `courses:list:${filters.category}:${filters.priceType}:${filters.level}:${filters.rating}:${filters.sortBy}:${searchQuery}`;
+        
+        const response = await fetchWithCache(
+          cacheKey,
+          () => getCourses({
+            category: filters.category !== 'all' ? filters.category : undefined,
+            priceType: filters.priceType !== 'all' ? filters.priceType : undefined,
+            level: filters.level !== 'all' ? filters.level : undefined,
+            rating: filters.rating > 0 ? filters.rating : undefined,
+            search: searchQuery.trim() || undefined,
+            sortBy: filters.sortBy,
+            page: 1,
+            limit: 100, // Fetch more for client-side display
+          })
+        );
         
         setFilteredCourses(response.data);
         setTotalCount(response.pagination.total);

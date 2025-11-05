@@ -27,6 +27,7 @@ import TutorSessionsTab from '../components/TutorSessionsTab';
 import TutorStudentsTab from '../components/TutorStudentsTab';
 import TutorQATab from '../components/TutorQATab';
 import TutorPaymentsTab from '../components/TutorPaymentsTab';
+import { fetchWithCache, cache } from '../../../shared/lib/cache';
 
 function TutorDashboard() {
   const { user, logout } = useAuth();
@@ -84,29 +85,47 @@ function TutorDashboard() {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        // Fetch dashboard stats
-        const dashboardStats = await tutorDashboardService.getDashboardStats();
+        // Fetch dashboard stats with cache
+        const dashboardStats = await fetchWithCache(
+          'tutor:dashboard:stats',
+          () => tutorDashboardService.getDashboardStats()
+        );
         setStats(dashboardStats);
 
-        // Fetch recent activity
-        const activityData = await tutorDashboardService.getRecentActivity();
+        // Fetch recent activity with cache
+        const activityData = await fetchWithCache(
+          'tutor:dashboard:activity',
+          () => tutorDashboardService.getRecentActivity()
+        );
         setRecentSessions(activityData.recentSessions);
         setRecentReviews(activityData.recentReviews);
 
-        // Fetch courses
-        const coursesData = await tutorDashboardService.getTutorCourses();
+        // Fetch courses with cache
+        const coursesData = await fetchWithCache(
+          'tutor:dashboard:courses',
+          () => tutorDashboardService.getTutorCourses()
+        );
         setCourses(coursesData);
 
-        // Fetch sessions
-        const sessionsData = await tutorDashboardService.getTutorSessions({ limit: 50 });
+        // Fetch sessions with cache
+        const sessionsData = await fetchWithCache(
+          'tutor:dashboard:sessions',
+          () => tutorDashboardService.getTutorSessions({ limit: 50 })
+        );
         setSessions(sessionsData.sessions);
 
-        // Fetch students
-        const studentsData = await tutorDashboardService.getTutorStudents();
+        // Fetch students with cache
+        const studentsData = await fetchWithCache(
+          'tutor:dashboard:students',
+          () => tutorDashboardService.getTutorStudents()
+        );
         setStudents(studentsData);
 
-        // Fetch Q&A data
-        const questionsData = await tutorDashboardService.getQuestions();
+        // Fetch Q&A data with cache
+        const questionsData = await fetchWithCache(
+          'tutor:dashboard:questions',
+          () => tutorDashboardService.getQuestions()
+        );
         setQuestions(questionsData);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -153,12 +172,21 @@ function TutorDashboard() {
   };
 
   const handleCourseCreated = async () => {
-    // Refresh courses after successful creation
+    // Invalidate cache and refresh courses after successful creation
+    cache.delete('tutor:dashboard:courses');
+    cache.delete('tutor:dashboard:stats');
+    
     try {
-      const coursesData = await tutorDashboardService.getTutorCourses();
+      const coursesData = await fetchWithCache(
+        'tutor:dashboard:courses',
+        () => tutorDashboardService.getTutorCourses()
+      );
       setCourses(coursesData);
       // Refresh stats
-      const dashboardStats = await tutorDashboardService.getDashboardStats();
+      const dashboardStats = await fetchWithCache(
+        'tutor:dashboard:stats',
+        () => tutorDashboardService.getDashboardStats()
+      );
       setStats(dashboardStats);
     } catch (error) {
       console.error('Error refreshing data after course creation:', error);
@@ -173,11 +201,21 @@ function TutorDashboard() {
   const handleDeleteCourse = async (courseId: string) => {
     try {
       await tutorDashboardService.deleteCourse(courseId);
-      // Refresh courses
-      const coursesData = await tutorDashboardService.getTutorCourses();
+      
+      // Invalidate cache and refresh
+      cache.delete('tutor:dashboard:courses');
+      cache.delete('tutor:dashboard:stats');
+      
+      const coursesData = await fetchWithCache(
+        'tutor:dashboard:courses',
+        () => tutorDashboardService.getTutorCourses()
+      );
       setCourses(coursesData);
       // Refresh stats
-      const dashboardStats = await tutorDashboardService.getDashboardStats();
+      const dashboardStats = await fetchWithCache(
+        'tutor:dashboard:stats',
+        () => tutorDashboardService.getDashboardStats()
+      );
       setStats(dashboardStats);
     } catch (error) {
       console.error('Error deleting course:', error);
@@ -188,8 +226,14 @@ function TutorDashboard() {
   const handleTogglePublish = async (courseId: string, isActive: boolean) => {
     try {
       await tutorDashboardService.toggleCoursePublish(courseId, isActive);
-      // Refresh courses
-      const coursesData = await tutorDashboardService.getTutorCourses();
+      
+      // Invalidate cache and refresh
+      cache.delete('tutor:dashboard:courses');
+      
+      const coursesData = await fetchWithCache(
+        'tutor:dashboard:courses',
+        () => tutorDashboardService.getTutorCourses()
+      );
       setCourses(coursesData);
     } catch (error) {
       console.error('Error toggling course publish status:', error);
@@ -202,11 +246,21 @@ function TutorDashboard() {
         status: 'CONFIRMED',
         meetingLink: 'https://meet.example.com/' + sessionId 
       });
-      // Refresh sessions
-      const sessionsData = await tutorDashboardService.getTutorSessions({ limit: 50 });
+      
+      // Invalidate cache and refresh
+      cache.delete('tutor:dashboard:sessions');
+      cache.delete('tutor:dashboard:stats');
+      
+      const sessionsData = await fetchWithCache(
+        'tutor:dashboard:sessions',
+        () => tutorDashboardService.getTutorSessions({ limit: 50 })
+      );
       setSessions(sessionsData.sessions);
       // Refresh stats
-      const dashboardStats = await tutorDashboardService.getDashboardStats();
+      const dashboardStats = await fetchWithCache(
+        'tutor:dashboard:stats',
+        () => tutorDashboardService.getDashboardStats()
+      );
       setStats(dashboardStats);
     } catch (error) {
       console.error('Error confirming session:', error);
@@ -216,11 +270,21 @@ function TutorDashboard() {
   const handleCancelSession = async (sessionId: string, reason: string) => {
     try {
       await tutorDashboardService.cancelSession(sessionId, reason);
-      // Refresh sessions
-      const sessionsData = await tutorDashboardService.getTutorSessions({ limit: 50 });
+      
+      // Invalidate cache and refresh
+      cache.delete('tutor:dashboard:sessions');
+      cache.delete('tutor:dashboard:stats');
+      
+      const sessionsData = await fetchWithCache(
+        'tutor:dashboard:sessions',
+        () => tutorDashboardService.getTutorSessions({ limit: 50 })
+      );
       setSessions(sessionsData.sessions);
       // Refresh stats
-      const dashboardStats = await tutorDashboardService.getDashboardStats();
+      const dashboardStats = await fetchWithCache(
+        'tutor:dashboard:stats',
+        () => tutorDashboardService.getDashboardStats()
+      );
       setStats(dashboardStats);
     } catch (error) {
       console.error('Error cancelling session:', error);
@@ -240,12 +304,14 @@ function TutorDashboard() {
       // Call backend API to save answer
       await tutorDashboardService.answerQuestion(questionId, answer);
       
-      // Update local state
-      setQuestions(prev => prev.map(q => 
-        q.id === questionId 
-          ? { ...q, answer, status: 'ANSWERED' as const, answeredAt: new Date().toISOString() }
-          : q
-      ));
+      // Invalidate cache and refresh
+      cache.delete('tutor:dashboard:questions');
+      
+      const questionsData = await fetchWithCache(
+        'tutor:dashboard:questions',
+        () => tutorDashboardService.getQuestions()
+      );
+      setQuestions(questionsData);
       
       console.log('Answer submitted successfully!');
     } catch (error) {

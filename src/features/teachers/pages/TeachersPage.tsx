@@ -10,6 +10,7 @@ import { TeacherSkeletonGrid } from '../components/TeacherCardSkeleton';
 import { EmptyState } from '../../../shared/components/ui/EmptyState';
 import type { TutorSummary } from '../../../shared/types/teacher';
 import { teacherService } from '../services/teacher.service';
+import { fetchWithCache } from '../../../shared/lib/cache';
 
 type SortOption = 'newest' | 'price-low' | 'price-high';
 
@@ -43,7 +44,11 @@ const TeachersPage: React.FC = () => {
   useEffect(() => {
     const fetchSubjects = async () => {
       try {
-        const subjectList = await teacherService.getSubjects();
+        // Use cache with stale-while-revalidate pattern
+        const subjectList = await fetchWithCache(
+          'teachers:subjects',
+          () => teacherService.getSubjects()
+        );
         setSubjects(subjectList);
       } catch (error) {
         console.error('Failed to fetch subjects:', error);
@@ -57,14 +62,20 @@ const TeachersPage: React.FC = () => {
     const fetchTeachers = async () => {
       setIsLoading(true);
       try {
-        const response = await teacherService.getTutors({
-          subject: filters.subject !== 'all' ? filters.subject : undefined,
-          priceRange: filters.priceRange !== 'all' ? filters.priceRange : undefined,
-          search: searchQuery.trim() || undefined,
-          sortBy: filters.sortBy,
-          page: 1,
-          limit: 100,
-        });
+        // Create cache key from filters and search query
+        const cacheKey = `teachers:list:${filters.subject}:${filters.priceRange}:${filters.sortBy}:${searchQuery}`;
+        
+        const response = await fetchWithCache(
+          cacheKey,
+          () => teacherService.getTutors({
+            subject: filters.subject !== 'all' ? filters.subject : undefined,
+            priceRange: filters.priceRange !== 'all' ? filters.priceRange : undefined,
+            search: searchQuery.trim() || undefined,
+            sortBy: filters.sortBy,
+            page: 1,
+            limit: 100,
+          })
+        );
         
         setFilteredTeachers(response.data);
         setTotalCount(response.pagination.total);
