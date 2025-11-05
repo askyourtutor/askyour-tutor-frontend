@@ -277,53 +277,104 @@ const TeacherDetailPage: React.FC = () => {
 
             {/* Pricing Card */}
             <div className="xl:col-span-4">
-              <div className="bg-white/10 backdrop-blur-md rounded-lg border border-white/20 p-3 sm:p-4 shadow-2xl">
-                <div className="text-center mb-3 sm:mb-4">
-                  <div className="text-xs text-white/70 mb-1">Starting from</div>
-                  <div className="text-xl sm:text-2xl font-bold text-white">${tutorProfile.hourlyRate}</div>
-                  <div className="text-white/70 text-xs sm:text-sm">/hour</div>
+              {tutorProfile.hourlyRate !== null && tutorProfile.hourlyRate !== undefined ? (
+                <div className="bg-white/10 backdrop-blur-md rounded-lg border border-white/20 p-3 sm:p-4 shadow-2xl">
+                  <div className="text-center mb-3 sm:mb-4">
+                    <div className="text-xs text-white/70 mb-1">Starting from</div>
+                    <div className="text-xl sm:text-2xl font-bold text-white">
+                      {tutorProfile.hourlyRate > 0 ? `$${tutorProfile.hourlyRate}` : 'Free'}
+                    </div>
+                    <div className="text-white/70 text-xs sm:text-sm">/hour</div>
+                  </div>
+                  
+                  <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-white/70">Experience</span>
+                      <span className="text-white font-medium">{tutorProfile.teachingExperience || 0} years</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-white/70">Students taught</span>
+                      <span className="text-white font-medium">{totalStudents}+</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-white/70">Courses</span>
+                      <span className="text-white font-medium">{courses.length}</span>
+                    </div>
+                  </div>
+
+                  {tutorProfile.verificationStatus === 'APPROVED' && (
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-green-300 text-xs mb-2 sm:mb-3">
+                      <IconAward size={12} className="sm:w-3.5 sm:h-3.5" />
+                      <span>Verified Tutor</span>
+                    </div>
+                  )}
+
+                  {isStudent && (
+                    <button 
+                      onClick={handleBookSession}
+                      className="w-full bg-white text-blue-700 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg text-xs sm:text-sm"
+                    >
+                      Book Now
+                    </button>
+                  )}
+
+                  {isGuest && (
+                    <button 
+                      onClick={() => navigate('/login', { state: { from: { pathname: `/teachers/${id}` } } })}
+                      className="w-full bg-white text-blue-700 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg text-xs sm:text-sm"
+                    >
+                      Login to Book
+                    </button>
+                  )}
                 </div>
-                
-                <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-white/70">Experience</span>
-                    <span className="text-white font-medium">{tutorProfile.teachingExperience || 0} years</span>
+              ) : (
+                <div className="bg-white/10 backdrop-blur-md rounded-lg border border-white/20 p-3 sm:p-4 shadow-2xl">
+                  <div className="text-center mb-3 sm:mb-4">
+                    <div className="text-xs text-white/70 mb-1">Pricing</div>
+                    <div className="text-xl sm:text-2xl font-bold text-white">Contact for Rates</div>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-white/70">Students taught</span>
-                    <span className="text-white font-medium">{totalStudents}+</span>
+                  
+                  <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-white/70">Experience</span>
+                      <span className="text-white font-medium">{tutorProfile.teachingExperience || 0} years</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-white/70">Students taught</span>
+                      <span className="text-white font-medium">{totalStudents}+</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-white/70">Courses</span>
+                      <span className="text-white font-medium">{courses.length}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-white/70">Courses</span>
-                    <span className="text-white font-medium">{courses.length}</span>
-                  </div>
+
+                  {tutorProfile.verificationStatus === 'APPROVED' && (
+                    <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-green-300 text-xs mb-2 sm:mb-3">
+                      <IconAward size={12} className="sm:w-3.5 sm:h-3.5" />
+                      <span>Verified Tutor</span>
+                    </div>
+                  )}
+
+                  {isStudent && (
+                    <button 
+                      onClick={handleMessage}
+                      className="w-full bg-white text-blue-700 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg text-xs sm:text-sm"
+                    >
+                      Contact Tutor
+                    </button>
+                  )}
+
+                  {isGuest && (
+                    <button 
+                      onClick={() => navigate('/login', { state: { from: { pathname: `/teachers/${id}` } } })}
+                      className="w-full bg-white text-blue-700 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg text-xs sm:text-sm"
+                    >
+                      Login to Contact
+                    </button>
+                  )}
                 </div>
-
-                {tutorProfile.verificationStatus === 'APPROVED' && (
-                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-green-300 text-xs mb-2 sm:mb-3">
-                    <IconAward size={12} className="sm:w-3.5 sm:h-3.5" />
-                    <span>Verified Tutor</span>
-                  </div>
-                )}
-
-                {isStudent && (
-                  <button 
-                    onClick={handleBookSession}
-                    className="w-full bg-white text-blue-700 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg text-xs sm:text-sm"
-                  >
-                    Book Now
-                  </button>
-                )}
-
-                {isGuest && (
-                  <button 
-                    onClick={() => navigate('/login', { state: { from: { pathname: `/teachers/${id}` } } })}
-                    className="w-full bg-white text-blue-700 py-2 sm:py-2.5 rounded-md sm:rounded-lg font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg text-xs sm:text-sm"
-                  >
-                    Login to Book
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -372,11 +423,7 @@ const TeacherDetailPage: React.FC = () => {
                       {tutorProfile.bio ? (
                         <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{tutorProfile.bio}</p>
                       ) : (
-                        <p className="text-gray-700 leading-relaxed text-sm sm:text-base">
-                          Computer science educator with industry experience. Specializes in programming fundamentals 
-                          and software development. Passionate about helping students master complex technical concepts 
-                          through practical, hands-on learning approaches.
-                        </p>
+                        <p className="text-gray-500 italic text-sm sm:text-base">No bio available.</p>
                       )}
                     </div>
 
@@ -396,7 +443,7 @@ const TeacherDetailPage: React.FC = () => {
                           </div>
                         )}
                         
-                        {tutorProfile.teachingExperience && (
+                        {tutorProfile.teachingExperience !== null && tutorProfile.teachingExperience !== undefined && (
                           <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
                             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
                               <IconBriefcase size={16} className="sm:w-5 sm:h-5 text-green-600" />
@@ -428,29 +475,31 @@ const TeacherDetailPage: React.FC = () => {
                     )}
 
                     {/* Teaching Approach */}
-                    <div>
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Teaching Approach</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
-                          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <IconUsers size={16} className="text-blue-600" />
+                    {tutorProfile.teachingExperience !== null && tutorProfile.teachingExperience !== undefined && (
+                      <div>
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Teaching Approach</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <IconUsers size={16} className="text-blue-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 text-sm">Interactive Learning</h4>
+                              <p className="text-gray-600 text-xs">Hands-on problem solving</p>
+                            </div>
                           </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-900 text-sm">Interactive Learning</h4>
-                            <p className="text-gray-600 text-xs">Hands-on problem solving</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
-                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <IconClock size={16} className="text-green-600" />
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-gray-900 text-sm">Flexible Scheduling</h4>
-                            <p className="text-gray-600 text-xs">Accommodates your schedule</p>
+                          <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <IconClock size={16} className="text-green-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-semibold text-gray-900 text-sm">Flexible Scheduling</h4>
+                              <p className="text-gray-600 text-xs">Accommodates your schedule</p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
@@ -544,68 +593,17 @@ const TeacherDetailPage: React.FC = () => {
                           <div className="text-xs text-gray-600">Total Reviews</div>
                         </div>
                         <div>
-                          <div className="text-2xl sm:text-3xl font-bold text-purple-600">98%</div>
+                          <div className="text-2xl sm:text-3xl font-bold text-purple-600">{totalStudents > 0 ? Math.round((totalStudents / (totalStudents + 5)) * 100) : 0}%</div>
                           <div className="text-xs text-gray-600">Recommend Rate</div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Sample Reviews */}
-                    <div className="space-y-4">
-                      {[
-                        {
-                          name: "Sarah M.",
-                          rating: 5,
-                          date: "2 weeks ago",
-                          subject: "Computer Science",
-                          comment: "Dr. Patel is an excellent tutor! His explanations are clear and he's very patient. Helped me understand complex algorithms that I was struggling with."
-                        },
-                        {
-                          name: "Michael R.",
-                          rating: 5,
-                          date: "1 month ago", 
-                          subject: "Programming",
-                          comment: "Great teaching style and very knowledgeable. The practical examples really helped me grasp the concepts quickly."
-                        },
-                        {
-                          name: "Emma L.",
-                          rating: 4,
-                          date: "2 months ago",
-                          subject: "Data Structures",
-                          comment: "Very helpful sessions. Dr. Patel explains difficult topics in a way that's easy to understand. Highly recommend!"
-                        }
-                      ].map((review, index) => (
-                        <div key={index} className="border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span className="text-blue-600 font-semibold text-sm">{review.name[0]}</span>
-                              </div>
-                              <div>
-                                <div className="font-semibold text-gray-900 text-sm">{review.name}</div>
-                                <div className="text-xs text-gray-500">{review.date} • {review.subject}</div>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              {[...Array(5)].map((_, i) => (
-                                <IconStar 
-                                  key={i} 
-                                  size={14} 
-                                  className={i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} 
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          <p className="text-gray-700 text-sm leading-relaxed">{review.comment}</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Load More Reviews */}
-                    <div className="text-center">
-                      <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm">
-                        Load More Reviews
-                      </button>
+                    {/* Reviews Placeholder */}
+                    <div className="text-center py-8 sm:py-12">
+                      <IconStar size={40} className="sm:w-12 sm:h-12 text-gray-300 mx-auto mb-3 sm:mb-4" />
+                      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No reviews yet</h3>
+                      <p className="text-gray-600 text-sm sm:text-base">Be the first to leave a review for this tutor.</p>
                     </div>
                   </div>
                 )}
@@ -633,106 +631,116 @@ const TeacherDetailPage: React.FC = () => {
                     <div className="text-xl sm:text-2xl font-bold text-purple-600">{courses.length}</div>
                     <div className="text-xs text-gray-600">Courses</div>
                   </div>
-                  <div className="text-center p-3 sm:p-4 bg-orange-50 rounded-lg">
-                    <div className="text-xl sm:text-2xl font-bold text-orange-600">{tutorProfile.teachingExperience || 8}</div>
-                    <div className="text-xs text-gray-600">Years Exp</div>
-                  </div>
+                  {tutorProfile.teachingExperience !== null && tutorProfile.teachingExperience !== undefined && (
+                    <div className="text-center p-3 sm:p-4 bg-orange-50 rounded-lg">
+                      <div className="text-xl sm:text-2xl font-bold text-orange-600">{tutorProfile.teachingExperience}</div>
+                      <div className="text-xs text-gray-600">Years Exp</div>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Pricing & Sessions */}
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Session Options</h3>
-                
-                <div className="space-y-3 sm:space-y-4">
-                  {/* One-on-One Session */}
-                  <div className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 text-sm sm:text-base">1-on-1 Session</h4>
-                        <p className="text-gray-600 text-xs sm:text-sm">Personal tutoring session</p>
+              {tutorProfile.hourlyRate !== null && tutorProfile.hourlyRate !== undefined && (
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">Session Options</h3>
+                  
+                  <div className="space-y-3 sm:space-y-4">
+                    {/* One-on-One Session */}
+                    <div className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-gray-900 text-sm sm:text-base">1-on-1 Session</h4>
+                          <p className="text-gray-600 text-xs sm:text-sm">Personal tutoring session</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg sm:text-xl font-bold text-blue-600">
+                            {tutorProfile.hourlyRate > 0 ? `$${tutorProfile.hourlyRate}` : 'Free'}
+                          </div>
+                          <div className="text-xs text-gray-500">/hour</div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg sm:text-xl font-bold text-blue-600">${tutorProfile.hourlyRate || 60}</div>
-                        <div className="text-xs text-gray-500">/hour</div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+                        <IconClock size={12} />
+                        <span>60 minutes</span>
+                        <IconUsers size={12} />
+                        <span>1 student</span>
                       </div>
+                      {(isStudent || isGuest) && (
+                        <button 
+                          onClick={isStudent ? handleBookSession : () => navigate('/login')}
+                          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 font-medium transition-colors text-xs sm:text-sm"
+                        >
+                          {isStudent ? 'Book Session' : 'Login to Book'}
+                        </button>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
-                      <IconClock size={12} />
-                      <span>60 minutes</span>
-                      <IconUsers size={12} />
-                      <span>1 student</span>
-                    </div>
-                    {(isStudent || isGuest) && (
-                      <button 
-                        onClick={isStudent ? handleBookSession : () => navigate('/login')}
-                        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 font-medium transition-colors text-xs sm:text-sm"
-                      >
-                        {isStudent ? 'Book Session' : 'Login to Book'}
-                      </button>
-                    )}
-                  </div>
 
-                  {/* Group Session */}
-                  <div className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Group Session</h4>
-                        <p className="text-gray-600 text-xs sm:text-sm">Small group learning</p>
+                    {/* Group Session */}
+                    <div className="border border-gray-200 rounded-lg p-3 sm:p-4 hover:border-blue-300 transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Group Session</h4>
+                          <p className="text-gray-600 text-xs sm:text-sm">Small group learning</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg sm:text-xl font-bold text-green-600">
+                            {tutorProfile.hourlyRate > 0 ? `$${Math.round(tutorProfile.hourlyRate * 0.7)}` : 'Free'}
+                          </div>
+                          <div className="text-xs text-gray-500">/hour</div>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg sm:text-xl font-bold text-green-600">${Math.round((tutorProfile.hourlyRate || 60) * 0.7)}</div>
-                        <div className="text-xs text-gray-500">/hour</div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+                        <IconClock size={12} />
+                        <span>90 minutes</span>
+                        <IconUsers size={12} />
+                        <span>2-4 students</span>
                       </div>
+                      {(isStudent || isGuest) && (
+                        <button 
+                          onClick={isStudent ? handleBookSession : () => navigate('/login')}
+                          className="w-full border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-50 font-medium transition-colors text-xs sm:text-sm"
+                        >
+                          {isStudent ? 'Join Group' : 'Login to Join'}
+                        </button>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
-                      <IconClock size={12} />
-                      <span>90 minutes</span>
-                      <IconUsers size={12} />
-                      <span>2-4 students</span>
-                    </div>
-                    {(isStudent || isGuest) && (
-                      <button 
-                        onClick={isStudent ? handleBookSession : () => navigate('/login')}
-                        className="w-full border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-50 font-medium transition-colors text-xs sm:text-sm"
-                      >
-                        {isStudent ? 'Join Group' : 'Login to Join'}
-                      </button>
-                    )}
-                  </div>
 
-                  {/* Trial Session */}
-                  <div className="border border-green-200 bg-green-50 rounded-lg p-3 sm:p-4 relative">
-                    <div className="absolute top-2 right-2">
-                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Popular</span>
-                    </div>
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Trial Session</h4>
-                        <p className="text-gray-600 text-xs sm:text-sm">First session discount</p>
+                    {/* Trial Session */}
+                    <div className="border border-green-200 bg-green-50 rounded-lg p-3 sm:p-4 relative">
+                      <div className="absolute top-2 right-2">
+                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Popular</span>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg sm:text-xl font-bold text-green-600">${Math.round((tutorProfile.hourlyRate || 60) * 0.5)}</div>
-                        <div className="text-xs text-gray-500">/hour</div>
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h4 className="font-semibold text-gray-900 text-sm sm:text-base">Trial Session</h4>
+                          <p className="text-gray-600 text-xs sm:text-sm">First session discount</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-lg sm:text-xl font-bold text-green-600">
+                            {tutorProfile.hourlyRate > 0 ? `$${Math.round(tutorProfile.hourlyRate * 0.5)}` : 'Free'}
+                          </div>
+                          <div className="text-xs text-gray-500">/hour</div>
+                        </div>
                       </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
+                        <IconClock size={12} />
+                        <span>30 minutes</span>
+                        <IconUsers size={12} />
+                        <span>1 student</span>
+                      </div>
+                      {(isStudent || isGuest) && (
+                        <button 
+                          onClick={isStudent ? handleBookSession : () => navigate('/login')}
+                          className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 font-medium transition-colors text-xs sm:text-sm"
+                        >
+                          {isStudent ? 'Book Trial' : 'Login for Trial'}
+                        </button>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-600 mb-3">
-                      <IconClock size={12} />
-                      <span>30 minutes</span>
-                      <IconUsers size={12} />
-                      <span>1 student</span>
-                    </div>
-                    {(isStudent || isGuest) && (
-                      <button 
-                        onClick={isStudent ? handleBookSession : () => navigate('/login')}
-                        className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 font-medium transition-colors text-xs sm:text-sm"
-                      >
-                        {isStudent ? 'Book Trial' : 'Login for Trial'}
-                      </button>
-                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Contact Info */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
