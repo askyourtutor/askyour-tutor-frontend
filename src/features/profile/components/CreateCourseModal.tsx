@@ -18,6 +18,7 @@ import {
 import { createCourse, createLesson } from '../../../shared/services/tutorDashboardService';
 import { getSubjects, type Subject } from '../../../shared/services/subjectsService';
 import videoUploadService, { type VideoUploadProgress } from '../../../shared/services/videoUploadService';
+import { uploadCourseImage } from '../../../shared/services/imageUploadService';
 
 interface Lesson {
   id: string;
@@ -299,14 +300,23 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
     setSubmitSuccess('');
     
     try {
-      // Step 1: Create the course
+      // Step 1: Upload course image if provided
+      let imageUrl: string | undefined;
+      if (formData.imageFile) {
+        console.log('Uploading course image...');
+        const imageUploadResult = await uploadCourseImage(formData.imageFile);
+        imageUrl = imageUploadResult.url;
+        console.log('Image uploaded successfully:', imageUrl);
+      }
+
+      // Step 2: Create the course
       const courseData = {
         title: formData.title,
         description: formData.description,
         subject: formData.subject,
         code: formData.code || undefined,
         price: parseFloat(formData.price),
-        image: formData.imageFile ? 'placeholder-image-url' : undefined, // TODO: Implement image upload
+        image: imageUrl,
         isActive: formData.isActive
       };
 

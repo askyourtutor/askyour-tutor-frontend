@@ -24,6 +24,7 @@ import {
 } from '../../../shared/services/tutorDashboardService';
 import { getSubjects, type Subject } from '../../../shared/services/subjectsService';
 import videoUploadService, { type VideoUploadProgress } from '../../../shared/services/videoUploadService';
+import { uploadCourseImageForCourse } from '../../../shared/services/imageUploadService';
 
 interface Lesson {
   id?: string;
@@ -132,27 +133,29 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
   }, [course.id]);
 
   useEffect(() => {
-    if (isOpen) {
-      loadSubjects();
-      loadLessons();
-      // Reset form to course data
-      setFormData({
-        title: course.title,
-        description: course.description || '',
-        subject: course.subject,
-        code: course.code || '',
-        price: course.price.toString(),
-        imageFile: null,
-        imagePreview: course.image || '',
-        isActive: course.isActive,
-        lessons: []
-      });
-      setStep(1);
-      setErrors({});
-      setSubmitError('');
-      setSubmitSuccess('');
-    }
-  }, [isOpen, course, loadSubjects, loadLessons]);
+    if (!isOpen) return;
+    
+    loadSubjects();
+    loadLessons();
+    
+    // Reset form to course data
+    setFormData({
+      title: course.title,
+      description: course.description || '',
+      subject: course.subject,
+      code: course.code || '',
+      price: course.price.toString(),
+      imageFile: null,
+      imagePreview: course.image || '',
+      isActive: course.isActive,
+      lessons: []
+    });
+    setStep(1);
+    setErrors({});
+    setSubmitError('');
+    setSubmitSuccess('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]); // Only run when modal opens/closes
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -306,14 +309,23 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
     setSubmitError('');
     
     try {
-      // Step 1: Update course details
+      // Step 1: Upload course image if a new one is provided
+      let imageUrl: string | undefined = course.image || undefined;
+      if (formData.imageFile) {
+        console.log('Uploading course image...');
+        const imageUploadResult = await uploadCourseImageForCourse(course.id, formData.imageFile);
+        imageUrl = imageUploadResult.url;
+        console.log('Image uploaded successfully:', imageUrl);
+      }
+
+      // Step 2: Update course details
       await updateCourse(course.id, {
         title: formData.title,
         description: formData.description || undefined,
         subject: formData.subject,
         code: formData.code || undefined,
         price: parseFloat(formData.price),
-        image: formData.imageFile ? 'placeholder-image-url' : course.image || undefined,
+        image: imageUrl,
         isActive: formData.isActive
       });
 
@@ -343,9 +355,11 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
             orderIndex: lesson.orderIndex
           });
 
-          // Queue video upload for background processing (new or replacement video)
+          // Only upload video if user explicitly selected a NEW video file
+          // lesson.videoFile will only be set when user clicks "Upload Video" or "Replace Video"
           if (lesson.videoFile) {
             videoUploads.push({ lessonId: lesson.id, videoFile: lesson.videoFile });
+            console.log(`📹 Queued video ${lesson.videoUrl ? 'replacement' : 'upload'} for lesson: ${lesson.title}`);
           }
         }
       }
