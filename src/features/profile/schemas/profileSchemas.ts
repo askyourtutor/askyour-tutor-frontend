@@ -6,7 +6,7 @@ const removeHtmlTags = (str: string) => str.replace(/<[^>]*>/g, '');
 const validateNoScriptTags = (str: string) => !/<script[^>]*>.*?<\/script>/gi.test(str);
 
 // Enhanced validation patterns
-const namePattern = /^[a-zA-Z\s\-']+$/;
+const namePattern = /^[a-zA-Z\s\-'.]+$/; // Allow letters, spaces, hyphens, apostrophes, and periods
 const phonePattern = /^[+]?[1-9]\d{1,14}$/; // E.164 format
 const courseCodePattern = /^[A-Z]{2,4}\d{3,4}[A-Z]?$/i;
 
@@ -61,7 +61,7 @@ export const tutorProfileSchema = z.object({
     .transform(sanitizeString)
     .transform(removeHtmlTags)
     .refine(validateNoScriptTags, 'Invalid characters detected')
-    .refine((val: string) => namePattern.test(val), 'Name can only contain letters, spaces, hyphens, and apostrophes'),
+    .refine((val: string) => namePattern.test(val), 'Name can only contain letters, spaces, hyphens, apostrophes, and periods'),
     
   email: z.string()
     .email('Invalid email address')
@@ -178,7 +178,7 @@ export const studentProfileSchema = z.object({
     .transform(sanitizeString)
     .transform(removeHtmlTags)
     .refine(validateNoScriptTags, 'Invalid characters detected')
-    .refine((val: string) => namePattern.test(val), 'Name can only contain letters, spaces, hyphens, and apostrophes'),
+    .refine((val: string) => namePattern.test(val), 'Name can only contain letters, spaces, hyphens, apostrophes, and periods'),
     
   email: z.string()
     .email('Invalid email address')

@@ -33,11 +33,20 @@ export const FormInputField = ({
 }: FormInputFieldProps) => {
   const {
     register,
-    formState: { errors }
+    formState: { errors },
+    watch
   } = useFormContext<TutorProfileFormValues | StudentProfileFormValues>();
 
   const error = get(errors, name) as FieldError | undefined;
   const registerOptions = type === 'number' ? { valueAsNumber: true } : undefined;
+  
+  // Watch the field value to ensure input updates when form resets
+  const fieldValue = watch(name);
+  
+  // Convert field value to appropriate input value
+  const inputValue = typeof fieldValue === 'object' 
+    ? '' 
+    : (fieldValue ?? '');
 
   return (
     <div>
@@ -54,6 +63,13 @@ export const FormInputField = ({
         step={step}
         autoComplete={autoComplete}
         disabled={disabled}
+        value={inputValue}
+        onChange={(e) => {
+          const registered = register(name, registerOptions);
+          if (registered.onChange) {
+            registered.onChange(e);
+          }
+        }}
         aria-invalid={error ? 'true' : 'false'}
         aria-describedby={error ? `${name}-error` : helpText ? `${name}-help` : undefined}
         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${

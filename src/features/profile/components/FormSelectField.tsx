@@ -19,10 +19,13 @@ type FormSelectFieldProps = {
 export const FormSelectField = ({ name, label, options, placeholder, required }: FormSelectFieldProps) => {
   const {
     register,
+    watch,
     formState: { errors }
   } = useFormContext<TutorProfileFormValues | StudentProfileFormValues>();
 
   const error = get(errors, name) as FieldError | undefined;
+  const fieldValue = watch(name);
+  const selectValue = typeof fieldValue === 'string' ? fieldValue : '';
 
   return (
     <div>
@@ -32,10 +35,16 @@ export const FormSelectField = ({ name, label, options, placeholder, required }:
       </label>
       <select
         {...register(name)}
+        value={selectValue}
+        onChange={(e) => {
+          const registered = register(name);
+          if (registered.onChange) {
+            registered.onChange(e);
+          }
+        }}
         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
           error ? 'border-red-300 bg-red-50' : 'border-gray-300'
         }`}
-        defaultValue=""
       >
         <option value="" disabled>
           {placeholder ?? 'Select an option'}

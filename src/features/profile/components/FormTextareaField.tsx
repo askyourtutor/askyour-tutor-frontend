@@ -35,6 +35,7 @@ export const FormTextareaField = ({
   const error = get(errors, name) as FieldError | undefined;
   const value = watch(name);
   const charCount = typeof value === 'string' ? value.length : 0;
+  const textValue = typeof value === 'string' ? value : '';
 
   return (
     <div className={className}>
@@ -47,6 +48,13 @@ export const FormTextareaField = ({
         rows={rows}
         placeholder={placeholder}
         maxLength={maxLength}
+        value={textValue}
+        onChange={(e) => {
+          const registered = register(name);
+          if (registered.onChange) {
+            registered.onChange(e);
+          }
+        }}
         className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none ${
           error ? 'border-red-300 bg-red-50' : 'border-gray-300'
         }`}
