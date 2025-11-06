@@ -65,8 +65,9 @@ export function useCourseDetails(courseId: string | undefined) {
           setIsLoading(false);
         }
         
-        // Load user-specific data if authenticated
-        if (user && courseId) {
+        // Load user-specific data if authenticated and user is a STUDENT
+        // (Enrollment and saved status are student-only features)
+        if (user && courseId && user.role === 'STUDENT') {
           try {
             const resp = await fetchWithCache(
               `course:enrollment:${courseId}:${user.id}`,
@@ -113,6 +114,10 @@ export function useCourseDetails(courseId: string | undefined) {
     if (!user) {
       // optionally navigate to login
       setIsSaved(false);
+      return;
+    }
+    // Only students can save courses
+    if (user.role !== 'STUDENT') {
       return;
     }
     // optimistic

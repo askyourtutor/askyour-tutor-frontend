@@ -57,6 +57,18 @@ const isExpected401 = (path: string): boolean => {
   return publicEndpoints.some(endpoint => path.includes(endpoint));
 };
 
+// Helper to determine if 403 error is expected (role-based restrictions)
+const isExpected403 = (path: string): boolean => {
+  // These endpoints have role-based access restrictions
+  const roleRestrictedEndpoints = [
+    '/courses/',
+    '/enrollment',
+    '/saved',
+    '/notifications'
+  ];
+  return roleRestrictedEndpoints.some(endpoint => path.includes(endpoint));
+};
+
 // Helper to determine if 404 error should be handled quietly
 const isExpected404 = (path: string): boolean => {
   // These endpoints might not be implemented yet or are optional
@@ -72,6 +84,8 @@ const logApiError = (error: ApiError) => {
     if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_AUTH === 'true') {
       if (error.status === 401) {
         secureDebug(`[Auth] Expected 401 from ${error.endpoint}`);
+      } else if (error.status === 403) {
+        secureDebug(`[Auth] Expected 403 (role restriction) from ${error.endpoint}`);
       } else if (error.status === 404) {
         secureDebug(`[API] Optional endpoint not found: ${error.endpoint}`);
       }
@@ -84,6 +98,8 @@ const logApiError = (error: ApiError) => {
     secureError(`[API] Server error (${error.status}):`, error.message);
   } else if (error.status === 401) {
     secureWarn(`[Auth] Unauthorized access attempt:`, error.message);
+  } else if (error.status === 403) {
+    secureWarn(`[Auth] Forbidden access (${error.status}):`, error.message);
   } else if (error.status === 404) {
     secureWarn(`[API] Endpoint not found (${error.status}): ${error.endpoint}`);
   } else {
@@ -180,6 +196,7 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
     
     // Create enhanced error with context
     const isExpected = (res.status === 401 && isExpected401(path)) || 
+                      (res.status === 403 && isExpected403(path)) ||
                       (res.status === 404 && isExpected404(path));
     const apiError = new ApiError(message, res.status, path, isExpected);
     
