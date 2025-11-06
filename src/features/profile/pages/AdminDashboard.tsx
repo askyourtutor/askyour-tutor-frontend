@@ -23,19 +23,25 @@ import AdminDashboardTab from '../components/AdminDashboardTab';
 import AdminUsersTab from '../components/AdminUsersTab';
 import AdminTutorsTab from '../components/AdminTutorsTab';
 import AdminCoursesTab from '../components/AdminCoursesTab';
+import TutorCoursesTab from '../components/TutorCoursesTab';
+import CreateCourseModal from '../components/CreateCourseModal';
+import EditCourseModal from '../components/EditCourseModal';
+import tutorDashboardService, { type CourseWithStats } from '../../../shared/services/tutorDashboardService';
+import { fetchWithCache, cache } from '../../../shared/lib/cache';
 
 function AdminDashboard() {
   const { user, logout } = useAuth();
   
   // Initialize activeTab from localStorage or default to 'dashboard'
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'tutors' | 'courses' | 'settings'>(() => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'settings'>(() => {
     const savedTab = localStorage.getItem(ADMIN_CONSTANTS.STORAGE_KEY_ACTIVE_TAB);
-    return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'settings') || ADMIN_CONSTANTS.DEFAULT_TAB;
+    return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'settings') || ADMIN_CONSTANTS.DEFAULT_TAB;
   });
   
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [tutors, setTutors] = useState<AdminTutor[]>([]);
   const [courses, setCourses] = useState<AdminCourse[]>([]);
+  const [myCourses, setMyCourses] = useState<CourseWithStats[]>([]);
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalStudents: 0,
@@ -51,6 +57,9 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [selectedTutor, setSelectedTutor] = useState<AdminTutor | null>(null);
   const [showTutorModal, setShowTutorModal] = useState(false);
+  const [isCreateCourseModalOpen, setIsCreateCourseModalOpen] = useState(false);
+  const [isEditCourseModalOpen, setIsEditCourseModalOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<CourseWithStats | null>(null);
 
   // Save activeTab to localStorage whenever it changes
   useEffect(() => {
@@ -77,6 +86,19 @@ function AdminDashboard() {
         // Fetch courses data
         const coursesResponse = await adminService.getCourses({ limit: ADMIN_CONSTANTS.COURSES_PAGE_SIZE });
         setCourses(coursesResponse.courses);
+
+        // Fetch admin's own courses (as a tutor) - only if admin has tutor profile
+        try {
+          const myCoursesData = await fetchWithCache(
+            'admin:my-courses',
+            () => tutorDashboardService.getTutorCourses()
+          );
+          setMyCourses(myCoursesData);
+        } catch {
+          // If admin doesn't have tutor profile, just set empty array
+          console.log('Admin does not have tutor profile, skipping my courses fetch');
+          setMyCourses([]);
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
         setStats({
@@ -218,6 +240,44 @@ function AdminDashboard() {
     }
   };
 
+  // Admin's own course management (as a tutor)
+  const handleEditCourse = (course: CourseWithStats) => {
+    setSelectedCourse(course);
+    setIsEditCourseModalOpen(true);
+  };
+
+  const handleDeleteMyCourse = async (courseId: string) => {
+    try {
+      await tutorDashboardService.deleteCourse(courseId);
+      
+      // Invalidate cache and refresh
+      cache.delete('admin:my-courses');
+      const myCoursesData = await fetchWithCache(
+        'admin:my-courses',
+        () => tutorDashboardService.getTutorCourses()
+      );
+      setMyCourses(myCoursesData);
+    } catch (error) {
+      console.error('Error deleting course:', error);
+    }
+  };
+
+  const handleTogglePublish = async (courseId: string, isActive: boolean) => {
+    try {
+      await tutorDashboardService.toggleCoursePublish(courseId, isActive);
+      
+      // Invalidate cache and refresh
+      cache.delete('admin:my-courses');
+      const myCoursesData = await fetchWithCache(
+        'admin:my-courses',
+        () => tutorDashboardService.getTutorCourses()
+      );
+      setMyCourses(myCoursesData);
+    } catch (error) {
+      console.error('Error toggling course publish status:', error);
+    }
+  };
+
   if (loading) {
     return <LoadingSpinner fullScreen message={ADMIN_CONSTANTS.LOADING_MESSAGE} />;
   }
@@ -232,6 +292,44 @@ function AdminDashboard() {
         onApprove={handleModalApprove}
         onReject={handleModalReject}
       />
+
+      {/* Course Modals */}
+      <CreateCourseModal
+        isOpen={isCreateCourseModalOpen}
+        onClose={() => setIsCreateCourseModalOpen(false)}
+        onSuccess={async () => {
+          // Invalidate cache and refresh
+          cache.delete('admin:my-courses');
+          const myCoursesData = await fetchWithCache(
+            'admin:my-courses',
+            () => tutorDashboardService.getTutorCourses()
+          );
+          setMyCourses(myCoursesData);
+          setIsCreateCourseModalOpen(false);
+        }}
+      />
+
+      {selectedCourse && (
+        <EditCourseModal
+          isOpen={isEditCourseModalOpen}
+          onClose={() => {
+            setIsEditCourseModalOpen(false);
+            setSelectedCourse(null);
+          }}
+          onSuccess={async () => {
+            // Invalidate cache and refresh
+            cache.delete('admin:my-courses');
+            const myCoursesData = await fetchWithCache(
+              'admin:my-courses',
+              () => tutorDashboardService.getTutorCourses()
+            );
+            setMyCourses(myCoursesData);
+            setIsEditCourseModalOpen(false);
+            setSelectedCourse(null);
+          }}
+          course={selectedCourse}
+        />
+      )}
 
       {/* Top Header */}
       <div className="fixed top-0 left-0 right-0 h-16 bg-gray-900 z-30 flex items-center px-6">
@@ -317,14 +415,40 @@ function AdminDashboard() {
             
             <button
               onClick={() => setActiveTab('courses')}
-              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
                 activeTab === 'courses' 
                   ? 'bg-gray-900 text-white' 
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <IconCalendarEvent size={18} className="mr-3 flex-shrink-0" />
-              <span>Courses</span>
+              <div className="flex items-center min-w-0 flex-1">
+                <IconCalendarEvent size={18} className="mr-3 flex-shrink-0" />
+                <span>All Courses</span>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-sm font-medium ${
+                activeTab === 'courses' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {stats.totalCourses}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('my-courses')}
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                activeTab === 'my-courses' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center min-w-0 flex-1">
+                <IconBook size={18} className="mr-3 flex-shrink-0" />
+                <span>My Courses</span>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-sm font-medium ${
+                activeTab === 'my-courses' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {myCourses.length}
+              </span>
             </button>
             
             <div className="pt-4 mt-4 border-t border-gray-200">
@@ -363,7 +487,7 @@ function AdminDashboard() {
               onApproveTutor={(id) => handleApprovalAction(id, 'approve')}
               onRejectTutor={(id) => handleApprovalAction(id, 'reject', 'Rejected by admin')}
               onBulkApprove={handleBulkApprove}
-              onNavigate={(tab) => setActiveTab(tab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'settings')}
+              onNavigate={(tab) => setActiveTab(tab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'settings')}
             />
           )}
           {activeTab === 'users' && (
@@ -389,6 +513,35 @@ function AdminDashboard() {
               onUpdateStatus={handleCourseStatusUpdate}
               onDeleteCourse={handleCourseDelete}
             />
+          )}
+          {activeTab === 'my-courses' && (
+            <>
+              {myCourses.length === 0 && !loading ? (
+                <div className="bg-white rounded-sm border border-gray-200 p-8">
+                  <div className="text-center py-12">
+                    <IconBook size={48} className="mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Courses Yet</h3>
+                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                      As an admin with tutor privileges, you can create and manage your own courses just like any tutor.
+                    </p>
+                    <button
+                      onClick={() => setIsCreateCourseModalOpen(true)}
+                      className="px-6 py-2.5 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors font-medium"
+                    >
+                      Create Your First Course
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <TutorCoursesTab
+                  courses={myCourses}
+                  onCreateCourse={() => setIsCreateCourseModalOpen(true)}
+                  onEditCourse={handleEditCourse}
+                  onDeleteCourse={handleDeleteMyCourse}
+                  onTogglePublish={handleTogglePublish}
+                />
+              )}
+            </>
           )}
           {activeTab === 'settings' && (
             <div className="bg-white rounded-sm border border-gray-200 p-8">
