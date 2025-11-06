@@ -4,16 +4,27 @@ import {
   IconPlus,
   IconBrandTwitter,
   IconBrandFacebook,
-  IconBrandInstagram
+  IconBrandInstagram,
+  IconChevronLeft,
+  IconChevronRight
 } from '@tabler/icons-react';
-import { teamService, type TeamMember } from '../../../shared/services';
+import { teacherService } from '../../teachers/services/teacher.service';
+import type { TutorSummary } from '../../../shared/types/teacher';
+import { getAvatarUrl } from '../../../shared/utils/url';
 
 interface TeamCardProps {
-  member: TeamMember;
+  tutor: TutorSummary;
 }
 
-const TeamCard = ({ member }: TeamCardProps) => {
+const TeamCard = ({ tutor }: TeamCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  
+  const name = `${tutor.tutorProfile.firstName} ${tutor.tutorProfile.lastName}`;
+  
+  // Get avatar URL with fallback
+  const avatarUrl = tutor.tutorProfile.avatar 
+    ? getAvatarUrl(tutor.tutorProfile.avatar)
+    : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=400&background=random`;
 
   return (
     <div 
@@ -39,12 +50,14 @@ const TeamCard = ({ member }: TeamCardProps) => {
         </svg>
         
         {/* Team Image Container */}
-        <div className="relative z-20 rounded-full border border-gray-200/30 xs:border-2 xs:border-gray-200/50 sm:border-2 sm:border-gray-200/50 overflow-hidden p-1 xs:p-1.5 sm:p-4 md:p-5 lg:p-6 xl:p-5">
-          <img 
-            src={member.image} 
-            alt={member.name}
-            className="w-full h-full object-cover rounded-full transition-transform duration-400"
-          />
+        <div className="relative z-20 rounded-full border border-gray-200/30 xs:border-2 xs:border-gray-200/50 sm:border-2 sm:border-gray-200/50 overflow-hidden p-1 xs:p-1.5 sm:p-4 md:p-5 lg:p-6 xl:p-5 w-full h-full">
+          <div className="w-full h-full rounded-full overflow-hidden">
+            <img 
+              src={avatarUrl} 
+              alt={name}
+              className="w-full h-full object-cover transition-transform duration-400"
+            />
+          </div>
         </div>
 
         {/* Social Media */}
@@ -66,7 +79,7 @@ const TeamCard = ({ member }: TeamCardProps) => {
               : 'opacity-0 invisible translate-y-4'
           }`}>
             <a 
-              href={member.social.twitter} 
+              href="#" 
               target="_blank" 
               rel="noopener noreferrer"
               className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm xs:shadow-md sm:shadow-lg bg-white text-[#F20F10] hover:bg-[#F20F10] hover:text-white transition-all duration-300 ${
@@ -77,7 +90,7 @@ const TeamCard = ({ member }: TeamCardProps) => {
               <IconBrandTwitter size={12} className="sm:scale-125 md:scale-150" />
             </a>
             <a 
-              href={member.social.facebook} 
+              href="#" 
               target="_blank" 
               rel="noopener noreferrer"
               className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm xs:shadow-md sm:shadow-lg bg-[#F20F10] text-white hover:bg-[#F20F10] hover:text-white transition-all duration-300 ${
@@ -88,7 +101,7 @@ const TeamCard = ({ member }: TeamCardProps) => {
               <IconBrandFacebook size={12} className="sm:scale-125 md:scale-150" />
             </a>
             <a 
-              href={member.social.instagram} 
+              href="#" 
               target="_blank" 
               rel="noopener noreferrer"
               className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm xs:shadow-md sm:shadow-lg bg-white text-[#F20F10] border border-[#F20F10] hover:bg-[#F20F10] hover:text-white hover:border-transparent transition-all duration-300 ${
@@ -105,12 +118,17 @@ const TeamCard = ({ member }: TeamCardProps) => {
       {/* Team Content */}
       <div className="pt-1 xs:pt-2 sm:pt-6 md:pt-8 bg-transparent">
         <h3 className="text-xs xs:text-xs sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-900 mb-0 xs:mb-0.5 sm:mb-2 leading-tight">
-          <a href="#" className="hover:text-blue-600 transition-colors">
-            {member.name}
+          <a href={`/teachers/${tutor.id}`} className="hover:text-blue-600 transition-colors">
+            {name}
+            {tutor.isAdminTutor && (
+              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gradient-to-r from-gray-800 to-black text-white shadow-sm">
+                FEATURED
+              </span>
+            )}
           </a>
         </h3>
         <span className="text-blue-600 block font-medium text-xs xs:text-xs sm:text-sm md:text-base leading-tight">
-          {member.position}
+          {tutor.tutorProfile.professionalTitle || 'Instructor'}
         </span>
       </div>
     </div>
@@ -118,26 +136,88 @@ const TeamCard = ({ member }: TeamCardProps) => {
 };
 
 export default function TeamSection() {
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [tutors, setTutors] = useState<TutorSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [itemsPerView, setItemsPerView] = useState(4);
+
+  // Update items per view based on screen size
+  useEffect(() => {
+    const updateItemsPerView = () => {
+      if (window.innerWidth < 640) {
+        setItemsPerView(1); // xs: 1 item
+      } else if (window.innerWidth < 768) {
+        setItemsPerView(2); // sm: 2 items
+      } else if (window.innerWidth < 1024) {
+        setItemsPerView(3); // md: 3 items
+      } else {
+        setItemsPerView(4); // lg+: 4 items
+      }
+    };
+
+    updateItemsPerView();
+    window.addEventListener('resize', updateItemsPerView);
+    return () => window.removeEventListener('resize', updateItemsPerView);
+  }, []);
 
   useEffect(() => {
-    const fetchTeamMembers = async () => {
+    const fetchTutors = async () => {
       try {
         setLoading(true);
-        const members = await teamService.getFeaturedTeamMembers(4);
-        setTeamMembers(members);
+        const response = await teacherService.getTutors({ limit: 8 }); // Get more tutors for carousel
+        
+        // Sort to show admin tutors first
+        const sortedTutors = response.data.sort((a, b) => {
+          if (a.isAdminTutor && !b.isAdminTutor) return -1;
+          if (!a.isAdminTutor && b.isAdminTutor) return 1;
+          return 0;
+        });
+        
+        setTutors(sortedTutors);
       } catch (err) {
-        setError('Failed to load team members');
-        console.error('Error fetching team members:', err);
+        setError('Failed to load tutors');
+        console.error('Error fetching tutors:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTeamMembers();
+    fetchTutors();
   }, []);
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => 
+      prev + itemsPerView >= tutors.length ? 0 : prev + 1
+    );
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => 
+      prev === 0 ? Math.max(0, tutors.length - itemsPerView) : prev - 1
+    );
+  };
+
+  const canGoPrev = currentIndex > 0;
+  const canGoNext = currentIndex + itemsPerView < tutors.length;
+
+  // Auto-slide effect
+  useEffect(() => {
+    if (tutors.length <= itemsPerView) return; // Don't auto-slide if all items fit
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => {
+        // If we can go next, go next
+        if (prev + itemsPerView < tutors.length) {
+          return prev + 1;
+        }
+        // Otherwise, loop back to start
+        return 0;
+      });
+    }, 3000); // Change slide every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [tutors.length, itemsPerView]);
 
   if (loading) {
     return (
@@ -224,13 +304,83 @@ export default function TeamSection() {
           </h2>
         </div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-4 xs:grid-cols-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1 xs:gap-2 sm:gap-6 lg:gap-6 xl:gap-8">
-          {teamMembers.map((member) => (
-            <div key={member.id} className="flex justify-center">
-              <TeamCard member={member} />
+        {/* Carousel Container */}
+        <div className="relative">
+          {/* Navigation Buttons */}
+          {tutors.length > itemsPerView && (
+            <>
+              <button
+                onClick={prevSlide}
+                disabled={!canGoPrev}
+                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center transition-all duration-300 ${
+                  canGoPrev 
+                    ? 'text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer' 
+                    : 'text-gray-300 cursor-not-allowed opacity-50'
+                }`}
+                aria-label="Previous tutors"
+              >
+                <IconChevronLeft size={24} />
+              </button>
+              
+              <button
+                onClick={nextSlide}
+                disabled={!canGoNext}
+                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center transition-all duration-300 ${
+                  canGoNext 
+                    ? 'text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer' 
+                    : 'text-gray-300 cursor-not-allowed opacity-50'
+                }`}
+                aria-label="Next tutors"
+              >
+                <IconChevronRight size={24} />
+              </button>
+            </>
+          )}
+
+          {/* Carousel Track */}
+          <div className="overflow-hidden">
+            <div 
+              className="flex transition-transform duration-500 ease-in-out gap-1 xs:gap-2 sm:gap-6 lg:gap-6 xl:gap-8"
+              style={{
+                transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`
+              }}
+            >
+              {tutors.map((tutor) => (
+                <div 
+                  key={tutor.id} 
+                  className="flex-shrink-0 flex justify-center"
+                  style={{
+                    width: `calc(${100 / itemsPerView}% - ${
+                      itemsPerView === 1 ? 0 :
+                      itemsPerView === 2 ? 12 :
+                      itemsPerView === 3 ? 16 :
+                      24
+                    }px)`
+                  }}
+                >
+                  <TeamCard tutor={tutor} />
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Dots Indicator */}
+          {tutors.length > itemsPerView && (
+            <div className="flex justify-center gap-2 mt-8">
+              {Array.from({ length: Math.ceil(tutors.length / itemsPerView) }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index * itemsPerView)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    Math.floor(currentIndex / itemsPerView) === index
+                      ? 'bg-blue-600 w-8'
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

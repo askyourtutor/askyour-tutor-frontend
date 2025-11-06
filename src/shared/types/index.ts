@@ -26,6 +26,7 @@ export interface CourseSummary {
   instructor?: { name?: string; avatar?: string | null };
   isFree: boolean;
   price: number;
+  isAdminCourse?: boolean; // Flag to indicate if course is created by admin
 }
 
 export interface PaginationParams {

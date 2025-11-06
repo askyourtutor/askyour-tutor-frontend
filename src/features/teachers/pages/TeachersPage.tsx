@@ -337,10 +337,21 @@ const TeachersPage: React.FC = () => {
         {isInitialLoad ? (
           <TeacherSkeletonGrid count={12} />
         ) : filteredTeachers.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6 pb-16">
-            {filteredTeachers.map((teacher) => (
-              <TeacherCard key={teacher.id} teacher={teacher} />
-            ))}
+          <div className="max-w-7xl mx-auto pb-16">
+            <div className="space-y-3">
+              {/* Admin tutors - full width */}
+              {filteredTeachers.filter(t => t.isAdminTutor).map((teacher) => (
+                <TeacherCard key={teacher.id} teacher={teacher} />
+              ))}
+            </div>
+            {/* Regular tutors - 2 column grid */}
+            {filteredTeachers.filter(t => !t.isAdminTutor).length > 0 && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-3">
+                {filteredTeachers.filter(t => !t.isAdminTutor).map((teacher) => (
+                  <TeacherCard key={teacher.id} teacher={teacher} />
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <EmptyState

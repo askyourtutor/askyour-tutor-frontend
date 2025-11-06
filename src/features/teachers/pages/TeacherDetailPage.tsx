@@ -19,6 +19,7 @@ import { useAuth } from '../../../shared/contexts/AuthContext';
 import type { TutorSummary, TutorCourse, TutorReview, TutorSession } from '../../../shared/types/teacher';
 import { teacherService } from '../services/teacher.service';
 import { cache } from '../../../shared/lib/cache';
+import { getAvatarUrl } from '../../../shared/utils/url';
 import TeacherDetailSkeleton from '../components/TeacherDetailSkeleton';
 
 const TeacherDetailPage: React.FC = () => {
@@ -170,6 +171,7 @@ const TeacherDetailPage: React.FC = () => {
   const rating = teacher.rating || 0;
   const totalStudents = teacher.totalStudents || 0;
   const totalReviews = teacher.totalCourses || 0; // Use actual course count as reviews proxy
+  const avatarUrl = getAvatarUrl(tutorProfile.avatar);
 
   const isStudent = user?.role === 'STUDENT';
   const isGuest = !user;
@@ -195,7 +197,23 @@ const TeacherDetailPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4">
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full bg-white/20 backdrop-blur-sm border-3 sm:border-4 border-white/30 flex items-center justify-center text-white font-bold text-lg sm:text-xl lg:text-2xl shadow-2xl">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={fullName}
+                      className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full object-cover border-3 sm:border-4 border-white/30 shadow-2xl"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const fallback = target.nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full bg-white/20 backdrop-blur-sm border-3 sm:border-4 border-white/30 flex items-center justify-center text-white font-bold text-lg sm:text-xl lg:text-2xl shadow-2xl"
+                    style={{ display: avatarUrl ? 'none' : 'flex' }}
+                  >
                     {tutorProfile.firstName[0]}{tutorProfile.lastName[0]}
                   </div>
                   {tutorProfile.verificationStatus === 'APPROVED' && (
@@ -208,7 +226,14 @@ const TeacherDetailPage: React.FC = () => {
 
                 {/* Info */}
                 <div className="flex-1 text-center sm:text-left min-w-0">
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-1 !text-white break-words">{fullName}</h1>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold !text-white break-words">{fullName}</h1>
+                    {teacher.isAdminTutor && (
+                      <span className="px-2.5 py-1 bg-white text-black text-xs font-bold">
+                        FEATURED
+                      </span>
+                    )}
+                  </div>
                   {tutorProfile.professionalTitle && (
                     <p className="text-base sm:text-lg !text-white/90 font-medium mb-2 sm:mb-3 break-words">{tutorProfile.professionalTitle}</p>
                   )}

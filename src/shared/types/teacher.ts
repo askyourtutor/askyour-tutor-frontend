@@ -25,6 +25,7 @@ export interface TutorSummary {
   id: string;
   email: string;
   role: string;
+  isAdminTutor?: boolean; // Flag to show admin badge
   tutorProfile: {
     firstName: string;
     lastName: string;
