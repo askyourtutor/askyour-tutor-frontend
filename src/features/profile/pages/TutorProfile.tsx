@@ -18,7 +18,7 @@ import { FormInputField } from '../components/FormInputField';
 import { FormTextareaField } from '../components/FormTextareaField';
 import { FormSelectField } from '../components/FormSelectField';
 import { FileUploadCard } from '../components/FileUploadCard';
-import { saveProfile } from '../services/profileService';
+import { saveProfile, uploadProfileImage } from '../services/profileService';
 import { degreeOptions, timezoneOptions } from '../constants/formOptions';
 import type { TutorProfileFormValues } from '../schemas/profileSchemas';
 import { UsersAPI } from '../../../shared/services/api';
@@ -27,7 +27,8 @@ const TutorProfilePage = () => {
   const { methods, profileCompletion, addListItem, removeListItem, toggleSessionType } = useTutorProfileForm();
   const { handleSubmit, watch, formState: { errors }, setFocus } = methods;
 
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null); // For preview
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null); // For upload
   const [imageError, setImageError] = useState<string | null>(null);
   const [credentialsFile, setCredentialsFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -158,7 +159,13 @@ const TutorProfilePage = () => {
             keepDefaultValues: false
           });
           
-          if (p.profilePicture) setProfileImage(p.profilePicture);
+          // Convert file path to full URL
+          if (p.profilePicture) {
+            const imageUrl = p.profilePicture.startsWith('http') 
+              ? p.profilePicture 
+              : `${import.meta.env.VITE_API_URL}/${p.profilePicture}`;
+            setProfileImage(imageUrl);
+          }
           
           // Set verification status from tutor profile
           if (p.verificationStatus === 'APPROVED') {
@@ -193,6 +200,10 @@ const TutorProfilePage = () => {
       return;
     }
 
+    // Store the file for upload
+    setProfileImageFile(file);
+
+    // Generate preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setProfileImage(e.target?.result as string);
@@ -229,7 +240,18 @@ const TutorProfilePage = () => {
   const onSubmit = async (data: TutorProfileFormValues) => {
     setIsSubmitting(true);
     try {
-      await saveProfile(data, { profileImage, credentialsFile });
+      // Step 1: Save profile data (without image)
+      await saveProfile(data);
+
+      // Step 2: Upload profile image if changed
+      if (profileImageFile) {
+        const uploadResult = await uploadProfileImage(profileImageFile);
+        
+        if (!uploadResult.success) {
+          alert(`Profile saved, but image upload failed: ${uploadResult.error}`);
+        }
+      }
+
       setSubmitSuccess(true);
       setIsEditMode(false);
       setTimeout(() => setSubmitSuccess(false), 5000);

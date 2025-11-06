@@ -1,18 +1,56 @@
 // Profile service wired to backend APIs with validation & mapping
-import { apiFetch } from '../../../shared/services/api';
+import { apiFetch, getAccessToken } from '../../../shared/services/api';
 import type { TutorProfileFormValues, StudentProfileFormValues } from '../schemas/profileSchemas';
 
 type ProfileFormValues = TutorProfileFormValues | StudentProfileFormValues;
-
-interface ProfileFiles {
-  profileImage?: string | null;
-  credentialsFile?: File | null; // placeholder (MVP: not uploaded yet)
-}
 
 export interface SaveProfileResponse {
   success: boolean;
   profile?: unknown;
   error?: string;
+}
+
+export interface UploadProfileImageResponse {
+  success: boolean;
+  imagePath?: string;
+  imageUrl?: string;
+  error?: string;
+}
+
+/**
+ * Upload profile image to the server
+ * @param imageFile - The image file to upload
+ * @returns Response with image path and URL
+ */
+export async function uploadProfileImage(imageFile: File): Promise<UploadProfileImageResponse> {
+  try {
+    const formData = new FormData();
+    formData.append('profileImage', imageFile);
+
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error('Not authenticated. Please log in again.');
+    }
+
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/uploads/profile-image`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to upload profile image');
+    }
+
+    const data = await response.json();
+    return { success: true, imagePath: data.imagePath, imageUrl: data.imageUrl };
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Failed to upload profile image';
+    return { success: false, error: msg };
+  }
 }
 
 const isTutorProfile = (p: ProfileFormValues): p is TutorProfileFormValues => 'professionalTitle' in p;
@@ -53,7 +91,7 @@ type TutorPayload = {
   languages: string[];
   sessionTypes: string[];
   timezone: string | null;
-  profileImage: string | null;
+  // profileImage removed - uploaded separately via uploadProfileImage()
   credentialsFile: string | null; // URL (upload not implemented yet)
 };
 
@@ -66,19 +104,19 @@ type StudentPayload = {
   program: string | null;
   yearOfStudy: number | null;
   academicGoals: string | null;
-  profileImage: string | null;
+  // profileImage removed - uploaded separately via uploadProfileImage()
   subjectsOfInterest: string[];
   learningStyle: string[];
   sessionPreferences: string[];
   languages: string[];
 };
 
-export async function saveProfile(profileData: ProfileFormValues, files?: ProfileFiles): Promise<SaveProfileResponse> {
+export async function saveProfile(profileData: ProfileFormValues): Promise<SaveProfileResponse> {
   try {
     if (!profileData) throw new Error('No profile data provided');
     validateRequiredFields(profileData);
 
-    const imageBase64 = files?.profileImage ?? null; // MVP: send as base64 string
+    // Note: profileImage is uploaded separately via uploadProfileImage()
 
     if (isTutorProfile(profileData)) {
       const tutor = profileData as TutorProfileFormValues;
@@ -115,7 +153,7 @@ export async function saveProfile(profileData: ProfileFormValues, files?: Profil
         languages: languagesArr,
         sessionTypes: sessionTypesArr,
         timezone: tutor.timezone ?? null,
-        profileImage: imageBase64,
+        // profileImage uploaded separately via uploadProfileImage()
         credentialsFile: null,
       };
 
@@ -151,7 +189,7 @@ export async function saveProfile(profileData: ProfileFormValues, files?: Profil
       program: student.program ?? null,
       yearOfStudy: mapYearToNumber(student.yearOfStudy),
       academicGoals: student.academicGoals ?? null,
-      profileImage: imageBase64,
+      // profileImage uploaded separately via uploadProfileImage()
       subjectsOfInterest: Array.isArray(student.subjectsOfInterest) ? student.subjectsOfInterest : [],
       learningStyle: Array.isArray(student.learningStyle) ? student.learningStyle : [],
       sessionPreferences: Array.isArray(student.sessionPreferences) ? student.sessionPreferences : [],
@@ -162,6 +200,7 @@ export async function saveProfile(profileData: ProfileFormValues, files?: Profil
       '/users/profile/student',
       { method: 'PUT', body: JSON.stringify(payload) }
     );
+    
     return { success: true, profile: (res as { success: boolean; profile: unknown }).profile };
   } catch (error) {
     const msg = error instanceof Error ? error.message : 'Failed to save profile';

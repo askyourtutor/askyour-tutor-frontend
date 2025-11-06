@@ -18,7 +18,7 @@ import { ProfileSectionCard } from '../components/ProfileSectionCard';
 import { FormInputField } from '../components/FormInputField';
 import { FormTextareaField } from '../components/FormTextareaField';
 import { FormSelectField } from '../components/FormSelectField';
-import { saveProfile } from '../services/profileService';
+import { saveProfile, uploadProfileImage } from '../services/profileService';
 import { UsersAPI } from '../../../shared/services/api';
 import { yearOfStudyOptions, type StudentProfileFormValues } from '../schemas/profileSchemas';
 
@@ -26,13 +26,15 @@ const StudentProfile = () => {
   const { methods, profileCompletion, addListItem, removeListItem, toggleLearningStyle, toggleSessionPreference } = useStudentProfileForm();
   const { handleSubmit, watch, formState: { errors }, setFocus } = methods;
 
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null); // For preview
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null); // For upload
   const [imageError, setImageError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [verifyStatus, setVerifyStatus] = useState<'PENDING' | 'VERIFIED' | null>(null);
   const [serverCompletion, setServerCompletion] = useState<number | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
   const displayCompletion = serverCompletion ?? profileCompletion;
 
   const watchedSubjects = watch('subjectsOfInterest') || [];
@@ -46,12 +48,32 @@ const StudentProfile = () => {
     (async () => {
       try {
         const res = await UsersAPI.getProfile();
+        
         if (cancelled) return;
         const u = res.user;
         if (u?.role === 'STUDENT' && u.profile) {
           const p = u.profile as { firstName?: string; lastName?: string; phone?: string | null; university?: string | null; program?: string | null; yearOfStudy?: number | null; academicGoals?: string | null; profilePicture?: string | null; subjectsOfInterest?: string | null; learningStyle?: string | null; sessionPreferences?: string | null; languages?: string | null };
+          
           const fullName = [p.firstName || '', p.lastName || ''].filter(Boolean).join(' ');
-          const parseArr = (s?: string | null): string[] => { try { return s ? JSON.parse(s) : []; } catch { return []; } };
+          const parseArr = (s?: string | null): string[] => { 
+            try { 
+              const parsed = s ? JSON.parse(s) : []; 
+              // Handle case where field was double-stringified or is a string instead of array
+              return Array.isArray(parsed) ? parsed : [parsed].filter(v => v && typeof v === 'string');
+            } catch { 
+              return []; 
+            } 
+          };
+          
+          // Normalize learning style and session preferences to lowercase
+          const normalizeLearningStyle = (arr: string[]): string[] => {
+            return arr.map(style => style.toLowerCase().replace(/\s+/g, '-'));
+          };
+          
+          const normalizeSessionPrefs = (arr: string[]): string[] => {
+            return arr.map(pref => pref.toLowerCase().replace(/\s+/g, '-'));
+          };
+          
           const mapYearFromNumber = (n?: number | null): string | undefined => {
             if (n == null) return undefined;
             switch (n) {
@@ -65,7 +87,8 @@ const StudentProfile = () => {
               default: return 'other';
             }
           };
-          methods.reset({
+          
+          const resetData = {
             ...methods.getValues(),
             fullName: fullName || methods.getValues('fullName'),
             email: u.email || methods.getValues('email'),
@@ -75,11 +98,25 @@ const StudentProfile = () => {
             yearOfStudy: mapYearFromNumber(p.yearOfStudy),
             academicGoals: p.academicGoals ?? '',
             subjectsOfInterest: parseArr(p.subjectsOfInterest),
-            learningStyle: parseArr(p.learningStyle) as StudentProfileFormValues['learningStyle'],
-            sessionPreferences: parseArr(p.sessionPreferences) as StudentProfileFormValues['sessionPreferences'],
+            learningStyle: normalizeLearningStyle(parseArr(p.learningStyle)) as StudentProfileFormValues['learningStyle'],
+            sessionPreferences: normalizeSessionPrefs(parseArr(p.sessionPreferences)) as StudentProfileFormValues['sessionPreferences'],
             languages: parseArr(p.languages),
-          }, { keepDefaultValues: true });
-          if (p.profilePicture) setProfileImage(p.profilePicture);
+          };
+          
+          methods.reset(resetData, { keepDefaultValues: true });
+          
+          // Trigger validation after reset to update isValid state
+          setTimeout(async () => {
+            await methods.trigger();
+          }, 100);
+          
+          // Convert file path to full URL
+          if (p.profilePicture) {
+            const imageUrl = p.profilePicture.startsWith('http') 
+              ? p.profilePicture 
+              : `${import.meta.env.VITE_API_URL}/${p.profilePicture}`;
+            setProfileImage(imageUrl);
+          }
         }
         if (typeof u.profileCompletion === 'number') setServerCompletion(u.profileCompletion);
         if (u.profileVerify === 'PENDING' || u.profileVerify === 'VERIFIED') setVerifyStatus(u.profileVerify);
@@ -103,6 +140,10 @@ const StudentProfile = () => {
       return;
     }
 
+    // Store the file for upload
+    setProfileImageFile(file);
+
+    // Generate preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setProfileImage(e.target?.result as string);
@@ -118,11 +159,29 @@ const StudentProfile = () => {
   const onSubmit = async (data: StudentProfileFormValues) => {
     setIsSubmitting(true);
     try {
-      await saveProfile(data, { profileImage });
+      // Step 1: Save profile data (without image)
+      const result = await saveProfile(data);
+      
+      if (!result.success) {
+        alert(`Failed to save profile: ${result.error}`);
+        return;
+      }
+
+      // Step 2: Upload profile image if changed
+      if (profileImageFile) {
+        const uploadResult = await uploadProfileImage(profileImageFile);
+        
+        if (!uploadResult.success) {
+          alert(`Profile saved, but image upload failed: ${uploadResult.error}`);
+        }
+      }
+      
       setSubmitSuccess(true);
+      setIsEditMode(false);
       setTimeout(() => setSubmitSuccess(false), 5000);
     } catch (err) {
-      console.error('Submission error:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error occurred';
+      alert(`Error saving profile: ${errorMsg}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -203,7 +262,7 @@ const StudentProfile = () => {
               </div>
             </div>
           )}
-          <fieldset disabled={isSubmitting} className="contents">
+          <fieldset disabled={!isEditMode || isSubmitting} className="contents">
           
           <ProfileSectionCard title="Personal Information" icon={<IconUser size={24} />}>
             { (errors.fullName || errors.email || errors.phone) && (
@@ -309,39 +368,69 @@ const StudentProfile = () => {
           </ProfileSectionCard>
 
           {/* Removed Emergency Contact and extra fields per plan */}
+          </fieldset>
 
           <div className="bg-white shadow-lg p-4 sm:p-6 md:p-8 rounded-lg sm:rounded-xl">
             <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 sm:space-x-4">
               <div className="text-center sm:text-left">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">Ready to Submit?</h3>
-                <p className="text-sm sm:text-base text-gray-600 mt-1">Review your information carefully before submitting your profile.</p>
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                  {isEditMode ? 'Ready to Submit?' : 'Profile Information'}
+                </h3>
+                <p className="text-sm sm:text-base text-gray-600 mt-1">
+                  {isEditMode 
+                    ? 'Review your information carefully before submitting your profile.' 
+                    : 'View your profile information. Click Edit to make changes.'}
+                </p>
               </div>
-              <button
-                type="submit"
-                disabled={isSubmitting || !methods.formState.isValid}
-                className={`w-full sm:w-auto inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md text-white transition-colors ${
-                  (isSubmitting || !methods.formState.isValid) ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
-                }`}
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span className="hidden xs:inline">Submitting...</span>
-                    <span className="xs:hidden">Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <IconDeviceFloppy className="mr-2 sm:w-5 sm:h-5" size={16} />
-                    Save Profile
-                  </>
-                )}
-              </button>
+              
+              {!isEditMode ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditMode(true)}
+                  className="w-full sm:w-auto inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium transition-colors text-sm sm:text-base"
+                >
+                  <IconDeviceFloppy className="mr-2 sm:w-5 sm:h-5" size={16} />
+                  Edit Profile
+                </button>
+              ) : (
+                <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-3 sm:space-y-0 sm:space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsEditMode(false);
+                      methods.reset();
+                    }}
+                    className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 font-medium transition-colors text-sm sm:text-base"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || Object.keys(methods.formState.errors).length > 0}
+                    className={`w-full sm:w-auto inline-flex items-center justify-center px-4 sm:px-6 py-2.5 sm:py-3 border border-transparent text-sm sm:text-base font-medium rounded-md text-white transition-colors ${
+                      (isSubmitting || Object.keys(methods.formState.errors).length > 0) ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span className="hidden xs:inline">Submitting...</span>
+                        <span className="xs:hidden">Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <IconDeviceFloppy className="mr-2 sm:w-5 sm:h-5" size={16} />
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
-          </fieldset>
           </form>
         </FormProvider>
       </div>
