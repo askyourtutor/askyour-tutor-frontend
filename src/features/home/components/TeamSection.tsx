@@ -12,6 +12,32 @@ import { teacherService } from '../../teachers/services/teacher.service';
 import type { TutorSummary } from '../../../shared/types/teacher';
 import { getAvatarUrl } from '../../../shared/utils/url';
 
+const TeamCardSkeleton = () => {
+  return (
+    <div className="relative text-center pt-1 bg-transparent">
+      <div className="relative inline-block w-20 h-20 xs:w-24 xs:h-24 sm:w-48 sm:h-48 md:w-64 md:h-64 lg:w-72 lg:h-72 xl:w-64 xl:h-64 2xl:w-80 2xl:h-80">
+        {/* Skeleton Circle Shape */}
+        <div className="absolute left-0 top-0 w-full h-full animate-pulse">
+          <div className="w-full h-full rounded-full border-2 border-gray-200"></div>
+        </div>
+        
+        {/* Skeleton Image Container */}
+        <div className="relative z-20 rounded-full border border-gray-200/30 xs:border-2 xs:border-gray-200/50 sm:border-2 sm:border-gray-200/50 overflow-hidden p-1 xs:p-1.5 sm:p-4 md:p-5 lg:p-6 xl:p-5 w-full h-full">
+          <div className="w-full h-full rounded-full overflow-hidden">
+            <div className="w-full h-full bg-gray-200 animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Skeleton Content */}
+      <div className="pt-1 xs:pt-2 sm:pt-6 md:pt-8 bg-transparent">
+        <div className="h-4 xs:h-4 sm:h-6 md:h-7 lg:h-8 bg-gray-200 rounded animate-pulse mb-2 mx-auto" style={{ width: '60%' }}></div>
+        <div className="h-3 xs:h-3 sm:h-4 md:h-5 bg-gray-200 rounded animate-pulse mx-auto" style={{ width: '40%' }}></div>
+      </div>
+    </div>
+  );
+};
+
 interface TeamCardProps {
   tutor: TutorSummary;
 }
@@ -140,26 +166,7 @@ export default function TeamSection() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [itemsPerView, setItemsPerView] = useState(4);
-
-  // Update items per view based on screen size
-  useEffect(() => {
-    const updateItemsPerView = () => {
-      if (window.innerWidth < 640) {
-        setItemsPerView(1); // xs: 1 item
-      } else if (window.innerWidth < 768) {
-        setItemsPerView(2); // sm: 2 items
-      } else if (window.innerWidth < 1024) {
-        setItemsPerView(3); // md: 3 items
-      } else {
-        setItemsPerView(4); // lg+: 4 items
-      }
-    };
-
-    updateItemsPerView();
-    window.addEventListener('resize', updateItemsPerView);
-    return () => window.removeEventListener('resize', updateItemsPerView);
-  }, []);
+  const [isTransitioning, setIsTransitioning] = useState(true);
 
   useEffect(() => {
     const fetchTutors = async () => {
@@ -186,45 +193,68 @@ export default function TeamSection() {
     fetchTutors();
   }, []);
 
-  const nextSlide = () => {
-    setCurrentIndex((prev) => 
-      prev + itemsPerView >= tutors.length ? 0 : prev + 1
-    );
-  };
-
-  const prevSlide = () => {
-    setCurrentIndex((prev) => 
-      prev === 0 ? Math.max(0, tutors.length - itemsPerView) : prev - 1
-    );
-  };
-
-  const canGoPrev = currentIndex > 0;
-  const canGoNext = currentIndex + itemsPerView < tutors.length;
-
-  // Auto-slide effect
+  // Infinite auto-slide effect
   useEffect(() => {
-    if (tutors.length <= itemsPerView) return; // Don't auto-slide if all items fit
+    if (tutors.length === 0) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => {
-        // If we can go next, go next
-        if (prev + itemsPerView < tutors.length) {
-          return prev + 1;
-        }
-        // Otherwise, loop back to start
-        return 0;
-      });
+      setIsTransitioning(true);
+      setCurrentIndex((prev) => prev + 1);
     }, 3000); // Change slide every 3 seconds
 
     return () => clearInterval(interval);
-  }, [tutors.length, itemsPerView]);
+  }, [tutors.length]);
+
+  // Reset position when we reach the cloned set
+  useEffect(() => {
+    if (currentIndex === tutors.length) {
+      setTimeout(() => {
+        setIsTransitioning(false);
+        setCurrentIndex(0);
+      }, 500); // Wait for transition to complete
+    }
+  }, [currentIndex, tutors.length]);
+
+  const nextSlide = () => {
+    if (currentIndex >= tutors.length - 1) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev + 1);
+  };
+
+  const prevSlide = () => {
+    if (currentIndex === 0) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => prev - 1);
+  };
+
+  const canGoPrev = currentIndex > 0;
+  const canGoNext = currentIndex < tutors.length - 1;
+
+  // Create duplicated array for infinite effect
+  const displayTutors = [...tutors, ...tutors];
 
   if (loading) {
     return (
       <section className="team-section py-16 lg:py-24 bg-slate-50 relative overflow-hidden" id="team-sec">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          {/* Title Area */}
+          <div className="title-area text-center mb-12 lg:mb-16">
+            <div className="flex items-center justify-center gap-2 text-blue-600 font-medium mb-4">
+              <IconBook size={20} />
+              <span>Our Instructor</span>
+            </div>
+            <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900">
+              Meet Our Expert Instructor
+            </h2>
+          </div>
+
+          {/* Skeleton Grid */}
+          <div className="flex gap-1 xs:gap-2 sm:gap-6 lg:gap-6 xl:gap-8 justify-center">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex-shrink-0">
+                <TeamCardSkeleton />
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -307,56 +337,45 @@ export default function TeamSection() {
         {/* Carousel Container */}
         <div className="relative">
           {/* Navigation Buttons */}
-          {tutors.length > itemsPerView && (
-            <>
-              <button
-                onClick={prevSlide}
-                disabled={!canGoPrev}
-                className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center transition-all duration-300 ${
-                  canGoPrev 
-                    ? 'text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer' 
-                    : 'text-gray-300 cursor-not-allowed opacity-50'
-                }`}
-                aria-label="Previous tutors"
-              >
-                <IconChevronLeft size={24} />
-              </button>
-              
-              <button
-                onClick={nextSlide}
-                disabled={!canGoNext}
-                className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center transition-all duration-300 ${
-                  canGoNext 
-                    ? 'text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer' 
-                    : 'text-gray-300 cursor-not-allowed opacity-50'
-                }`}
-                aria-label="Next tutors"
-              >
-                <IconChevronRight size={24} />
-              </button>
-            </>
-          )}
+          <button
+            onClick={prevSlide}
+            disabled={!canGoPrev}
+            className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 lg:-translate-x-12 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center transition-all duration-300 ${
+              canGoPrev 
+                ? 'text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer' 
+                : 'text-gray-300 cursor-not-allowed opacity-50'
+            }`}
+            aria-label="Previous tutors"
+          >
+            <IconChevronLeft size={24} />
+          </button>
+          
+          <button
+            onClick={nextSlide}
+            disabled={!canGoNext}
+            className={`absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 lg:translate-x-12 z-30 w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center transition-all duration-300 ${
+              canGoNext 
+                ? 'text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer' 
+                : 'text-gray-300 cursor-not-allowed opacity-50'
+            }`}
+            aria-label="Next tutors"
+          >
+            <IconChevronRight size={24} />
+          </button>
 
-          {/* Carousel Track */}
+          {/* Carousel Track - Infinite Loop */}
           <div className="overflow-hidden">
             <div 
-              className="flex transition-transform duration-500 ease-in-out gap-1 xs:gap-2 sm:gap-6 lg:gap-6 xl:gap-8"
+              className={`flex ${isTransitioning ? 'transition-transform duration-500 ease-linear' : ''}`}
               style={{
-                transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`
+                transform: `translateX(-${currentIndex * 25}%)` // 25% per card for 4 items visible
               }}
             >
-              {tutors.map((tutor) => (
+              {displayTutors.map((tutor, index) => (
                 <div 
-                  key={tutor.id} 
-                  className="flex-shrink-0 flex justify-center"
-                  style={{
-                    width: `calc(${100 / itemsPerView}% - ${
-                      itemsPerView === 1 ? 0 :
-                      itemsPerView === 2 ? 12 :
-                      itemsPerView === 3 ? 16 :
-                      24
-                    }px)`
-                  }}
+                  key={`${tutor.id}-${index}`}
+                  className="flex-shrink-0 flex justify-center px-1 xs:px-1 sm:px-3 lg:px-3 xl:px-4"
+                  style={{ width: '25%' }} // Show 4 items at a time
                 >
                   <TeamCard tutor={tutor} />
                 </div>
@@ -365,22 +384,23 @@ export default function TeamSection() {
           </div>
 
           {/* Dots Indicator */}
-          {tutors.length > itemsPerView && (
-            <div className="flex justify-center gap-2 mt-8">
-              {Array.from({ length: Math.ceil(tutors.length / itemsPerView) }).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index * itemsPerView)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    Math.floor(currentIndex / itemsPerView) === index
-                      ? 'bg-blue-600 w-8'
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
-            </div>
-          )}
+          <div className="flex justify-center gap-2 mt-8">
+            {tutors.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setIsTransitioning(true);
+                  setCurrentIndex(index);
+                }}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  currentIndex % tutors.length === index
+                    ? 'bg-blue-600 w-8'
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
