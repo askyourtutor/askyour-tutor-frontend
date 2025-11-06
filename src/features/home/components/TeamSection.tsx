@@ -69,7 +69,7 @@ const TeamCard = memo(({ tutor }: TeamCardProps) => {
       <div className="relative inline-block w-20 h-20 xs:w-24 xs:h-24 sm:w-48 sm:h-48 md:w-64 md:h-64 lg:w-72 lg:h-72 xl:w-64 xl:h-64 2xl:w-80 2xl:h-80">
         {/* SVG Circle Shape */}
         <svg 
-          className={`absolute left-0 top-0 w-full h-full transition-all duration-700 z-10 ${
+          className={`absolute left-0 top-0 w-full h-full transition-all duration-1000 ease-in-out z-10 ${
             isHovered ? 'rotate-180' : ''
           }`}
           xmlns="http://www.w3.org/2000/svg" 
@@ -79,7 +79,7 @@ const TeamCard = memo(({ tutor }: TeamCardProps) => {
           <path 
             d="M158.167 331C158.167 333.946 160.555 336.333 163.5 336.333C166.446 336.333 168.833 333.946 168.833 331C168.833 328.054 166.446 325.667 163.5 325.667C160.555 325.667 158.167 328.054 158.167 331ZM158.167 6C158.167 8.94552 160.555 11.3333 163.5 11.3333C166.446 11.3333 168.833 8.94552 168.833 6C168.833 3.05448 166.446 0.666667 163.5 0.666667C160.555 0.666667 158.167 3.05448 158.167 6ZM325 167.5C325 257.254 253.238 330 163.5 330V332C254.359 332 327 258.343 327 167.5H325ZM2.00012 167.5C2.00012 77.7618 73.7458 7 163.5 7V5C72.6574 5 0.00012207 76.6411 0.00012207 167.5H2.00012Z" 
             fill={isHovered ? "#F20F10" : "#0D5EF4"}
-            className="transition-colors duration-700"
+            className="transition-colors duration-1000 ease-in-out"
           />
         </svg>
         
@@ -91,7 +91,7 @@ const TeamCard = memo(({ tutor }: TeamCardProps) => {
               alt={name}
               loading="lazy"
               decoding="async"
-              className="w-full h-full object-cover transition-transform duration-400"
+              className="w-full h-full object-cover transition-transform duration-700 ease-out hover:scale-110"
             />
           </div>
         </div>
@@ -109,7 +109,7 @@ const TeamCard = memo(({ tutor }: TeamCardProps) => {
           </a>
           
           {/* Social Icons - Show when hovered */}
-          <div className={`absolute left-1/2 transform -translate-x-1/2 bottom-0 flex gap-0.5 xs:gap-0.5 sm:gap-1.5 md:gap-2 z-20 transition-all duration-400 ${
+          <div className={`absolute left-1/2 transform -translate-x-1/2 bottom-0 flex gap-0.5 xs:gap-0.5 sm:gap-1.5 md:gap-2 z-20 transition-all duration-500 ease-out ${
             isHovered 
               ? 'opacity-100 visible translate-y-0' 
               : 'opacity-0 invisible translate-y-4'
@@ -222,7 +222,7 @@ export default function TeamSection() {
     intervalRef.current = setInterval(() => {
       setIsTransitioning(true);
       setCurrentIndex((prev) => prev + 1);
-    }, 3500); // 3.5 seconds for smoother experience
+    }, 4000); // 4 seconds for smoother, more relaxed experience
 
     return () => {
       if (intervalRef.current) {
@@ -242,7 +242,7 @@ export default function TeamSection() {
         requestAnimationFrame(() => {
           setIsTransitioning(true);
         });
-      }, 500); // Wait for transition to complete
+      }, 600); // Slightly longer wait for smoother reset
 
       return () => clearTimeout(timer);
     }
@@ -412,7 +412,7 @@ export default function TeamSection() {
           >
             <div 
               ref={carouselRef}
-              className={`flex ${isTransitioning ? 'transition-transform duration-500 ease-linear' : ''}`}
+              className={`flex ${isTransitioning ? 'transition-transform duration-700 ease-out' : ''}`}
               style={{
                 transform: `translateX(-${currentIndex * 25}%)`,
                 willChange: 'transform' // Optimize for animations
