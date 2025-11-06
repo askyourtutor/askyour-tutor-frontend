@@ -203,6 +203,9 @@ const TutorProfilePage = () => {
     // Store the file for upload
     setProfileImageFile(file);
 
+    // Mark form as dirty to enable save button
+    methods.trigger();
+
     // Generate preview
     const reader = new FileReader();
     reader.onload = (e) => {
