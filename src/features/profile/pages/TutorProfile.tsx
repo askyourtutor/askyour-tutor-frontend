@@ -203,9 +203,6 @@ const TutorProfilePage = () => {
     // Store the file for upload
     setProfileImageFile(file);
 
-    // Mark form as dirty to enable save button
-    methods.trigger();
-
     // Generate preview
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -636,9 +633,9 @@ const TutorProfilePage = () => {
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting || !methods.formState.isValid}
+                      disabled={isSubmitting || (!methods.formState.isValid && !profileImageFile)}
                       className={`w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-lg font-medium flex items-center justify-center space-x-2 transition-all text-sm sm:text-base ${
-                        (isSubmitting || !methods.formState.isValid)
+                        (isSubmitting || (!methods.formState.isValid && !profileImageFile))
                           ? 'bg-gray-400 cursor-not-allowed'
                           : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
                       }`}
