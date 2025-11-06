@@ -1,6 +1,7 @@
 import React from 'react';
 import { IconBook, IconCheck, IconChevronDown, IconChevronUp, IconTrophy, IconUsers, IconFileText } from '@tabler/icons-react';
 import type { ApiCourse, ApiLesson } from '../../../types/course.types';
+import { getAvatarUrl } from '../../../../../shared/utils/url';
 
 interface OverviewTabProps {
   course: ApiCourse;
@@ -163,7 +164,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-sm p-2 sm:p-2.5 md:p-3 border-2 border-blue-300 hover:border-blue-400 transition-all duration-300 group">
             <div className="flex items-start gap-3 mb-3">
               <img
-                src={course.tutor.avatar || '/assets/img/course/author.png'}
+                src={getAvatarUrl(course.tutor.avatar)}
                 alt={course.tutor.name}
                 className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-blue-400"
               />
@@ -193,7 +194,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             <div key={tutor.id || idx} className="bg-white rounded-sm p-4 border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-300 group">
               <div className="flex items-start gap-3 mb-3">
                 <img
-                  src={tutor.avatar || '/assets/img/course/author.png'}
+                  src={getAvatarUrl(tutor.avatar)}
                   alt={tutor.name}
                   className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 group-hover:border-indigo-300"
                 />

@@ -13,6 +13,7 @@ import { getCourseById } from '../services/course.service';
 import { createCheckoutSession } from '../services/payment.service';
 import type { ApiCourse } from '../types/course.types';
 import { useAuth } from '../../../shared/contexts/AuthContext';
+import { getAvatarUrl } from '../../../shared/utils/url';
 
 const CheckoutPage = () => {
   const { id: courseId } = useParams<{ id: string }>();
@@ -174,7 +175,7 @@ const CheckoutPage = () => {
               <div className="border border-gray-200 rounded-sm p-5">
                 <div className="flex items-center gap-4">
                   <img
-                    src={course.tutor.avatar || '/assets/img/course/author.png'}
+                    src={getAvatarUrl(course.tutor.avatar)}
                     alt={course.tutor.name}
                     className="w-14 h-14 rounded-sm object-cover bg-gray-100"
                   />

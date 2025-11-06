@@ -25,6 +25,7 @@ import VideoPlayer from './components/VideoPlayer';
 import CourseDetailsSkeleton from '../components/CourseDetailsSkeleton';
 import { useCourseDetails } from '../hooks/useCourseDetails';
 import type { ApiLesson } from '../types/course.types';
+import { getAvatarUrl } from '../../../shared/utils/url';
 
 const CourseDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -191,7 +192,7 @@ const CourseDetails: React.FC = () => {
               {/* Tutor Profile */}
               <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-sm border border-gray-200">
                 <img
-                  src={course.tutor.avatar || '/assets/img/course/author.png'}
+                  src={getAvatarUrl(course.tutor.avatar)}
                   alt={course.tutor.name}
                   className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover flex-shrink-0"
                 />
