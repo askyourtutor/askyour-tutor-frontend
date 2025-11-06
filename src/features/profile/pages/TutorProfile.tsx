@@ -163,7 +163,7 @@ const TutorProfilePage = () => {
           if (p.profilePicture) {
             const imageUrl = p.profilePicture.startsWith('http') 
               ? p.profilePicture 
-              : `${import.meta.env.VITE_API_URL}/${p.profilePicture}`;
+              : `${import.meta.env.VITE_API_URL.replace('/api', '')}/${p.profilePicture}`;
             setProfileImage(imageUrl);
           }
           
