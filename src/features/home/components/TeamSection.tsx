@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { 
   IconBook,
   IconPlus,
@@ -12,7 +12,7 @@ import { teacherService } from '../../teachers/services/teacher.service';
 import type { TutorSummary } from '../../../shared/types/teacher';
 import { getAvatarUrl } from '../../../shared/utils/url';
 
-const TeamCardSkeleton = () => {
+const TeamCardSkeleton = memo(() => {
   return (
     <div className="relative text-center pt-1 bg-transparent">
       <div className="relative inline-block w-20 h-20 xs:w-24 xs:h-24 sm:w-48 sm:h-48 md:w-64 md:h-64 lg:w-72 lg:h-72 xl:w-64 xl:h-64 2xl:w-80 2xl:h-80">
@@ -36,21 +36,29 @@ const TeamCardSkeleton = () => {
       </div>
     </div>
   );
-};
+});
+
+TeamCardSkeleton.displayName = 'TeamCardSkeleton';
 
 interface TeamCardProps {
   tutor: TutorSummary;
 }
 
-const TeamCard = ({ tutor }: TeamCardProps) => {
+const TeamCard = memo(({ tutor }: TeamCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   
-  const name = `${tutor.tutorProfile.firstName} ${tutor.tutorProfile.lastName}`;
+  const name = useMemo(() => 
+    `${tutor.tutorProfile.firstName} ${tutor.tutorProfile.lastName}`,
+    [tutor.tutorProfile.firstName, tutor.tutorProfile.lastName]
+  );
   
   // Get avatar URL with fallback
-  const avatarUrl = tutor.tutorProfile.avatar 
-    ? getAvatarUrl(tutor.tutorProfile.avatar)
-    : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=400&background=random`;
+  const avatarUrl = useMemo(() => 
+    tutor.tutorProfile.avatar 
+      ? getAvatarUrl(tutor.tutorProfile.avatar)
+      : `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&size=400&background=random`,
+    [tutor.tutorProfile.avatar, name]
+  );
 
   return (
     <div 
@@ -81,6 +89,8 @@ const TeamCard = ({ tutor }: TeamCardProps) => {
             <img 
               src={avatarUrl} 
               alt={name}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover transition-transform duration-400"
             />
           </div>
@@ -159,7 +169,9 @@ const TeamCard = ({ tutor }: TeamCardProps) => {
       </div>
     </div>
   );
-};
+});
+
+TeamCard.displayName = 'TeamCard';
 
 export default function TeamSection() {
   const [tutors, setTutors] = useState<TutorSummary[]>([]);
@@ -167,12 +179,16 @@ export default function TeamSection() {
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const fetchTutors = async () => {
       try {
         setLoading(true);
-        const response = await teacherService.getTutors({ limit: 8 }); // Get more tutors for carousel
+        const response = await teacherService.getTutors({ limit: 8 });
         
         // Sort to show admin tutors first
         const sortedTutors = response.data.sort((a, b) => {
@@ -193,45 +209,70 @@ export default function TeamSection() {
     fetchTutors();
   }, []);
 
-  // Infinite auto-slide effect
+  // Infinite auto-slide effect with pause on hover
   useEffect(() => {
-    if (tutors.length === 0) return;
+    if (tutors.length === 0 || isPaused) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
 
-    const interval = setInterval(() => {
+    intervalRef.current = setInterval(() => {
       setIsTransitioning(true);
       setCurrentIndex((prev) => prev + 1);
-    }, 3000); // Change slide every 3 seconds
+    }, 3500); // 3.5 seconds for smoother experience
 
-    return () => clearInterval(interval);
-  }, [tutors.length]);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [tutors.length, isPaused]);
 
-  // Reset position when we reach the cloned set
+  // Reset position when we reach the cloned set (optimized)
   useEffect(() => {
-    if (currentIndex === tutors.length) {
-      setTimeout(() => {
+    if (currentIndex === tutors.length && tutors.length > 0) {
+      const timer = setTimeout(() => {
         setIsTransitioning(false);
         setCurrentIndex(0);
+        // Re-enable transition after reset
+        requestAnimationFrame(() => {
+          setIsTransitioning(true);
+        });
       }, 500); // Wait for transition to complete
+
+      return () => clearTimeout(timer);
     }
   }, [currentIndex, tutors.length]);
 
-  const nextSlide = () => {
+  const nextSlide = useCallback(() => {
     if (currentIndex >= tutors.length - 1) return;
     setIsTransitioning(true);
     setCurrentIndex((prev) => prev + 1);
-  };
+  }, [currentIndex, tutors.length]);
 
-  const prevSlide = () => {
+  const prevSlide = useCallback(() => {
     if (currentIndex === 0) return;
     setIsTransitioning(true);
     setCurrentIndex((prev) => prev - 1);
-  };
+  }, [currentIndex]);
+
+  const goToSlide = useCallback((index: number) => {
+    setIsTransitioning(true);
+    setCurrentIndex(index);
+  }, []);
 
   const canGoPrev = currentIndex > 0;
   const canGoNext = currentIndex < tutors.length - 1;
 
-  // Create duplicated array for infinite effect
-  const displayTutors = [...tutors, ...tutors];
+  // Memoize duplicated array for better performance
+  const displayTutors = useMemo(() => {
+    if (tutors.length === 0) return [];
+    return [...tutors, ...tutors];
+  }, [tutors]);
 
   if (loading) {
     return (
@@ -364,18 +405,24 @@ export default function TeamSection() {
           </button>
 
           {/* Carousel Track - Infinite Loop */}
-          <div className="overflow-hidden">
+          <div 
+            className="overflow-hidden"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
             <div 
+              ref={carouselRef}
               className={`flex ${isTransitioning ? 'transition-transform duration-500 ease-linear' : ''}`}
               style={{
-                transform: `translateX(-${currentIndex * 25}%)` // 25% per card for 4 items visible
+                transform: `translateX(-${currentIndex * 25}%)`,
+                willChange: 'transform' // Optimize for animations
               }}
             >
-              {displayTutors.map((tutor, index) => (
+              {displayTutors.map((tutor: TutorSummary, index: number) => (
                 <div 
                   key={`${tutor.id}-${index}`}
                   className="flex-shrink-0 flex justify-center px-1 xs:px-1 sm:px-3 lg:px-3 xl:px-4"
-                  style={{ width: '25%' }} // Show 4 items at a time
+                  style={{ width: '25%' }}
                 >
                   <TeamCard tutor={tutor} />
                 </div>
@@ -388,10 +435,7 @@ export default function TeamSection() {
             {tutors.map((_, index) => (
               <button
                 key={index}
-                onClick={() => {
-                  setIsTransitioning(true);
-                  setCurrentIndex(index);
-                }}
+                onClick={() => goToSlide(index)}
                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
                   currentIndex % tutors.length === index
                     ? 'bg-blue-600 w-8'
