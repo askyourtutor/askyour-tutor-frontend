@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
   IconArrowLeft,
@@ -26,11 +26,13 @@ import CourseDetailsSkeleton from '../components/CourseDetailsSkeleton';
 import { useCourseDetails } from '../hooks/useCourseDetails';
 import type { ApiLesson } from '../types/course.types';
 import { getAvatarUrl } from '../../../shared/utils/url';
+import BookingModal from '../../sessions/components/BookingModal';
 
 const CourseDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   
   const {
     course,
@@ -52,7 +54,7 @@ const CourseDetails: React.FC = () => {
     handleSaveToggle,
     handleShare,
     handleEnroll,
-    handleBookSession,
+    handleMessageTutor,
   } = useCourseDetails(id);
 
   const renderStars = (rating: number) => {
@@ -233,7 +235,7 @@ const CourseDetails: React.FC = () => {
                     showFullDescription={showFullDescription}
                     onToggleDescription={() => setShowFullDescription(!showFullDescription)}
                     renderStars={renderStars}
-                    onBookSession={handleBookSession}
+                    onBookSession={() => setIsBookingModalOpen(true)}
                   />
                 )}
 
@@ -307,6 +309,19 @@ const CourseDetails: React.FC = () => {
           isEnrolled={isEnrolled}
           isEnrolling={isEnrolling}
           onEnroll={handleEnroll}
+        />
+      )}
+
+      {/* Booking Modal */}
+      {course && (
+        <BookingModal
+          isOpen={isBookingModalOpen}
+          onClose={() => setIsBookingModalOpen(false)}
+          tutorId={course.tutor.id}
+          tutorName={course.tutor.name}
+          courseId={course.id}
+          courseTitle={course.title}
+          defaultSubject={course.subject}
         />
       )}
 

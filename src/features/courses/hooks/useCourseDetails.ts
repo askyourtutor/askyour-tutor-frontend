@@ -171,7 +171,8 @@ export function useCourseDetails(courseId: string | undefined) {
   };
 
   const handleBookSession = () => {
-    // TODO: Navigate to booking flow
+    // The modal will be triggered from the component
+    // This is just a placeholder for future logic
   };
 
   const totalDuration = useMemo(
