@@ -85,6 +85,12 @@ function StudentSessionsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Header */}
+      <div className="mb-3">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">My Booked Sessions</h2>
+        <p className="text-xs sm:text-sm text-gray-600 mt-1">View and manage your learning sessions</p>
+      </div>
+
       {/* Session Statistics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         <div className="bg-white rounded-sm p-2.5 sm:p-3 border border-gray-200">
