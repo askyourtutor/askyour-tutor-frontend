@@ -111,34 +111,6 @@ function StudentPaymentsTab() {
     setFilteredPayments(filtered);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium bg-green-100 text-green-800">
-            <IconCheck size={14} className="mr-1" />
-            Completed
-          </span>
-        );
-      case 'pending':
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
-            <IconClock size={14} className="mr-1" />
-            Pending
-          </span>
-        );
-      case 'failed':
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium bg-red-100 text-red-800">
-            <IconX size={14} className="mr-1" />
-            Failed
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
-
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
@@ -154,97 +126,101 @@ function StudentPaymentsTab() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-sm p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment History</h2>
-        <p className="text-gray-600">
-          View all your transactions and download receipts
-        </p>
+    <div className="space-y-3">
+      {/* Stats Cards - Compact */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {/* Total Spent */}
+        <div className="bg-white border border-gray-200 rounded-sm p-2 hover:border-purple-400 transition-colors group">
+          <div className="flex items-center justify-between mb-1">
+            <div className="p-1 bg-gradient-to-br from-purple-50 to-purple-100 rounded group-hover:from-purple-100 group-hover:to-purple-200 transition-colors">
+              <IconCurrencyDollar size={14} className="text-purple-600" />
+            </div>
+            <span className="text-[8px] text-gray-500 uppercase tracking-wide">Total</span>
+          </div>
+          <div className="text-base font-bold text-gray-900">${totalSpent.toFixed(2)}</div>
+          <div className="text-[9px] text-gray-500">All-time</div>
+        </div>
+
+        {/* Successful */}
+        <div className="bg-white border border-gray-200 rounded-sm p-2 hover:border-green-400 transition-colors group">
+          <div className="flex items-center justify-between mb-1">
+            <div className="p-1 bg-gradient-to-br from-green-50 to-green-100 rounded group-hover:from-green-100 group-hover:to-green-200 transition-colors">
+              <IconCheck size={14} className="text-green-600" />
+            </div>
+            <span className="text-[8px] text-gray-500 uppercase tracking-wide">Done</span>
+          </div>
+          <div className="text-base font-bold text-gray-900">{successfulPayments}</div>
+          <div className="text-[9px] text-gray-500">Completed</div>
+        </div>
+
+        {/* Pending */}
+        <div className="bg-white border border-gray-200 rounded-sm p-2 hover:border-yellow-400 transition-colors group">
+          <div className="flex items-center justify-between mb-1">
+            <div className="p-1 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded group-hover:from-yellow-100 group-hover:to-yellow-200 transition-colors">
+              <IconClock size={14} className="text-yellow-600" />
+            </div>
+            <span className="text-[8px] text-gray-500 uppercase tracking-wide">Wait</span>
+          </div>
+          <div className="text-base font-bold text-gray-900">{pendingPayments}</div>
+          <div className="text-[9px] text-gray-500">Processing</div>
+        </div>
+
+        {/* Failed */}
+        <div className="bg-white border border-gray-200 rounded-sm p-2 hover:border-red-400 transition-colors group">
+          <div className="flex items-center justify-between mb-1">
+            <div className="p-1 bg-gradient-to-br from-red-50 to-red-100 rounded group-hover:from-red-100 group-hover:to-red-200 transition-colors">
+              <IconX size={14} className="text-red-600" />
+            </div>
+            <span className="text-[8px] text-gray-500 uppercase tracking-wide">Failed</span>
+          </div>
+          <div className="text-base font-bold text-gray-900">{failedPayments}</div>
+          <div className="text-[9px] text-gray-500">Unsuccessful</div>
+        </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-sm p-6 shadow-sm border-l-4 border-purple-500">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-600">Total Spent</p>
-            <IconCurrencyDollar size={20} className="text-purple-500" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">${totalSpent.toFixed(2)}</p>
-          <p className="text-xs text-gray-500 mt-1">All-time</p>
-        </div>
-
-        <div className="bg-white rounded-sm p-6 shadow-sm border-l-4 border-green-500">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-600">Successful</p>
-            <IconCheck size={20} className="text-green-500" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{successfulPayments}</p>
-          <p className="text-xs text-gray-500 mt-1">Completed payments</p>
-        </div>
-
-        <div className="bg-white rounded-sm p-6 shadow-sm border-l-4 border-yellow-500">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-600">Pending</p>
-            <IconClock size={20} className="text-yellow-500" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{pendingPayments}</p>
-          <p className="text-xs text-gray-500 mt-1">Processing</p>
-        </div>
-
-        <div className="bg-white rounded-sm p-6 shadow-sm border-l-4 border-red-500">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-gray-600">Failed</p>
-            <IconX size={20} className="text-red-500" />
-          </div>
-          <p className="text-3xl font-bold text-gray-900">{failedPayments}</p>
-          <p className="text-xs text-gray-500 mt-1">Unsuccessful</p>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-sm p-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-4">
+      {/* Filters - Compact */}
+      <div className="bg-white border border-gray-200 rounded-sm p-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
-              <IconSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <IconSearch size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by course or transaction ID..."
+                placeholder="Search course or ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-7 pr-2 py-1.5 text-xs border border-gray-300 rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
           {/* Status Filter */}
-          <div className="sm:w-48">
+          <div className="sm:w-28">
             <div className="relative">
-              <IconFilter size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <IconFilter size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                className="w-full pl-7 pr-2 py-1.5 text-xs border border-gray-300 rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 appearance-none"
               >
-                <option value="all">All Status</option>
-                <option value="completed">Completed</option>
-                <option value="pending">Pending</option>
-                <option value="failed">Failed</option>
+                <option value="all">All</option>
+                <option value="completed">Done</option>
+                <option value="pending">Wait</option>
+                <option value="failed">Fail</option>
               </select>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Payments Table */}
-      <div className="bg-white rounded-sm shadow-sm overflow-hidden">
+      {/* Payments Table - Compact */}
+      <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
         {filteredPayments.length === 0 ? (
-          <div className="p-12 text-center">
-            <IconReceipt size={48} className="mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No payments found</h3>
-            <p className="text-gray-600">
+          <div className="p-8 text-center">
+            <IconReceipt size={32} className="mx-auto text-gray-400 mb-2" />
+            <h3 className="text-sm font-medium text-gray-900 mb-1">No payments found</h3>
+            <p className="text-xs text-gray-600">
               {searchQuery || statusFilter !== 'all'
                 ? 'Try adjusting your filters'
                 : 'Your payment history will appear here'}
@@ -255,70 +231,86 @@ function StudentPaymentsTab() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">
                     Transaction
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">
                     Course
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">
                     Method
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">
                     Status
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">
                     Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">
+                    Receipt
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredPayments.map((payment) => (
-                  <tr key={payment.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="p-2 bg-purple-100 rounded-sm mr-3">
-                          <IconReceipt size={16} className="text-purple-600" />
+                  <tr key={payment.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="flex items-center gap-1.5">
+                        <div className="p-1 bg-purple-100 rounded">
+                          <IconReceipt size={12} className="text-purple-600" />
                         </div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-[10px] font-medium text-gray-900 truncate max-w-[100px]">
                           {payment.transactionId}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900 max-w-xs truncate">
+                    <td className="px-3 py-2">
+                      <div className="text-[10px] text-gray-900 truncate max-w-[150px]">
                         {payment.courseTitle}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-semibold text-gray-900">
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-xs font-semibold text-gray-900">
                         ${payment.amount.toFixed(2)}
                       </div>
-                      <div className="text-xs text-gray-500">{payment.currency}</div>
+                      <div className="text-[8px] text-gray-500">{payment.currency}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{payment.paymentMethod}</div>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-[10px] text-gray-900">{payment.paymentMethod}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {getStatusBadge(payment.status)}
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      {payment.status === 'completed' && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-green-100 text-green-800">
+                          <IconCheck size={10} className="mr-0.5" />
+                          Done
+                        </span>
+                      )}
+                      {payment.status === 'pending' && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-yellow-100 text-yellow-800">
+                          <IconClock size={10} className="mr-0.5" />
+                          Wait
+                        </span>
+                      )}
+                      {payment.status === 'failed' && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-red-100 text-red-800">
+                          <IconX size={10} className="mr-0.5" />
+                          Fail
+                        </span>
+                      )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{formatDate(payment.createdAt)}</div>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="text-[10px] text-gray-900">{formatDate(payment.createdAt)}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       {payment.receipt && payment.status === 'completed' && (
                         <button
                           onClick={() => window.open(payment.receipt, '_blank')}
-                          className="inline-flex items-center text-blue-600 hover:text-blue-700"
+                          className="inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors"
                         >
-                          <IconDownload size={16} className="mr-1" />
-                          Receipt
+                          <IconDownload size={12} />
                         </button>
                       )}
                     </td>

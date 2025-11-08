@@ -107,34 +107,6 @@ function StudentCoursesTab() {
     setFilteredCourses(filtered);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium bg-green-100 text-green-800">
-            <IconCheck size={14} className="mr-1" />
-            Completed
-          </span>
-        );
-      case 'in-progress':
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium bg-blue-100 text-blue-800">
-            <IconClock size={14} className="mr-1" />
-            In Progress
-          </span>
-        );
-      case 'not-started':
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-sm text-xs font-medium bg-gray-100 text-gray-800">
-            <IconBook size={14} className="mr-1" />
-            Not Started
-          </span>
-        );
-      default:
-        return null;
-    }
-  };
-
   const formatDate = (date: Date | null) => {
     if (!date) return 'Never';
     const now = new Date();
@@ -149,132 +121,139 @@ function StudentCoursesTab() {
   };
 
   if (loading) {
-    return <LoadingSpinner message="Loading your courses..." />;
+    return <LoadingSpinner message="Loading courses..." />;
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-sm p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">My Courses</h2>
-        <p className="text-gray-600">
-          {courses.length} course{courses.length !== 1 ? 's' : ''} enrolled
-        </p>
-      </div>
-
-      {/* Filters */}
-      <div className="bg-white rounded-sm p-4 shadow-sm">
-        <div className="flex flex-col sm:flex-row gap-4">
+    <div className="space-y-2.5">
+      {/* Filters - Compact */}
+      <div className="bg-white rounded-sm border border-gray-200 p-2">
+        <div className="flex gap-2">
           {/* Search */}
           <div className="flex-1">
             <div className="relative">
-              <IconSearch size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <IconSearch size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search courses..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-7 pr-2 py-1.5 text-xs border border-gray-200 rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
           </div>
 
           {/* Status Filter */}
-          <div className="sm:w-48">
+          <div className="w-28">
             <div className="relative">
-              <IconFilter size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <IconFilter size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
+                className="w-full pl-7 pr-2 py-1.5 text-xs border border-gray-200 rounded-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
               >
-                <option value="all">All Status</option>
-                <option value="not-started">Not Started</option>
-                <option value="in-progress">In Progress</option>
-                <option value="completed">Completed</option>
+                <option value="all">All</option>
+                <option value="not-started">New</option>
+                <option value="in-progress">Active</option>
+                <option value="completed">Done</option>
               </select>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Courses Grid */}
+      {/* Courses Grid - Compact Cards */}
       {filteredCourses.length === 0 ? (
-        <div className="bg-white rounded-sm p-12 shadow-sm text-center">
-          <IconBook size={48} className="mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No courses found</h3>
-          <p className="text-gray-600">
+        <div className="bg-white rounded-sm border border-gray-200 p-8 text-center">
+          <div className="w-12 h-12 bg-gray-100 rounded-sm flex items-center justify-center mx-auto mb-3 border border-gray-200">
+            <IconBook size={20} className="text-gray-400" />
+          </div>
+          <h3 className="text-sm font-medium text-gray-900 mb-1">No courses found</h3>
+          <p className="text-xs text-gray-500">
             {searchQuery || statusFilter !== 'all'
               ? 'Try adjusting your filters'
-              : 'Start learning by enrolling in a course'}
+              : 'Start learning by enrolling'}
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {filteredCourses.map((course) => (
-            <div
-              key={course.id}
-              className="bg-white rounded-sm shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate(`/courses/${course.id}`)}
-            >
-              {/* Course Image */}
-              <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-600 rounded-t-sm flex items-center justify-center">
-                {course.image ? (
-                  <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
-                ) : (
-                  <IconBook size={64} className="text-white opacity-50" />
-                )}
-              </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          {filteredCourses.map((course) => {
+            const statusColors = {
+              'completed': { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', icon: IconCheck },
+              'in-progress': { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', icon: IconClock },
+              'not-started': { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', icon: IconBook }
+            };
+            const status = statusColors[course.status];
+            const StatusIcon = status.icon;
 
-              <div className="p-6">
-                {/* Status Badge */}
-                <div className="mb-3">
-                  {getStatusBadge(course.status)}
+            return (
+              <div
+                key={course.id}
+                className="bg-white rounded-sm border border-gray-200 hover:border-gray-300 transition-all cursor-pointer group overflow-hidden"
+                onClick={() => navigate(`/courses/${course.id}`)}
+              >
+                {/* Course Image - Compact */}
+                <div className="h-24 bg-gradient-to-br from-blue-500 to-purple-600 relative overflow-hidden">
+                  {course.image ? (
+                    <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <IconBook size={28} className="text-white opacity-40" />
+                    </div>
+                  )}
+                  {/* Status Badge - Overlay */}
+                  <div className={`absolute top-1.5 right-1.5 ${status.bg} ${status.border} border rounded-sm px-1.5 py-0.5 flex items-center gap-1`}>
+                    <StatusIcon size={10} className={status.text} />
+                    <span className={`text-[8px] font-medium ${status.text} uppercase`}>
+                      {course.status === 'not-started' ? 'New' : course.status === 'in-progress' ? 'Active' : 'Done'}
+                    </span>
+                  </div>
                 </div>
 
-                {/* Title & Description */}
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
-                  {course.title}
-                </h3>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {course.description}
-                </p>
+                <div className="p-2.5">
+                  {/* Title */}
+                  <h3 className="text-xs font-semibold text-gray-900 mb-1 line-clamp-1 group-hover:text-blue-600 transition-colors">
+                    {course.title}
+                  </h3>
 
-                {/* Tutor */}
-                <p className="text-sm text-gray-500 mb-4">
-                  Instructor: <span className="font-medium text-gray-700">{course.tutorName}</span>
-                </p>
-
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-gray-600">Progress</span>
-                    <span className="font-medium text-gray-900">{course.progress}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all"
-                      style={{ width: `${course.progress}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {course.completedLessons} of {course.totalLessons} lessons completed
+                  {/* Tutor */}
+                  <p className="text-[9px] text-gray-500 mb-2">
+                    By <span className="font-medium text-gray-700">{course.tutorName}</span>
                   </p>
-                </div>
 
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                  <span className="text-xs text-gray-500">
-                    Last accessed: {formatDate(course.lastAccessed)}
-                  </span>
-                  <button className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
-                    {course.status === 'not-started' ? 'Start' : 'Continue'}
-                    <IconChevronRight size={16} className="ml-1" />
-                  </button>
+                  {/* Progress Bar - Compact */}
+                  <div className="mb-2">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-[9px] text-gray-500">Progress</span>
+                      <span className="text-[9px] font-semibold text-gray-900">{course.progress}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-sm h-1">
+                      <div
+                        className={`h-1 rounded-sm transition-all ${
+                          course.progress === 100 ? 'bg-green-500' : 'bg-blue-600'
+                        }`}
+                        style={{ width: `${course.progress}%` }}
+                      />
+                    </div>
+                    <p className="text-[8px] text-gray-500 mt-0.5">
+                      {course.completedLessons}/{course.totalLessons} lessons
+                    </p>
+                  </div>
+
+                  {/* Footer - Compact */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                    <span className="text-[8px] text-gray-400">
+                      {formatDate(course.lastAccessed)}
+                    </span>
+                    <button className="flex items-center text-[9px] font-medium text-blue-600 hover:text-blue-700 group-hover:translate-x-0.5 transition-transform">
+                      {course.status === 'not-started' ? 'Start' : 'Continue'}
+                      <IconChevronRight size={10} className="ml-0.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
