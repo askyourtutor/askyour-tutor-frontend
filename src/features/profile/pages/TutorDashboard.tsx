@@ -17,6 +17,7 @@ import tutorDashboardService, {
   type SessionDetails,
   type Student,
 } from '../../../shared/services/tutorDashboardService';
+import { createVideoRoom } from '../../sessions/services/videoSession.service';
 import { useAuth } from '../../../shared/contexts/AuthContext';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import TutorDashboardTab from '../components/TutorDashboardTab';
@@ -269,6 +270,26 @@ function TutorDashboard() {
     }
   };
 
+  const handleStartSession = async (sessionId: string) => {
+    try {
+      const videoRoom = await createVideoRoom(sessionId);
+      // Open the video room in a new window
+      window.open(videoRoom.roomUrl, '_blank', 'noopener,noreferrer');
+      
+      // Invalidate cache and refresh to show the meeting link
+      cache.delete('tutor:dashboard:sessions');
+      
+      const sessionsData = await fetchWithCache(
+        'tutor:dashboard:sessions',
+        () => tutorDashboardService.getTutorSessions({ limit: 50 })
+      );
+      setSessions(sessionsData.sessions);
+    } catch (error) {
+      console.error('Error starting session:', error);
+      alert('Failed to create video room. Please try again.');
+    }
+  };
+
   const handleCancelSession = async (sessionId: string, reason: string) => {
     try {
       await tutorDashboardService.cancelSession(sessionId, reason);
@@ -504,6 +525,7 @@ function TutorDashboard() {
                 sessions={sessions}
                 onConfirmSession={handleConfirmSession}
                 onCancelSession={handleCancelSession}
+                onStartSession={handleStartSession}
                 onViewSession={handleViewSession}
               />
             )}

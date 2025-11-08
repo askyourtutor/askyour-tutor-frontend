@@ -76,7 +76,7 @@ export interface SessionsResponse {
 
 // Create a new session booking
 export async function createSession(data: CreateSessionRequest): Promise<{ session: Session; message: string }> {
-  return await apiFetch<{ session: Session; message: string }>('/api/sessions', {
+  return await apiFetch<{ session: Session; message: string }>('/sessions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -89,12 +89,12 @@ export async function getSessions(params?: { status?: string; type?: string }): 
   if (params?.status) queryParams.set('status', params.status);
   if (params?.type) queryParams.set('type', params.type);
   const query = queryParams.toString();
-  return await apiFetch<SessionsResponse>(`/api/sessions${query ? `?${query}` : ''}`);
+  return await apiFetch<SessionsResponse>(`/sessions${query ? `?${query}` : ''}`);
 }
 
 // Get specific session details
 export async function getSession(sessionId: string): Promise<{ session: Session }> {
-  return await apiFetch<{ session: Session }>(`/api/sessions/${sessionId}`);
+  return await apiFetch<{ session: Session }>(`/sessions/${sessionId}`);
 }
 
 // Update session status
@@ -104,7 +104,7 @@ export async function updateSessionStatus(
   reason?: string
 ): Promise<{ session: Session; message: string }> {
   return await apiFetch<{ session: Session; message: string }>(
-    `/api/sessions/${sessionId}/status`,
+    `/sessions/${sessionId}/status`,
     {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -116,7 +116,7 @@ export async function updateSessionStatus(
 // Cancel session
 export async function cancelSession(sessionId: string, reason?: string): Promise<{ message: string; session: Session }> {
   return await apiFetch<{ message: string; session: Session }>(
-    `/api/sessions/${sessionId}`,
+    `/sessions/${sessionId}`,
     {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
@@ -140,7 +140,7 @@ export async function getTutorAvailability(tutorId: string, date?: string): Prom
   }>;
 }> {
   const query = date ? `?date=${encodeURIComponent(date)}` : '';
-  return await apiFetch(`/api/sessions/tutor/${tutorId}/availability${query}`);
+  return await apiFetch(`/sessions/tutor/${tutorId}/availability${query}`);
 }
 
 // Helper to get user display name

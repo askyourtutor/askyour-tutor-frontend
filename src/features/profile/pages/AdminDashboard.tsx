@@ -28,6 +28,7 @@ import AdminCoursesTab from '../components/AdminCoursesTab';
 import TutorCoursesTab from '../components/TutorCoursesTab';
 import AdminQnATab from '../components/AdminQnATab';
 import AdminPaymentsTab from '../components/AdminPaymentsTab';
+import AdminSessionsTab from '../components/AdminSessionsTab';
 import CreateCourseModal from '../components/CreateCourseModal';
 import EditCourseModal from '../components/EditCourseModal';
 import AdminProfileSettings from '../components/AdminProfileSettings';
@@ -38,9 +39,9 @@ function AdminDashboard() {
   const { user, logout } = useAuth();
   
   // Initialize activeTab from localStorage or default to 'dashboard'
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'qna' | 'payments' | 'settings'>(() => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'sessions' | 'qna' | 'payments' | 'settings'>(() => {
     const savedTab = localStorage.getItem(ADMIN_CONSTANTS.STORAGE_KEY_ACTIVE_TAB);
-    return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'qna' | 'payments' | 'settings') || ADMIN_CONSTANTS.DEFAULT_TAB;
+    return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'sessions' | 'qna' | 'payments' | 'settings') || ADMIN_CONSTANTS.DEFAULT_TAB;
   });
   
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -458,6 +459,25 @@ function AdminDashboard() {
             </button>
 
             <button
+              onClick={() => setActiveTab('sessions')}
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                activeTab === 'sessions' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex items-center min-w-0 flex-1">
+                <IconCalendarEvent size={18} className="mr-3 flex-shrink-0" />
+                <span>Sessions</span>
+              </div>
+              {stats.activeSessions > 0 && (
+                <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-sm font-medium">
+                  {stats.activeSessions}
+                </span>
+              )}
+            </button>
+
+            <button
               onClick={() => setActiveTab('qna')}
               className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
                 activeTab === 'qna' 
@@ -573,6 +593,7 @@ function AdminDashboard() {
               )}
             </>
           )}
+          {activeTab === 'sessions' && <AdminSessionsTab />}
           {activeTab === 'qna' && <AdminQnATab />}
           {activeTab === 'payments' && <AdminPaymentsTab />}
           {activeTab === 'settings' && (

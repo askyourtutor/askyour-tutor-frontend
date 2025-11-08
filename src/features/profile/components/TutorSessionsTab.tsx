@@ -14,6 +14,7 @@ interface TutorSessionsTabProps {
   sessions: SessionDetails[];
   onConfirmSession: (sessionId: string) => void;
   onCancelSession: (sessionId: string, reason: string) => void;
+  onStartSession: (sessionId: string) => void;
   onViewSession: (session: SessionDetails) => void;
 }
 
@@ -21,6 +22,7 @@ function TutorSessionsTab({
   sessions, 
   onConfirmSession,
   onCancelSession,
+  onStartSession,
   onViewSession
 }: TutorSessionsTabProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -221,16 +223,30 @@ function TutorSessionsTab({
                             </button>
                           </>
                         )}
-                        {session.status === 'CONFIRMED' && session.meetingLink && (
-                          <a
-                            href={session.meetingLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded transition-colors"
-                            title="Join Meeting"
-                          >
-                            <IconVideo size={16} />
-                          </a>
+                        {session.status === 'CONFIRMED' && (
+                          <>
+                            {session.meetingLink ? (
+                              <a
+                                href={session.meetingLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-white bg-green-600 hover:bg-green-700 rounded transition-colors flex items-center gap-1"
+                                title="Join Meeting"
+                              >
+                                <IconVideo size={16} />
+                                <span className="text-xs">Join</span>
+                              </a>
+                            ) : (
+                              <button
+                                onClick={() => onStartSession(session.id)}
+                                className="p-1.5 text-white bg-blue-600 hover:bg-blue-700 rounded transition-colors flex items-center gap-1"
+                                title="Start Session"
+                              >
+                                <IconVideo size={16} />
+                                <span className="text-xs">Start</span>
+                              </button>
+                            )}
+                          </>
                         )}
                         <button
                           onClick={() => onViewSession(session)}
