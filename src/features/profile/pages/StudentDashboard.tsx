@@ -3,17 +3,19 @@ import {
   IconBook, 
   IconCurrencyDollar, 
   IconChartBar,
-  IconLayoutDashboard
+  IconLayoutDashboard,
+  IconCalendar
 } from '@tabler/icons-react';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import StudentOverviewTab from '../components/StudentOverviewTab';
 import StudentCoursesTab from '../components/StudentCoursesTab';
 import StudentPaymentsTab from '../components/StudentPaymentsTab';
+import StudentSessionsTab from '../components/StudentSessionsTab';
 
 function StudentDashboard() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'payments'>(() => {
+  const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'sessions' | 'payments'>(() => {
     const savedTab = localStorage.getItem('student-dashboard-tab');
-    return (savedTab as 'overview' | 'courses' | 'payments') || 'overview';
+    return (savedTab as 'overview' | 'courses' | 'sessions' | 'payments') || 'overview';
   });
   
   const [loading] = useState(false);
@@ -30,6 +32,7 @@ function StudentDashboard() {
   const tabs = [
     { id: 'overview' as const, label: 'Overview', icon: IconChartBar },
     { id: 'courses' as const, label: 'My Courses', icon: IconBook },
+    { id: 'sessions' as const, label: 'Sessions', icon: IconCalendar },
     { id: 'payments' as const, label: 'Payments', icon: IconCurrencyDollar },
   ];
 
@@ -80,6 +83,7 @@ function StudentDashboard() {
         <div className="animate-fadeIn">
           {activeTab === 'overview' && <StudentOverviewTab />}
           {activeTab === 'courses' && <StudentCoursesTab />}
+          {activeTab === 'sessions' && <StudentSessionsTab />}
           {activeTab === 'payments' && <StudentPaymentsTab />}
         </div>
       </div>

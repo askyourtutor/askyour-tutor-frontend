@@ -11,7 +11,7 @@ import {
   IconUser,
   IconChevronDown,
   IconSearch,
-  IconHeart,
+  IconBell,
   IconArrowRight,
   IconMenu2,
   IconSchool,
@@ -439,20 +439,19 @@ const Header = () => {
                       </form>
                     </div>
 
-                    {/* Wishlist */}
-                    <a 
-                      href="#" 
+                    {/* Notifications */}
+                    <button 
                       className="icon-btn relative w-6 h-6 xl:w-8 xl:h-8 flex items-center justify-center border border-white/30 rounded-full hover:border-white hover:bg-white/10 transition-colors flex-shrink-0 text-white"
-                      title={`${savedCount} saved courses`}
+                      title="Notifications"
                     >
-                      <IconHeart size={11} className="xl:w-3.5 xl:h-3.5" />
+                      <IconBell size={11} className="xl:w-3.5 xl:h-3.5" />
                       <span 
                         className="badge absolute -top-0.5 -right-0.5 min-w-[0.75rem] h-3 xl:w-3.5 xl:h-3.5 rounded-full text-[7px] xl:text-[9px] font-bold text-white flex items-center justify-center px-0.5"
                         style={{ backgroundColor: 'var(--color-accent)' }}
                       >
                         {savedCount > 99 ? '99+' : savedCount}
                       </span>
-                    </a>
+                    </button>
 
                     {/* Contact Us Button */}
                     <Link 
@@ -540,19 +539,18 @@ const Header = () => {
             {/* Mobile Actions */}
             <div className="mobile-actions flex items-center justify-between pt-3 sm:pt-4 border-t border-gray-200">
               <div className="flex items-center space-x-3 sm:space-x-4">
-                {/* Mobile Wishlist */}
-                <a 
-                  href="#" 
+                {/* Mobile Notifications */}
+                <button 
                   className="icon-btn relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center border border-gray-300 rounded-full hover:border-blue-600 transition-colors"
                 >
-                  <IconHeart size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <IconBell size={16} className="sm:w-[18px] sm:h-[18px]" />
                   <span 
                     className="badge absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full text-[8px] sm:text-xs font-bold text-white flex items-center justify-center"
                     style={{ backgroundColor: 'var(--color-accent)' }}
                   >
                     3
                   </span>
-                </a>
+                </button>
               </div>
 
               {/* Mobile Login/Register */}
