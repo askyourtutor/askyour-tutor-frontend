@@ -10,6 +10,7 @@ import {
   IconStar
 } from '@tabler/icons-react';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
+import { apiFetch } from '../../../shared/services/api';
 
 interface StudentStats {
   totalCourses: number;
@@ -75,63 +76,43 @@ function StudentOverviewTab() {
   const loadStats = async () => {
     try {
       setLoading(true);
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
 
-      // Fetch real data from API
-      const [statsResponse, enrollmentsResponse, paymentsResponse] = await Promise.all([
-        fetch('/api/students/stats', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch('/api/enrollments/my-enrollments', {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        fetch('/api/payments/my-payments', {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+      // Fetch real data from API using apiFetch (handles authentication automatically)
+      // Note: apiFetch automatically adds /api prefix, so paths start without /api
+      const [statsData, enrollments, payments] = await Promise.all([
+        apiFetch<StudentStats>('/students/stats'),
+        apiFetch<Enrollment[]>('/enrollments/my-enrollments'),
+        apiFetch<Payment[]>('/payments/my-payments')
       ]);
 
-      if (statsResponse.ok) {
-        const statsData = await statsResponse.json();
-        setStats(statsData);
-      }
+      setStats(statsData);
 
       // Build recent activity from enrollments and payments
       const activities: RecentActivity[] = [];
       
-      if (enrollmentsResponse.ok) {
-        const enrollments: Enrollment[] = await enrollmentsResponse.json();
-        enrollments.slice(0, 3).forEach((enrollment) => {
-          activities.push({
-            id: `enroll-${enrollment.id}`,
-            type: 'enrollment',
-            title: `Enrolled in ${enrollment.course?.title || 'Course'}`,
-            description: 'Started learning new course',
-            timestamp: new Date(enrollment.enrolledAt),
-            icon: 'book'
-          });
+      enrollments.slice(0, 3).forEach((enrollment) => {
+        activities.push({
+          id: `enroll-${enrollment.id}`,
+          type: 'enrollment',
+          title: `Enrolled in ${enrollment.course?.title || 'Course'}`,
+          description: 'Started learning new course',
+          timestamp: new Date(enrollment.enrolledAt),
+          icon: 'book'
         });
-      }
+      });
 
-      if (paymentsResponse.ok) {
-        const payments: Payment[] = await paymentsResponse.json();
-        payments.slice(0, 2).forEach((payment) => {
-          if (payment.status === 'completed') {
-            activities.push({
-              id: `payment-${payment.id}`,
-              type: 'payment',
-              title: 'Payment Successful',
-              description: `$${payment.amount.toFixed(2)} for ${payment.course?.title || 'Course'}`,
-              timestamp: new Date(payment.createdAt),
-              icon: 'dollar'
-            });
-          }
-        });
-      }
+      payments.slice(0, 2).forEach((payment) => {
+        if (payment.status === 'completed') {
+          activities.push({
+            id: `payment-${payment.id}`,
+            type: 'payment',
+            title: 'Payment Successful',
+            description: `$${payment.amount.toFixed(2)} for ${payment.course?.title || 'Course'}`,
+            timestamp: new Date(payment.createdAt),
+            icon: 'dollar'
+          });
+        }
+      });
 
       // Sort by timestamp
       activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());

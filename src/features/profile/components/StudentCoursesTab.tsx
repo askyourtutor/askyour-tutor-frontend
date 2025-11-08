@@ -9,6 +9,7 @@ import {
   IconChevronRight
 } from '@tabler/icons-react';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
+import { apiFetch } from '../../../shared/services/api';
 
 interface EnrolledCourse {
   id: string;
@@ -44,23 +45,10 @@ function StudentCoursesTab() {
   const loadCourses = async () => {
     try {
       setLoading(true);
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
 
-      // Fetch real enrolled courses from API
-      const response = await fetch('/api/enrollments/my-enrollments', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch enrolled courses');
-      }
-
-      const enrollments = await response.json();
+      // Fetch real enrolled courses from API using apiFetch (handles authentication)
+      // Note: apiFetch automatically adds /api prefix, so path starts without /api
+      const enrollments = await apiFetch<any[]>('/enrollments/my-enrollments');
       
       // Transform enrollments to course format
       const transformedCourses: EnrolledCourse[] = enrollments.map((enrollment: any) => ({
@@ -176,7 +164,7 @@ function StudentCoursesTab() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {filteredCourses.map((course) => {
             const statusColors = {
               'completed': { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', icon: IconCheck },
@@ -190,7 +178,7 @@ function StudentCoursesTab() {
               <div
                 key={course.id}
                 className="bg-white rounded-sm border border-gray-200 hover:border-gray-300 transition-all cursor-pointer group overflow-hidden"
-                onClick={() => navigate(`/courses/${course.id}`)}
+                onClick={() => navigate(`/course/${course.id}`)}
               >
                 {/* Course Image - Compact */}
                 <div className="h-24 bg-gradient-to-br from-blue-500 to-purple-600 relative overflow-hidden">

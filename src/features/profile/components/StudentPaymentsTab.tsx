@@ -10,6 +10,7 @@ import {
   IconX
 } from '@tabler/icons-react';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
+import { apiFetch } from '../../../shared/services/api';
 
 interface Payment {
   id: string;
@@ -51,23 +52,10 @@ function StudentPaymentsTab() {
   const loadPayments = async () => {
     try {
       setLoading(true);
-      
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
 
-      // Fetch real payment data from API
-      const response = await fetch('/api/payments/my-payments', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch payment history');
-      }
-
-      const paymentsData = await response.json();
+      // Fetch real payment data from API using apiFetch (handles authentication)
+      // Note: apiFetch automatically adds /api prefix, so path starts without /api
+      const paymentsData = await apiFetch<any[]>('/payments/my-payments');
       
       // Transform payments to expected format
       const transformedPayments: Payment[] = paymentsData.map((payment: any) => ({
