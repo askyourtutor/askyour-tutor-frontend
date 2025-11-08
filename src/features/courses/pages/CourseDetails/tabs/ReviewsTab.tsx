@@ -143,12 +143,15 @@ const ReviewsTab: React.FC<ReviewsTabProps> = ({ course, renderStars }) => {
           </h3>
           <p className="text-xs sm:text-sm text-gray-600">Based on {headerCount} reviews</p>
         </div>
-        <button 
-          onClick={() => setShowReviewForm(!showReviewForm)}
-          className="text-[10px] sm:text-xs md:text-sm text-blue-600 hover:text-blue-700 font-bold bg-blue-50 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 rounded-sm hover:bg-blue-100 transition-all border border-blue-200 self-start sm:self-auto"
-        >
-          {showReviewForm ? 'Cancel' : 'Write a Review'}
-        </button>
+        {/* Only students can write reviews */}
+        {user?.role === 'STUDENT' && (
+          <button 
+            onClick={() => setShowReviewForm(!showReviewForm)}
+            className="text-[10px] sm:text-xs md:text-sm text-blue-600 hover:text-blue-700 font-bold bg-blue-50 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 md:py-2.5 rounded-sm hover:bg-blue-100 transition-all border border-blue-200 self-start sm:self-auto"
+          >
+            {showReviewForm ? 'Cancel' : 'Write a Review'}
+          </button>
+        )}
       </div>
 
       {/* Inline Write Review Form */}
