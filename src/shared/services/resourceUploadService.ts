@@ -72,10 +72,11 @@ export async function addResourceToCourse(
 
 /**
  * Get all resources for a course
+ * Uses the public student-accessible endpoint
  */
 export async function getCourseResources(courseId: string): Promise<Resource[]> {
   try {
-    const response = await apiFetch(`/tutor-dashboard/courses/${courseId}/resources`) as {
+    const response = await apiFetch(`/courses/${courseId}/resources`) as {
       success: boolean;
       resources: Resource[];
     };

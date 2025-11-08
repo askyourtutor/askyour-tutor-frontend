@@ -11,6 +11,7 @@ import {
 } from '@tabler/icons-react';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import { apiFetch } from '../../../shared/services/api';
+import { generateReceipt } from '../../../shared/utils/receiptGenerator';
 
 interface Payment {
   id: string;
@@ -293,13 +294,26 @@ function StudentPaymentsTab() {
                       <div className="text-[10px] text-gray-900">{formatDate(payment.createdAt)}</div>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
-                      {payment.receipt && payment.status === 'completed' && (
+                      {payment.status === 'completed' ? (
                         <button
-                          onClick={() => window.open(payment.receipt, '_blank')}
-                          className="inline-flex items-center text-blue-600 hover:text-blue-700 transition-colors"
+                          onClick={() => {
+                            // Generate and download real receipt
+                            generateReceipt({
+                              transactionId: payment.transactionId,
+                              courseTitle: payment.courseTitle,
+                              amount: payment.amount,
+                              currency: payment.currency,
+                              paymentMethod: payment.paymentMethod,
+                              createdAt: payment.createdAt
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 px-2 py-1 text-[9px] font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
                         >
-                          <IconDownload size={12} />
+                          <IconDownload size={11} />
+                          <span>Receipt</span>
                         </button>
+                      ) : (
+                        <span className="text-[9px] text-gray-400">N/A</span>
                       )}
                     </td>
                   </tr>
