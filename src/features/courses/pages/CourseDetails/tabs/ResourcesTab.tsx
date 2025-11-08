@@ -28,8 +28,16 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrol
   const [isLoadingResources, setIsLoadingResources] = useState(true);
 
   // Fetch resources from API when tab is mounted
+  // Only fetch if user is enrolled or showEnrollmentFeatures is false (tutor/admin view)
   useEffect(() => {
     const loadResources = async () => {
+      // Don't fetch resources if user is not enrolled (will show lock UI instead)
+      if (showEnrollmentFeatures && !isEnrolled) {
+        setIsLoadingResources(false);
+        setResources([]);
+        return;
+      }
+
       try {
         setIsLoadingResources(true);
         const data = await getCourseResources(course.id);
@@ -52,7 +60,7 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrol
     };
 
     loadResources();
-  }, [course.id]);
+  }, [course.id, isEnrolled, showEnrollmentFeatures]);
 
   // Map backend resource type to frontend type
   const mapResourceType = (type: string): CourseResource['type'] => {
@@ -134,7 +142,8 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrol
         </div>
       )}
 
-      {/* Show resources to enrolled students OR tutors/admins (showEnrollmentFeatures === false) */}
+      {/* Show resources ONLY to enrolled students OR tutors/admins (showEnrollmentFeatures === false) */}
+      {/* Non-enrolled users will only see the lock above, never the empty state */}
       {(isEnrolled || !showEnrollmentFeatures) && (
         <>
           {isLoadingResources ? (

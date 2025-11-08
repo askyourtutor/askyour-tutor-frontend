@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconArrowLeft, IconBook, IconCheck, IconHeart, IconShare3 } from '@tabler/icons-react';
+import { IconArrowLeft, IconBook, IconCheck, IconShare3 } from '@tabler/icons-react';
 
 interface HeaderBarProps {
   title: string;
@@ -15,13 +15,9 @@ interface HeaderBarProps {
 
 const HeaderBar: React.FC<HeaderBarProps> = ({
   title,
-  isSaved,
   isEnrolled,
-  isEnrolling,
   onBack,
-  onSave,
   onShare,
-  onEnroll,
   showEnrollmentFeatures = true,
 }) => {
   return (
@@ -49,18 +45,13 @@ const HeaderBar: React.FC<HeaderBarProps> = ({
 
           {/* Right: Actions - Responsive spacing and sizing */}
           <div className="flex items-center gap-0.5 xs:gap-1 sm:gap-1.5 flex-shrink-0">
-            {/* Save button */}
-            <button
-              onClick={onSave}
-              className={`p-1 xs:p-1.5 rounded-md transition-all duration-200 ${
-                isSaved 
-                  ? 'text-red-600 bg-red-50 hover:bg-red-100' 
-                  : 'text-gray-500 hover:text-red-600 hover:bg-gray-100'
-              }`}
-              title={isSaved ? 'Remove from saved' : 'Save course'}
-            >
-              <IconHeart size={14} className="xs:w-4 xs:h-4 sm:w-5 sm:h-5" strokeWidth={isSaved ? 0 : 2} fill={isSaved ? 'currentColor' : 'none'} />
-            </button>
+            {/* Enrolled status badge - Only for enrolled users */}
+            {showEnrollmentFeatures && isEnrolled && (
+              <div className="inline-flex items-center gap-1 xs:gap-1.5 bg-green-50 text-green-700 border border-green-200 px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 rounded-md font-medium text-xs xs:text-sm mr-1">
+                <IconCheck size={14} className="xs:w-4 xs:h-4 stroke-2" />
+                <span>Enrolled</span>
+              </div>
+            )}
 
             {/* Share button */}
             <button
@@ -71,27 +62,7 @@ const HeaderBar: React.FC<HeaderBarProps> = ({
               <IconShare3 size={14} className="xs:w-4 xs:h-4 sm:w-5 sm:h-5" />
             </button>
 
-            {/* Enroll/Enrolled button - Only for users with enrollment features */}
-            {showEnrollmentFeatures && !isEnrolled && (
-              <button
-                onClick={onEnroll}
-                disabled={isEnrolling}
-                className="inline-flex items-center gap-1 xs:gap-1.5 bg-blue-600 text-white px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 rounded-md font-medium hover:bg-blue-700 transition-all duration-200 shadow-sm hover:shadow-md ml-0.5 xs:ml-1 disabled:opacity-50 disabled:cursor-not-allowed text-xs xs:text-sm"
-              >
-                <span className="hidden xs:inline">
-                  {isEnrolling ? 'Enrolling...' : 'Enroll'}
-                </span>
-                <span className="xs:hidden">
-                  {isEnrolling ? '...' : 'Join'}
-                </span>
-              </button>
-            )}
-            {showEnrollmentFeatures && isEnrolled && (
-              <div className="inline-flex items-center gap-1 xs:gap-1.5 bg-green-50 text-green-700 border border-green-200 px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 rounded-md font-medium ml-0.5 xs:ml-1 text-xs xs:text-sm">
-                <IconCheck size={14} className="xs:w-4 xs:h-4 stroke-2" />
-                <span>Enrolled</span>
-              </div>
-            )}
+            {/* Enroll/Enrolled button removed - enrollment happens via course content */}
           </div>
         </div>
       </div>
