@@ -19,6 +19,7 @@ import { createCourse, createLesson } from '../../../shared/services/tutorDashbo
 import { getSubjects, type Subject } from '../../../shared/services/subjectsService';
 import videoUploadService, { type VideoUploadProgress } from '../../../shared/services/videoUploadService';
 import { uploadCourseImage } from '../../../shared/services/imageUploadService';
+import { uploadAndAddResource } from '../../../shared/services/resourceUploadService';
 
 interface Lesson {
   id: string;
@@ -348,7 +349,7 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
       }
 
       // Show success and close immediately (don't wait for video uploads)
-      setSubmitSuccess('Course created successfully! Videos are uploading in the background.');
+      setSubmitSuccess('Course created successfully! Videos and resources are uploading in the background.');
       
       // Close modal after brief delay
       setTimeout(() => {
@@ -359,6 +360,11 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
       // Step 3: Upload videos in the background (async, non-blocking)
       if (videoUploads.length > 0) {
         uploadVideosInBackground(videoUploads);
+      }
+
+      // Step 4: Upload resources in the background (async, non-blocking)
+      if (formData.resourceFiles.length > 0) {
+        uploadResourcesInBackground(createdCourse.id, formData.resourceFiles);
       }
       
     } catch (error) {
@@ -393,6 +399,24 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
     }
     
     console.log(`🎉 All background video uploads completed`);
+  };
+
+  // Background resource upload function (doesn't block UI)
+  const uploadResourcesInBackground = async (courseId: string, files: File[]) => {
+    for (const file of files) {
+      try {
+        console.log(`📤 Background upload started for resource: ${file.name}`);
+        
+        await uploadAndAddResource(courseId, file);
+        
+        console.log(`✅ Resource uploaded successfully: ${file.name}`);
+      } catch (uploadError) {
+        console.error(`❌ Background upload failed for resource ${file.name}:`, uploadError);
+        // Continue with other uploads even if one fails
+      }
+    }
+    
+    console.log(`🎉 All background resource uploads completed`);
   };
 
   const handleClose = () => {

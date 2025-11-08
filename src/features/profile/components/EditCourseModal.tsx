@@ -12,7 +12,9 @@ import {
   IconTrash,
   IconChevronUp,
   IconChevronDown,
-  IconPlayerPlay
+  IconPlayerPlay,
+  IconFile,
+  IconFileText
 } from '@tabler/icons-react';
 import {
   updateCourse,
@@ -25,6 +27,7 @@ import {
 import { getSubjects, type Subject } from '../../../shared/services/subjectsService';
 import videoUploadService, { type VideoUploadProgress } from '../../../shared/services/videoUploadService';
 import { uploadCourseImageForCourse } from '../../../shared/services/imageUploadService';
+import { uploadAndAddResource, getCourseResources, deleteResource, type Resource } from '../../../shared/services/resourceUploadService';
 
 interface Lesson {
   id?: string;
@@ -52,6 +55,8 @@ interface CourseFormData {
   imagePreview: string;
   isActive: boolean;
   lessons: Lesson[];
+  resourceFiles: File[];
+  existingResources: Resource[];
 }
 
 interface EditCourseModalProps {
@@ -72,7 +77,9 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
     imageFile: null,
     imagePreview: course.image || '',
     isActive: course.isActive,
-    lessons: []
+    lessons: [],
+    resourceFiles: [],
+    existingResources: []
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -132,11 +139,21 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
     }
   }, [course.id]);
 
+  const loadResources = useCallback(async () => {
+    try {
+      const resourcesData = await getCourseResources(course.id);
+      setFormData(prev => ({ ...prev, existingResources: resourcesData }));
+    } catch (error) {
+      console.error('Failed to load resources:', error);
+    }
+  }, [course.id]);
+
   useEffect(() => {
     if (!isOpen) return;
     
     loadSubjects();
     loadLessons();
+    loadResources();
     
     // Reset form to course data
     setFormData({
@@ -148,7 +165,9 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
       imageFile: null,
       imagePreview: course.image || '',
       isActive: course.isActive,
-      lessons: []
+      lessons: [],
+      resourceFiles: [],
+      existingResources: []
     });
     setStep(1);
     setErrors({});
@@ -169,6 +188,51 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
         }));
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleResourceFileSelect = (files: FileList | null) => {
+    if (!files) return;
+
+    const validFiles: File[] = [];
+    const maxSize = 50 * 1024 * 1024; // 50MB
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > maxSize) {
+        alert(`File ${file.name} is too large. Maximum size is 50MB.`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (validFiles.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        resourceFiles: [...prev.resourceFiles, ...validFiles]
+      }));
+    }
+  };
+
+  const removeResourceFile = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      resourceFiles: prev.resourceFiles.filter((_, i) => i !== index)
+    }));
+  };
+
+  const removeExistingResource = async (resourceId: string) => {
+    if (!confirm('Are you sure you want to delete this resource?')) return;
+
+    try {
+      await deleteResource(course.id, resourceId);
+      setFormData(prev => ({
+        ...prev,
+        existingResources: prev.existingResources.filter(r => r.id !== resourceId)
+      }));
+    } catch (error) {
+      console.error('Failed to delete resource:', error);
+      alert('Failed to delete resource');
     }
   };
 
@@ -365,7 +429,7 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
       }
 
       // Show success and close immediately (don't wait for video uploads)
-      setSubmitSuccess('Course updated successfully! Videos are uploading in the background.');
+      setSubmitSuccess('Course updated successfully! Videos and resources are uploading in the background.');
       
       // Close modal after brief delay
       setTimeout(() => {
@@ -377,6 +441,11 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
       if (videoUploads.length > 0) {
         // Start background uploads without blocking
         uploadVideosInBackground(videoUploads);
+      }
+
+      // Step 4: Upload new resources in the background (async, non-blocking)
+      if (formData.resourceFiles.length > 0) {
+        uploadResourcesInBackground(course.id, formData.resourceFiles);
       }
       
     } catch (error) {
@@ -410,6 +479,24 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
     console.log(`🎉 All background video uploads completed`);
   };
 
+  // Background resource upload function (doesn't block UI)
+  const uploadResourcesInBackground = async (courseId: string, files: File[]) => {
+    for (const file of files) {
+      try {
+        console.log(`📤 Background upload started for resource: ${file.name}`);
+        
+        await uploadAndAddResource(courseId, file);
+        
+        console.log(`✅ Resource uploaded successfully: ${file.name}`);
+      } catch (uploadError) {
+        console.error(`❌ Background upload failed for resource ${file.name}:`, uploadError);
+        // Continue with other uploads even if one fails
+      }
+    }
+    
+    console.log(`🎉 All background resource uploads completed`);
+  };
+
   const handleClose = () => {
     setFormData({
       title: course.title,
@@ -420,7 +507,9 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
       imageFile: null,
       imagePreview: course.image || '',
       isActive: course.isActive,
-      lessons: []
+      lessons: [],
+      resourceFiles: [],
+      existingResources: []
     });
     setErrors({});
     setSubmitError('');
@@ -677,6 +766,89 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
                     </label>
                     <p className="text-xs text-gray-500 text-center">Recommended: 1200x600px, JPG or PNG, max 5MB</p>
                   </div>
+                </div>
+
+                {/* Course Resources */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4 md:p-6">
+                  <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2">
+                    <span className="flex items-center justify-center w-6 h-6 bg-gray-900 text-white rounded-full text-xs">3</span>
+                    Course Resources
+                  </h3>
+
+                  {/* Existing Resources */}
+                  {formData.existingResources.length > 0 && (
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Current Resources</h4>
+                      <div className="space-y-2">
+                        {formData.existingResources.map((resource) => (
+                          <div key={resource.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <div className="flex items-center gap-3">
+                              <IconFile size={20} className="text-gray-600" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{resource.title}</p>
+                                <p className="text-xs text-gray-500 capitalize">{resource.type} • {resource.sizeLabel}</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => removeExistingResource(resource.id)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete resource"
+                            >
+                              <IconTrash size={18} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* New Resource Files Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Upload New Resource Files
+                    </label>
+                    <label className="cursor-pointer flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-all">
+                      <IconUpload size={20} className="text-gray-600" />
+                      <span className="text-sm text-gray-600">Upload PDF, Documents, or Images</span>
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.txt,.jpg,.jpeg,.png,.webp,.gif"
+                        onChange={(e) => handleResourceFileSelect(e.target.files)}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-xs text-gray-500 mt-1.5">Max 50MB per file. Supported: PDF, DOC, PPT, XLS, ZIP, TXT, Images</p>
+                  </div>
+
+                  {/* Uploaded Files Preview */}
+                  {formData.resourceFiles.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        New Files to Upload ({formData.resourceFiles.length})
+                      </h4>
+                      <div className="space-y-2">
+                        {formData.resourceFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="flex items-center gap-3">
+                              <IconFileText size={20} className="text-blue-600" />
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{file.name}</p>
+                                <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => removeResourceFile(index)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Remove file"
+                            >
+                              <IconX size={18} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
