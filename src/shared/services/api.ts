@@ -192,8 +192,9 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
   if (!res.ok) {
     let message = 'Request failed';
     try {
-      const err = await res.json() as { message?: string };
-      message = err?.message || message;
+      const err = await res.json() as { message?: string; error?: string };
+      // Try both 'error' and 'message' fields (backend uses 'error')
+      message = err?.error || err?.message || message;
     } catch {
       /* ignore json parse error */
     }

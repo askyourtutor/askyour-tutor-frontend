@@ -29,6 +29,7 @@ function AdminSessionsTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fetchSessions = async () => {
     try {
@@ -51,10 +52,16 @@ function AdminSessionsTab() {
   const handleStatusUpdate = async (sessionId: string, status: 'CONFIRMED' | 'CANCELLED' | 'COMPLETED') => {
     try {
       setUpdatingId(sessionId);
+      setErrorMessage(null); // Clear any previous errors
       await updateSessionStatus(sessionId, status);
       await fetchSessions();
     } catch (error) {
       console.error('Failed to update session:', error);
+      // Show error message inline
+      const errorMsg = error instanceof Error ? error.message : 'Failed to update session status';
+      setErrorMessage(errorMsg);
+      // Auto-clear error after 5 seconds
+      setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setUpdatingId(null);
     }
@@ -63,13 +70,17 @@ function AdminSessionsTab() {
   const handleStartSession = async (sessionId: string) => {
     try {
       setUpdatingId(sessionId);
+      setErrorMessage(null); // Clear any previous errors
       const videoRoom = await createVideoRoom(sessionId);
       // Open the video room in a new window
       window.open(videoRoom.roomUrl, '_blank', 'noopener,noreferrer');
       await fetchSessions(); // Refresh to show the meeting link
     } catch (error) {
       console.error('Failed to start session:', error);
-      alert('Failed to create video room. Please try again.');
+      const errorMsg = error instanceof Error ? error.message : 'Failed to create video room. Please try again.';
+      setErrorMessage(errorMsg);
+      // Auto-clear error after 5 seconds
+      setTimeout(() => setErrorMessage(null), 5000);
     } finally {
       setUpdatingId(null);
     }
@@ -99,6 +110,28 @@ function AdminSessionsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Header */}
+      <div className="mb-4">
+        <h2 className="text-2xl font-bold text-gray-900">My Teaching Sessions</h2>
+        <p className="text-sm text-gray-600 mt-1">Manage sessions for courses you teach</p>
+      </div>
+
+      {/* Error Message */}
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-sm flex items-start gap-2">
+          <IconX size={20} className="flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-medium text-sm">{errorMessage}</p>
+          </div>
+          <button 
+            onClick={() => setErrorMessage(null)}
+            className="flex-shrink-0 text-red-500 hover:text-red-700"
+          >
+            <IconX size={18} />
+          </button>
+        </div>
+      )}
+
       {/* Session Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-sm p-3 border border-gray-200">
@@ -320,18 +353,30 @@ function AdminSessionsTab() {
                               Start Class
                             </button>
                           )}
-                          <button 
-                            onClick={() => handleStatusUpdate(session.id, 'COMPLETED')}
-                            disabled={updatingId === session.id}
-                            className="px-3 py-1 bg-gray-900 text-white text-xs rounded-sm hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-                          >
-                            {updatingId === session.id ? (
-                              <IconLoader size={12} className="animate-spin" />
-                            ) : (
+                          {/* Only allow completing past sessions */}
+                          {new Date(session.scheduledAt) <= new Date() ? (
+                            <button 
+                              onClick={() => handleStatusUpdate(session.id, 'COMPLETED')}
+                              disabled={updatingId === session.id}
+                              className="px-3 py-1 bg-gray-900 text-white text-xs rounded-sm hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                            >
+                              {updatingId === session.id ? (
+                                <IconLoader size={12} className="animate-spin" />
+                              ) : (
+                                <IconCheck size={12} />
+                              )}
+                              Complete
+                            </button>
+                          ) : (
+                            <button 
+                              disabled
+                              title="Cannot mark future sessions as completed"
+                              className="px-3 py-1 bg-gray-200 text-gray-400 text-xs rounded-sm cursor-not-allowed flex items-center gap-1"
+                            >
                               <IconCheck size={12} />
-                            )}
-                            Complete
-                          </button>
+                              Complete
+                            </button>
+                          )}
                         </>
                       )}
                       {(session.status === 'COMPLETED' || session.status === 'CANCELLED') && (
