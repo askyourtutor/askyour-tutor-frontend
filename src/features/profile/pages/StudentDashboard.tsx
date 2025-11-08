@@ -33,45 +33,43 @@ function StudentDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Student Dashboard</h1>
-          <p className="text-gray-600 mt-1">Manage your courses, payments, and settings</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Page Header with Tabs - Same Row */}
+        <div className="mb-6 sm:mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Dashboard</h1>
+            <p className="text-sm sm:text-base text-gray-500 mt-1">Track your learning journey</p>
+          </div>
 
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
-          <div className="border-b border-gray-200">
-            <nav className="flex flex-wrap -mb-px" aria-label="Tabs">
-              {tabs.map((tab) => {
-                const Icon = tab.icon;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`
-                      flex items-center gap-2 px-4 sm:px-6 py-3 sm:py-4 
-                      border-b-2 font-medium text-sm transition-colors
-                      ${activeTab === tab.id
-                        ? 'border-blue-600 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }
-                    `}
-                  >
-                    <Icon size={18} className="flex-shrink-0" />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                    <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
-                  </button>
-                );
-              })}
-            </nav>
+          {/* Tab Navigation - Compact Pill Style */}
+          <div className="inline-flex bg-white rounded-sm p-0.5 shadow-sm border border-gray-200">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-sm
+                    font-medium text-[10px] sm:text-xs transition-all duration-200
+                    ${activeTab === tab.id
+                      ? 'bg-gray-900 text-white shadow-md'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }
+                  `}
+                >
+                  <Icon size={14} className="flex-shrink-0" />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Tab Content */}
-        <div>
+        {/* Tab Content - Clean Container */}
+        <div className="animate-fadeIn">
           {activeTab === 'overview' && <StudentOverviewTab />}
           {activeTab === 'courses' && <StudentCoursesTab />}
           {activeTab === 'payments' && <StudentPaymentsTab />}

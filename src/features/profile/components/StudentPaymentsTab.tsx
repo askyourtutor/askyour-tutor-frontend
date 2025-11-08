@@ -52,71 +52,40 @@ function StudentPaymentsTab() {
     try {
       setLoading(true);
       
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/students/payments', {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // const data = await response.json();
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      // Fetch real payment data from API
+      const response = await fetch('/api/payments/my-payments', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch payment history');
+      }
+
+      const paymentsData = await response.json();
       
-      // Mock data
-      const mockPayments: Payment[] = [
-        {
-          id: '1',
-          transactionId: 'TXN-2024-001',
-          courseTitle: 'Advanced JavaScript Programming',
-          amount: 199.99,
-          currency: 'USD',
-          status: 'completed',
-          paymentMethod: 'Credit Card',
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-          receipt: 'https://example.com/receipt1.pdf'
-        },
-        {
-          id: '2',
-          transactionId: 'TXN-2024-002',
-          courseTitle: 'React Mastery Course',
-          amount: 299.99,
-          currency: 'USD',
-          status: 'completed',
-          paymentMethod: 'PayPal',
-          createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-          receipt: 'https://example.com/receipt2.pdf'
-        },
-        {
-          id: '3',
-          transactionId: 'TXN-2024-003',
-          courseTitle: 'Python for Data Science',
-          amount: 249.99,
-          currency: 'USD',
-          status: 'completed',
-          paymentMethod: 'Credit Card',
-          createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000)
-        },
-        {
-          id: '4',
-          transactionId: 'TXN-2024-004',
-          courseTitle: 'Web Design Fundamentals',
-          amount: 149.99,
-          currency: 'USD',
-          status: 'pending',
-          paymentMethod: 'Bank Transfer',
-          createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000)
-        },
-        {
-          id: '5',
-          transactionId: 'TXN-2024-005',
-          courseTitle: 'Database Design Course',
-          amount: 179.99,
-          currency: 'USD',
-          status: 'failed',
-          paymentMethod: 'Credit Card',
-          createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        }
-      ];
+      // Transform payments to expected format
+      const transformedPayments: Payment[] = paymentsData.map((payment: any) => ({
+        id: payment.id,
+        transactionId: payment.stripeSessionId || payment.id,
+        courseTitle: payment.course?.title || 'Unknown Course',
+        amount: payment.amount,
+        currency: payment.currency || 'USD',
+        status: payment.status,
+        paymentMethod: payment.paymentMethod || 'Card',
+        createdAt: new Date(payment.createdAt),
+        receipt: payment.receiptUrl
+      }));
       
-      setPayments(mockPayments);
+      setPayments(transformedPayments);
     } catch (error) {
       console.error('Failed to load payment history:', error);
+      setPayments([]);
     } finally {
       setLoading(false);
     }

@@ -45,71 +45,42 @@ function StudentCoursesTab() {
     try {
       setLoading(true);
       
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/students/enrolled-courses', {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // const data = await response.json();
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      // Fetch real enrolled courses from API
+      const response = await fetch('/api/enrollments/my-enrollments', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch enrolled courses');
+      }
+
+      const enrollments = await response.json();
       
-      // Mock data
-      const mockCourses: EnrolledCourse[] = [
-        {
-          id: '1',
-          title: 'Advanced JavaScript Programming',
-          description: 'Master modern JavaScript with ES6+, async programming, and more',
-          image: null,
-          tutorName: 'John Doe',
-          progress: 65,
-          totalLessons: 20,
-          completedLessons: 13,
-          lastAccessed: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          status: 'in-progress',
-          enrolledAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-        },
-        {
-          id: '2',
-          title: 'React Mastery Course',
-          description: 'Build modern web applications with React and TypeScript',
-          image: null,
-          tutorName: 'Jane Smith',
-          progress: 100,
-          totalLessons: 15,
-          completedLessons: 15,
-          lastAccessed: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-          status: 'completed',
-          enrolledAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
-        },
-        {
-          id: '3',
-          title: 'Python for Data Science',
-          description: 'Learn Python programming and data analysis fundamentals',
-          image: null,
-          tutorName: 'Mike Johnson',
-          progress: 30,
-          totalLessons: 25,
-          completedLessons: 8,
-          lastAccessed: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-          status: 'in-progress',
-          enrolledAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000)
-        },
-        {
-          id: '4',
-          title: 'Web Design Fundamentals',
-          description: 'Create beautiful and responsive web designs',
-          image: null,
-          tutorName: 'Sarah Williams',
-          progress: 0,
-          totalLessons: 18,
-          completedLessons: 0,
-          lastAccessed: null,
-          status: 'not-started',
-          enrolledAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-        }
-      ];
+      // Transform enrollments to course format
+      const transformedCourses: EnrolledCourse[] = enrollments.map((enrollment: any) => ({
+        id: enrollment.course?.id || enrollment.id,
+        title: enrollment.course?.title || 'Untitled Course',
+        description: enrollment.course?.description || '',
+        image: enrollment.course?.image || null,
+        tutorName: enrollment.course?.tutor?.name || enrollment.course?.tutor?.email?.split('@')[0] || 'Unknown Tutor',
+        progress: enrollment.progress || 0,
+        totalLessons: enrollment.course?.lessons?.length || 0,
+        completedLessons: Math.floor(((enrollment.progress || 0) / 100) * (enrollment.course?.lessons?.length || 0)),
+        lastAccessed: enrollment.lastAccessedAt ? new Date(enrollment.lastAccessedAt) : null,
+        status: enrollment.progress === 100 ? 'completed' : enrollment.progress > 0 ? 'in-progress' : 'not-started',
+        enrolledAt: new Date(enrollment.enrolledAt)
+      }));
       
-      setCourses(mockCourses);
+      setCourses(transformedCourses);
     } catch (error) {
       console.error('Failed to load enrolled courses:', error);
+      setCourses([]);
     } finally {
       setLoading(false);
     }
