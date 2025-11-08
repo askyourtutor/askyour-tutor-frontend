@@ -6,7 +6,9 @@ import {
   IconCalendarEvent, 
   IconChartBar, 
   IconSettings,
-  IconLogout
+  IconLogout,
+  IconMessageCircle,
+  IconCurrencyDollar
 } from '@tabler/icons-react';
 import { 
   adminService,
@@ -24,6 +26,8 @@ import AdminUsersTab from '../components/AdminUsersTab';
 import AdminTutorsTab from '../components/AdminTutorsTab';
 import AdminCoursesTab from '../components/AdminCoursesTab';
 import TutorCoursesTab from '../components/TutorCoursesTab';
+import AdminQnATab from '../components/AdminQnATab';
+import AdminPaymentsTab from '../components/AdminPaymentsTab';
 import CreateCourseModal from '../components/CreateCourseModal';
 import EditCourseModal from '../components/EditCourseModal';
 import AdminProfileSettings from '../components/AdminProfileSettings';
@@ -34,9 +38,9 @@ function AdminDashboard() {
   const { user, logout } = useAuth();
   
   // Initialize activeTab from localStorage or default to 'dashboard'
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'settings'>(() => {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'qna' | 'payments' | 'settings'>(() => {
     const savedTab = localStorage.getItem(ADMIN_CONSTANTS.STORAGE_KEY_ACTIVE_TAB);
-    return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'settings') || ADMIN_CONSTANTS.DEFAULT_TAB;
+    return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'qna' | 'payments' | 'settings') || ADMIN_CONSTANTS.DEFAULT_TAB;
   });
   
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -452,6 +456,30 @@ function AdminDashboard() {
                 {myCourses.length}
               </span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('qna')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                activeTab === 'qna' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <IconMessageCircle size={18} className="mr-3 flex-shrink-0" />
+              <span>Q&A</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('payments')}
+              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                activeTab === 'payments' 
+                  ? 'bg-gray-900 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <IconCurrencyDollar size={18} className="mr-3 flex-shrink-0" />
+              <span>Payments</span>
+            </button>
             
             <div className="pt-4 mt-4 border-t border-gray-200">
               <button
@@ -489,7 +517,7 @@ function AdminDashboard() {
               onApproveTutor={(id) => handleApprovalAction(id, 'approve')}
               onRejectTutor={(id) => handleApprovalAction(id, 'reject', 'Rejected by admin')}
               onBulkApprove={handleBulkApprove}
-              onNavigate={(tab) => setActiveTab(tab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'settings')}
+              onNavigate={(tab) => setActiveTab(tab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'qna' | 'payments' | 'settings')}
             />
           )}
           {activeTab === 'users' && (
@@ -545,6 +573,8 @@ function AdminDashboard() {
               )}
             </>
           )}
+          {activeTab === 'qna' && <AdminQnATab />}
+          {activeTab === 'payments' && <AdminPaymentsTab />}
           {activeTab === 'settings' && (
             <AdminProfileSettings onProfileUpdate={fetchDashboardData} />
           )}
