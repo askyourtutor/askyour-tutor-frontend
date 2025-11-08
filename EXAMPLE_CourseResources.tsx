@@ -2,7 +2,7 @@
 // Location: client/src/features/courses/components/CourseResources.tsx
 
 import React, { useState, useEffect } from 'react';
-import { apiFetch } from '@/shared/services/api';
+import { apiFetch } from './src/shared/services/api';
 
 interface Resource {
   id: string;
@@ -33,10 +33,6 @@ export const CourseResources: React.FC<CourseResourcesProps> = ({ courseId }) =>
   const [linkType, setLinkType] = useState<'link' | 'video'>('link');
 
   // Load resources
-  useEffect(() => {
-    loadResources();
-  }, [courseId]);
-
   const loadResources = async () => {
     try {
       setIsLoading(true);
@@ -52,6 +48,11 @@ export const CourseResources: React.FC<CourseResourcesProps> = ({ courseId }) =>
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadResources();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseId]);
 
   const handleFileUpload = async () => {
     if (!file) return;
