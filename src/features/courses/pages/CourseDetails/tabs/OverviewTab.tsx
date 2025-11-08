@@ -147,108 +147,113 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
       {/* Available Tutors Section */}
       <div className="animate-fadeIn">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 mb-2 sm:mb-3 md:mb-4">
-          <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-900 flex items-center gap-1.5 sm:gap-2">
-            <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-indigo-100 rounded-sm flex items-center justify-center">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+          <h3 className="text-xs sm:text-sm md:text-base font-bold text-gray-900 flex items-center gap-1.5">
+            <div className="w-6 h-6 sm:w-7 sm:h-7 bg-indigo-100 rounded-sm flex items-center justify-center">
               <IconUsers size={14} className="sm:w-4 sm:h-4 text-indigo-600" />
             </div>
             <span>Available Tutors for This Course</span>
           </h3>
-          <button className="text-[11px] sm:text-xs md:text-sm text-indigo-600 hover:text-indigo-700 font-bold bg-indigo-50 px-2.5 sm:px-3 md:px-4 py-1 sm:py-1.5 rounded-sm hover:bg-indigo-100 transition-all border border-indigo-200 self-start sm:self-auto">
+          <button className="text-[10px] sm:text-xs text-indigo-600 hover:text-indigo-700 font-semibold bg-indigo-50 px-2.5 py-1 rounded-sm hover:bg-indigo-100 transition-all border border-indigo-200 self-start sm:self-auto">
             View All Tutors
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 md:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
           {/* Tutor Card 1 - Primary Tutor */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-sm p-2 sm:p-2.5 md:p-3 border-2 border-blue-300 hover:border-blue-400 transition-all duration-300 group">
-            <div className="flex items-start gap-3 mb-3">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-sm p-2.5 sm:p-3 border-2 border-blue-300 hover:border-blue-400 transition-all duration-200 hover:shadow-sm">
+            <div className="flex items-start gap-2 sm:gap-2.5 mb-2">
               <img
                 src={getAvatarUrl(course.tutor.avatar)}
                 alt={course.tutor.name}
-                className="w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-blue-400"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-sm object-cover border-2 border-blue-400"
               />
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-bold text-gray-900 text-[11px] sm:text-xs md:text-sm truncate">{course.tutor.name}</h4>
-                  <span className="px-1.5 py-0.5 bg-blue-600 text-white text-[9px] sm:text-[10px] font-bold rounded-sm">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <h4 className="font-bold text-gray-900 text-xs sm:text-sm truncate">{course.tutor.name}</h4>
+                  <span className="px-1.5 py-0.5 bg-blue-600 text-white text-[8px] sm:text-[9px] font-bold rounded-sm whitespace-nowrap">
                     TEACHING
                   </span>
                 </div>
-                <div className="flex items-center gap-1 mb-1">
+                <div className="flex items-center gap-0.5 mb-0.5">
                   {renderStars(course.rating)}
-                  <span className="text-[10px] sm:text-xs text-gray-700 font-semibold ml-0.5 sm:ml-1">{course.rating.toFixed(1)}</span>
+                  <span className="text-[10px] sm:text-xs text-gray-700 font-semibold ml-1">{course.rating.toFixed(1)}</span>
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-xs text-gray-600">Starting from</span>
-              <span className="text-sm sm:text-base md:text-lg font-bold text-blue-600">${course.price}/hr</span>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] sm:text-xs text-gray-600">Starting from</span>
+              <span className="text-base sm:text-lg font-bold text-blue-600">${course.price}<span className="text-xs">/hr</span></span>
             </div>
-            <button onClick={onBookSession} className="w-full bg-blue-600 text-white py-1 sm:py-1.5 md:py-2 rounded-sm font-bold text-[11px] sm:text-xs md:text-sm hover:bg-blue-700 transition-all hover:shadow-md">
+            <button onClick={onBookSession} className="w-full bg-blue-600 text-white py-1.5 rounded-sm font-semibold text-[11px] sm:text-xs hover:bg-blue-700 transition-colors">
               Book Session
             </button>
           </div>
+
           {/* Additional Tutors from API */}
           {course.additionalTutors?.map((tutor, idx) => (
-            <div key={tutor.id || idx} className="bg-white rounded-sm p-4 border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all duration-300 group">
-              <div className="flex items-start gap-3 mb-3">
+            <div key={tutor.id || idx} className="bg-white rounded-sm p-2.5 sm:p-3 border border-gray-200 hover:border-indigo-300 hover:shadow-sm transition-all duration-200">
+              <div className="flex items-start gap-2 sm:gap-2.5 mb-2">
                 <img
                   src={getAvatarUrl(tutor.avatar)}
                   alt={tutor.name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-gray-200 group-hover:border-indigo-300"
+                  className="w-10 h-10 sm:w-11 sm:h-11 rounded-sm object-cover border-2 border-gray-200"
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-bold text-gray-900 text-[11px] sm:text-xs md:text-sm truncate">{tutor.name}</h4>
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <h4 className="font-bold text-gray-900 text-xs sm:text-sm truncate">{tutor.name}</h4>
                     {tutor.verified && (
-                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-[10px] font-bold rounded-sm">VERIFIED</span>
+                      <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[8px] sm:text-[9px] font-bold rounded-sm whitespace-nowrap">VERIFIED</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 mb-1">
+                  <div className="flex items-center gap-0.5 mb-0.5">
                     {renderStars(tutor.rating || 0)}
                     {typeof tutor.rating === 'number' && (
-                      <span className="text-[10px] sm:text-xs text-gray-700 font-semibold ml-0.5 sm:ml-1">{tutor.rating.toFixed(1)}</span>
+                      <span className="text-[10px] sm:text-xs text-gray-700 font-semibold ml-1">{tutor.rating.toFixed(1)}</span>
                     )}
                   </div>
                   {tutor.qualifications && (
-                    <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600">{tutor.qualifications}</p>
+                    <p className="text-[9px] sm:text-[10px] text-gray-600 line-clamp-1">{tutor.qualifications}</p>
                   )}
                 </div>
               </div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-gray-600">Starting from</span>
-                <span className="text-sm sm:text-base md:text-lg font-bold text-indigo-600">{tutor.rate ? `$${tutor.rate}/hr` : '—'}</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] sm:text-xs text-gray-600">Starting from</span>
+                <span className="text-base sm:text-lg font-bold text-indigo-600">{tutor.rate ? `$${tutor.rate}` : '—'}<span className="text-xs">/hr</span></span>
               </div>
-              <button className="w-full bg-indigo-600 text-white py-1 sm:py-1.5 md:py-2 rounded-sm font-bold text-[11px] sm:text-xs md:text-sm hover:bg-indigo-700 transition-all hover:shadow-md">
+              <button className="w-full bg-indigo-600 text-white py-1.5 rounded-sm font-semibold text-[11px] sm:text-xs hover:bg-indigo-700 transition-colors">
                 Book Session
               </button>
             </div>
           ))}
         </div>
 
-        {/* Quick Stats (API-driven) */}
+        {/* Quick Stats */}
         {course.quickStats && (
-          <div className="mt-2 sm:mt-3 p-2 sm:p-2.5 md:p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-sm border border-indigo-200">
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-6 text-center">
+          <div className="mt-2.5 p-2 sm:p-2.5 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-sm border border-indigo-200">
+            <div className="flex items-center justify-around text-center">
               {typeof course.quickStats.totalTutors === 'number' && (
-                <div>
-                  <p className="text-lg sm:text-xl md:text-2xl font-bold text-indigo-600">{course.quickStats.totalTutors}</p>
-                  <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-medium">Total Tutors</p>
+                <div className="flex-1">
+                  <p className="text-lg sm:text-xl font-bold text-indigo-600">{course.quickStats.totalTutors}</p>
+                  <p className="text-[9px] sm:text-[10px] text-gray-600 font-medium">Total Tutors</p>
                 </div>
               )}
-              <div className="w-px h-8 bg-indigo-200"></div>
+              {typeof course.quickStats.totalTutors === 'number' && typeof course.quickStats.avgRating === 'number' && (
+                <div className="w-px h-6 bg-indigo-200"></div>
+              )}
               {typeof course.quickStats.avgRating === 'number' && (
-                <div>
-                  <p className="text-lg sm:text-xl md:text-2xl font-bold text-green-600">{course.quickStats.avgRating}</p>
-                  <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-medium">Avg Rating</p>
+                <div className="flex-1">
+                  <p className="text-lg sm:text-xl font-bold text-green-600">{course.quickStats.avgRating}</p>
+                  <p className="text-[9px] sm:text-[10px] text-gray-600 font-medium">Avg Rating</p>
                 </div>
               )}
-              <div className="w-px h-8 bg-indigo-200"></div>
+              {typeof course.quickStats.avgRating === 'number' && course.quickStats.priceRange && (
+                <div className="w-px h-6 bg-indigo-200"></div>
+              )}
               {course.quickStats.priceRange && (
-                <div>
-                  <p className="text-lg sm:text-xl md:text-2xl font-bold text-blue-600">{course.quickStats.priceRange}</p>
-                  <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 font-medium">Price Range</p>
+                <div className="flex-1">
+                  <p className="text-lg sm:text-xl font-bold text-blue-600">{course.quickStats.priceRange}</p>
+                  <p className="text-[9px] sm:text-[10px] text-gray-600 font-medium">Price Range</p>
                 </div>
               )}
             </div>
