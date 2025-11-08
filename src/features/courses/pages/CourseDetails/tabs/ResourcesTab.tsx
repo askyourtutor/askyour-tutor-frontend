@@ -102,34 +102,34 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrol
   };
 
   return (
-    <div className="space-y-4 animate-fadeIn">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-sm flex items-center justify-center">
-            <IconDownload size={18} className="sm:w-6 sm:h-6 text-blue-600" />
+    <div className="space-y-3 animate-fadeIn">
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <h3 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-100 rounded flex items-center justify-center">
+            <IconDownload size={16} className="sm:w-[18px] sm:h-[18px] text-blue-600" />
           </div>
-          <span>Downloadable Resources</span>
+          <span className="text-sm sm:text-base">Resources</span>
         </h3>
         {isEnrolled && resources.length > 0 && (
-          <button className="text-[10px] sm:text-xs md:text-sm text-blue-600 hover:text-blue-700 font-bold bg-blue-50 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-sm hover:bg-blue-100 transition-all border border-blue-200 self-start sm:self-auto">
+          <button className="text-[10px] sm:text-xs text-blue-600 hover:text-blue-700 font-semibold bg-blue-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded hover:bg-blue-100 transition-all border border-blue-200">
             Download All
           </button>
         )}
       </div>
 
       {showEnrollmentFeatures && !isEnrolled && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-sm p-4 sm:p-5 text-center">
-          <IconLock size={48} className="mx-auto text-amber-600 mb-3" />
-          <h4 className="font-bold text-gray-900 text-base sm:text-lg mb-2">Resources Locked</h4>
-          <p className="text-xs sm:text-sm text-gray-700 mb-4 max-w-md mx-auto">
-            Enroll in this course to access all downloadable resources including PDFs, worksheets, and study materials.
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded p-3 sm:p-4 text-center">
+          <IconLock size={32} className="sm:w-10 sm:h-10 mx-auto text-amber-600 mb-2" />
+          <h4 className="font-bold text-gray-900 text-sm sm:text-base mb-1.5">Resources Locked</h4>
+          <p className="text-xs text-gray-700 mb-3 max-w-md mx-auto">
+            Enroll to access all downloadable resources including PDFs, worksheets, and study materials.
           </p>
           <button 
             onClick={onEnroll}
             disabled={isEnrolling}
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-sm font-bold text-sm hover:bg-blue-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded font-semibold text-xs sm:text-sm hover:bg-blue-700 transition-all shadow hover:shadow-md disabled:opacity-50"
           >
-            {isEnrolling ? 'Enrolling...' : 'Enroll to Access Resources'}
+            {isEnrolling ? 'Enrolling...' : 'Enroll to Access'}
           </button>
         </div>
       )}
@@ -138,38 +138,38 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrol
       {(isEnrolled || !showEnrollmentFeatures) && (
         <>
           {isLoadingResources ? (
-            <div className="text-center py-8">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-              <p className="mt-3 text-sm text-gray-600">Loading resources...</p>
+            <div className="text-center py-6">
+              <div className="inline-block h-6 w-6 animate-spin rounded-full border-3 border-solid border-blue-600 border-r-transparent"></div>
+              <p className="mt-2 text-xs text-gray-600">Loading resources...</p>
             </div>
           ) : resources.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-sm border border-gray-200">
-              <IconFileText size={48} className="mx-auto text-gray-400 mb-3" />
-              <h4 className="font-bold text-gray-700 text-base mb-2">No Resources Available</h4>
-              <p className="text-sm text-gray-600 max-w-md mx-auto">
-                This course doesn't have any downloadable resources yet. Check back later!
+            <div className="text-center py-8 bg-gray-50 rounded border border-gray-200">
+              <IconFileText size={36} className="sm:w-10 sm:h-10 mx-auto text-gray-400 mb-2" />
+              <h4 className="font-semibold text-gray-700 text-sm mb-1">No Resources Available</h4>
+              <p className="text-xs text-gray-600 max-w-sm mx-auto">
+                This course doesn't have any downloadable resources yet.
               </p>
             </div>
           ) : (
-            <div className="grid gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {list.map((r) => {
                 const ResourceIcon = getResourceIcon(r.type);
                 return (
                   <div 
                     key={r.id} 
-                    className="flex items-center justify-between p-3 sm:p-4 md:p-5 border border-gray-200 rounded-sm hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:border-blue-300 transition-all duration-300 group cursor-pointer"
+                    className="flex items-center justify-between p-2.5 sm:p-3 border border-gray-200 rounded hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 hover:border-blue-300 transition-all group cursor-pointer"
                     onClick={() => r.url && handleDownload(r)}
                   >
-                    <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-sm flex items-center justify-center text-white shadow-md group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 flex-shrink-0">
-                        <ResourceIcon size={18} className="sm:w-6 sm:h-6" />
+                    <div className="flex items-center gap-2 sm:gap-2.5 flex-1 min-w-0">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-500 to-blue-600 rounded flex items-center justify-center text-white shadow group-hover:shadow-lg transition-all group-hover:scale-105 flex-shrink-0">
+                        <ResourceIcon size={16} className="sm:w-[18px] sm:h-[18px]" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-gray-900 mb-1 text-sm sm:text-base line-clamp-1">{r.title}</h4>
-                        <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 flex-wrap">
+                        <h4 className="font-semibold text-gray-900 mb-0.5 text-xs sm:text-sm line-clamp-1">{r.title}</h4>
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-gray-600 flex-wrap">
                           {r.duration && (
-                            <span className="flex items-center gap-1">
-                              <IconClock size={12} className="sm:w-[14px] sm:h-[14px]" />
+                            <span className="flex items-center gap-0.5">
+                              <IconClock size={11} className="sm:w-3 sm:h-3" />
                               {r.duration}m
                             </span>
                           )}
@@ -183,9 +183,9 @@ const ResourcesTab: React.FC<ResourcesTabProps> = ({ course, isEnrolled, isEnrol
                           e.stopPropagation();
                           handleDownload(r);
                         }}
-                        className="flex items-center gap-1 sm:gap-1.5 md:gap-2 text-blue-600 hover:text-blue-700 font-bold px-2 sm:px-2.5 md:px-3 py-1.5 sm:py-2 rounded-sm bg-blue-50 hover:bg-blue-100 transition-all duration-200 border border-blue-200 text-[10px] sm:text-xs md:text-sm flex-shrink-0"
+                        className="flex items-center gap-1 text-blue-600 hover:text-blue-700 font-semibold px-2 sm:px-2.5 py-1 sm:py-1.5 rounded bg-blue-50 hover:bg-blue-100 transition-all border border-blue-200 text-[10px] sm:text-xs flex-shrink-0"
                       >
-                        <IconDownload size={14} className="sm:w-[18px] sm:h-[18px]" />
+                        <IconDownload size={12} className="sm:w-[14px] sm:h-[14px]" />
                         <span className="hidden sm:inline">Download</span>
                       </button>
                     )}
