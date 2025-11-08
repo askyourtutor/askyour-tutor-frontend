@@ -56,10 +56,24 @@ function StudentPaymentsTab() {
 
       // Fetch real payment data from API using apiFetch (handles authentication)
       // Note: apiFetch automatically adds /api prefix, so path starts without /api
-      const paymentsData = await apiFetch<any[]>('/payments/my-payments');
+      interface PaymentResponse {
+        id: string;
+        stripeSessionId?: string;
+        course?: {
+          title?: string;
+        };
+        amount: number;
+        currency?: string;
+        status: 'completed' | 'pending' | 'failed';
+        paymentMethod?: string;
+        createdAt: string;
+        receiptUrl?: string;
+      }
+      
+      const paymentsData = await apiFetch<PaymentResponse[]>('/payments/my-payments');
       
       // Transform payments to expected format
-      const transformedPayments: Payment[] = paymentsData.map((payment: any) => ({
+      const transformedPayments: Payment[] = paymentsData.map((payment: PaymentResponse) => ({
         id: payment.id,
         transactionId: payment.stripeSessionId || payment.id,
         courseTitle: payment.course?.title || 'Unknown Course',

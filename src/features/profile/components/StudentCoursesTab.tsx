@@ -48,10 +48,28 @@ function StudentCoursesTab() {
 
       // Fetch real enrolled courses from API using apiFetch (handles authentication)
       // Note: apiFetch automatically adds /api prefix, so path starts without /api
-      const enrollments = await apiFetch<any[]>('/enrollments/my-enrollments');
+      interface EnrollmentResponse {
+        id: string;
+        course?: {
+          id: string;
+          title: string;
+          description?: string;
+          image?: string;
+          tutor?: {
+            name?: string;
+            email?: string;
+          };
+          lessons?: unknown[];
+        };
+        progress?: number;
+        lastAccessedAt?: string;
+        enrolledAt: string;
+      }
+      
+      const enrollments = await apiFetch<EnrollmentResponse[]>('/enrollments/my-enrollments');
       
       // Transform enrollments to course format
-      const transformedCourses: EnrolledCourse[] = enrollments.map((enrollment: any) => ({
+      const transformedCourses: EnrolledCourse[] = enrollments.map((enrollment: EnrollmentResponse) => ({
         id: enrollment.course?.id || enrollment.id,
         title: enrollment.course?.title || 'Untitled Course',
         description: enrollment.course?.description || '',
@@ -61,7 +79,7 @@ function StudentCoursesTab() {
         totalLessons: enrollment.course?.lessons?.length || 0,
         completedLessons: Math.floor(((enrollment.progress || 0) / 100) * (enrollment.course?.lessons?.length || 0)),
         lastAccessed: enrollment.lastAccessedAt ? new Date(enrollment.lastAccessedAt) : null,
-        status: enrollment.progress === 100 ? 'completed' : enrollment.progress > 0 ? 'in-progress' : 'not-started',
+        status: (enrollment.progress || 0) === 100 ? 'completed' : (enrollment.progress || 0) > 0 ? 'in-progress' : 'not-started',
         enrolledAt: new Date(enrollment.enrolledAt)
       }));
       
