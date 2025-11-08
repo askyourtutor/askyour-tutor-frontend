@@ -26,6 +26,7 @@ import AdminCoursesTab from '../components/AdminCoursesTab';
 import TutorCoursesTab from '../components/TutorCoursesTab';
 import CreateCourseModal from '../components/CreateCourseModal';
 import EditCourseModal from '../components/EditCourseModal';
+import AdminProfileSettings from '../components/AdminProfileSettings';
 import tutorDashboardService, { type CourseWithStats } from '../../../shared/services/tutorDashboardService';
 import { fetchWithCache, cache } from '../../../shared/lib/cache';
 
@@ -66,61 +67,62 @@ function AdminDashboard() {
     localStorage.setItem(ADMIN_CONSTANTS.STORAGE_KEY_ACTIVE_TAB, activeTab);
   }, [activeTab]);
 
-  // Fetch dashboard data
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
+  // Fetch dashboard data function
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      // Fetch real dashboard stats
+      const dashboardStats = await adminService.getDashboardStats();
+      setStats(dashboardStats);
+
+      // Fetch real users data with pagination
+      const usersResponse = await adminService.getUsers({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
+      setUsers(usersResponse.users);
+
+      // Fetch real tutors data
+      const tutorsResponse = await adminService.getTutors({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
+      setTutors(tutorsResponse.tutors);
+
+      // Fetch courses data
+      const coursesResponse = await adminService.getCourses({ limit: ADMIN_CONSTANTS.COURSES_PAGE_SIZE });
+      setCourses(coursesResponse.courses);
+
+      // Fetch admin's own courses (as a tutor) - only if admin has tutor profile
       try {
-        // Fetch real dashboard stats
-        const dashboardStats = await adminService.getDashboardStats();
-        setStats(dashboardStats);
-
-        // Fetch real users data with pagination
-        const usersResponse = await adminService.getUsers({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
-        setUsers(usersResponse.users);
-
-        // Fetch real tutors data
-        const tutorsResponse = await adminService.getTutors({ limit: ADMIN_CONSTANTS.DEFAULT_PAGE_SIZE });
-        setTutors(tutorsResponse.tutors);
-
-        // Fetch courses data
-        const coursesResponse = await adminService.getCourses({ limit: ADMIN_CONSTANTS.COURSES_PAGE_SIZE });
-        setCourses(coursesResponse.courses);
-
-        // Fetch admin's own courses (as a tutor) - only if admin has tutor profile
-        try {
-          const myCoursesData = await fetchWithCache(
-            'admin:my-courses',
-            () => tutorDashboardService.getTutorCourses()
-          );
-          setMyCourses(myCoursesData);
-        } catch {
-          // If admin doesn't have tutor profile, just set empty array
-          console.log('Admin does not have tutor profile, skipping my courses fetch');
-          setMyCourses([]);
-        }
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setStats({
-          totalUsers: 0,
-          totalStudents: 0,
-          totalTutors: 0,
-          totalCourses: 0,
-          activeSessions: 0,
-          pendingApprovals: 0,
-          verifiedTutors: 0,
-          unverifiedEmails: 0,
-          monthlyRevenue: 0,
-          userGrowth: 0
-        });
-        setUsers([]);
-        setTutors([]);
-        setCourses([]);
-      } finally {
-        setLoading(false);
+        const myCoursesData = await fetchWithCache(
+          'admin:my-courses',
+          () => tutorDashboardService.getTutorCourses()
+        );
+        setMyCourses(myCoursesData);
+      } catch {
+        // If admin doesn't have tutor profile, just set empty array
+        console.log('Admin does not have tutor profile, skipping my courses fetch');
+        setMyCourses([]);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setStats({
+        totalUsers: 0,
+        totalStudents: 0,
+        totalTutors: 0,
+        totalCourses: 0,
+        activeSessions: 0,
+        pendingApprovals: 0,
+        verifiedTutors: 0,
+        unverifiedEmails: 0,
+        monthlyRevenue: 0,
+        userGrowth: 0
+      });
+      setUsers([]);
+      setTutors([]);
+      setCourses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Fetch dashboard data on mount
+  useEffect(() => {
     fetchDashboardData();
   }, []);
 
@@ -544,13 +546,7 @@ function AdminDashboard() {
             </>
           )}
           {activeTab === 'settings' && (
-            <div className="bg-white rounded-sm border border-gray-200 p-8">
-              <div className="text-center py-8">
-                <IconSettings size={40} className="mx-auto text-gray-400 mb-3" />
-                <h3 className="text-base font-semibold text-gray-900 mb-2">System Settings</h3>
-                <p className="text-sm text-gray-600">Platform configuration coming soon</p>
-              </div>
-            </div>
+            <AdminProfileSettings onProfileUpdate={fetchDashboardData} />
           )}
         </div>
       </div>

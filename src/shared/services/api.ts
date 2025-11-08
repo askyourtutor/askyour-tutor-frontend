@@ -155,9 +155,13 @@ export async function refreshAccessToken(): Promise<string | 'DENIED' | null> {
 
 export async function apiFetch<T = unknown>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
     ...(options.headers || {}),
   };
+
+  // Only add Content-Type for JSON, not for FormData (browser sets it automatically)
+  if (!(options.body instanceof FormData)) {
+    (headers as Record<string, string>)['Content-Type'] = 'application/json';
+  }
 
   if (accessToken) {
     (headers as Record<string, string>).Authorization = `Bearer ${accessToken}`;
