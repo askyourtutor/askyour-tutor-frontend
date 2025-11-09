@@ -7,7 +7,9 @@ import {
   IconReceipt,
   IconCheck,
   IconClock,
-  IconX
+  IconX,
+  IconBook,
+  IconVideo
 } from '@tabler/icons-react';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import { apiFetch } from '../../../shared/services/api';
@@ -21,6 +23,7 @@ interface Payment {
   currency: string;
   status: 'completed' | 'pending' | 'failed';
   paymentMethod: string;
+  type?: 'enrollment' | 'session';
   createdAt: Date;
   receipt?: string;
 }
@@ -86,6 +89,7 @@ function StudentPaymentsTab() {
         currency: payment.currency || 'USD',
         status: payment.status,
         paymentMethod: payment.paymentMethod || 'Card',
+        type: payment.type,
         createdAt: new Date(payment.createdAt),
         receipt: payment.receiptUrl
       }));
@@ -276,8 +280,29 @@ function StudentPaymentsTab() {
                       </div>
                     </td>
                     <td className="px-3 py-2">
-                      <div className="text-[10px] text-gray-900 truncate max-w-[150px]">
-                        {payment.courseTitle}
+                      <div className="flex items-center gap-1.5">
+                        <div className="text-[10px] text-gray-900 truncate max-w-[150px]">
+                          {payment.courseTitle}
+                        </div>
+                        {payment.type && (
+                          <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-medium flex-shrink-0 ${
+                            payment.type === 'enrollment' 
+                              ? 'bg-blue-100 text-blue-700' 
+                              : 'bg-purple-100 text-purple-700'
+                          }`}>
+                            {payment.type === 'enrollment' ? (
+                              <>
+                                <IconBook size={10} />
+                                Course
+                              </>
+                            ) : (
+                              <>
+                                <IconVideo size={10} />
+                                Session
+                              </>
+                            )}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">

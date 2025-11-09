@@ -1,5 +1,20 @@
 import { useState, useEffect } from 'react';
-import { IconCalendar, IconSearch, IconClock, IconUser, IconVideo, IconLoader, IconBook } from '@tabler/icons-react';
+import { 
+  IconCalendar, 
+  IconSearch, 
+  IconClock, 
+  IconUser, 
+  IconVideo, 
+  IconLoader, 
+  IconBook,
+  IconChevronDown,
+  IconChevronRight,
+  IconCurrencyDollar,
+  IconMapPin,
+  IconNote,
+  IconCheck,
+  IconX
+} from '@tabler/icons-react';
 import { getSessions, type Session } from '../../sessions/services/session.service';
 import { joinVideoSession } from '../../sessions/services/videoSession.service';
 
@@ -29,6 +44,36 @@ function StudentSessionsTab() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const [joiningId, setJoiningId] = useState<string | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (sessionId: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(sessionId)) {
+      newExpanded.delete(sessionId);
+    } else {
+      newExpanded.add(sessionId);
+    }
+    setExpandedRows(newExpanded);
+  };
+
+  // Helper to extract price from notes
+  const getSessionPrice = (session: Session): number => {
+    if (session.notes) {
+      const amountMatch = session.notes.match(/Amount:\s*\$([0-9.]+)/);
+      if (amountMatch && amountMatch[1]) {
+        return parseFloat(amountMatch[1]);
+      }
+    }
+    // Fallback: calculate from tutor hourly rate if available
+    if (session.tutor?.tutorProfile?.hourlyRate && session.duration) {
+      return (session.tutor.tutorProfile.hourlyRate * session.duration) / 60;
+    }
+    return 0;
+  };
+
+  const isPaidSession = (session: Session): boolean => {
+    return session.notes?.includes('Paid via Stripe') || false;
+  };
 
   const fetchSessions = async () => {
     try {
@@ -183,87 +228,287 @@ function StudentSessionsTab() {
           <p className="text-sm text-gray-600">Book a session with a tutor to get started!</p>
         </div>
       ) : (
-        <div className="space-y-2 sm:space-y-3">
-          {filteredSessions.map((session) => (
-            <div
-              key={session.id}
-              className="bg-white rounded-sm border border-gray-200 p-3 sm:p-4 hover:border-gray-300 transition-colors"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                {/* Session Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start gap-2 sm:gap-3 mb-2">
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-900 rounded-sm flex items-center justify-center text-white flex-shrink-0">
-                      <span className="text-xs font-semibold">
-                        {session.subject?.split(' ').map(word => word[0]).join('').slice(0, 2) || 'SE'}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 truncate">
-                        {session.subject || 'General Session'}
-                      </h3>
-                      {session.topic && (
-                        <p className="text-xs text-gray-600 truncate">{session.topic}</p>
-                      )}
-                      <div className="flex items-center gap-1 mt-1">
-                        <IconUser size={12} className="text-gray-400" />
-                        <span className="text-xs text-gray-600">
-                          {getUserDisplayName(session.tutor?.tutorProfile || undefined)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+        <div className="bg-white rounded-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide w-8"></th>
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">Subject</th>
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">Tutor</th>
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">Date & Time</th>
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">Duration</th>
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">Status</th>
+                  <th className="px-3 py-2 text-left text-[9px] font-medium text-gray-500 uppercase tracking-wide">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredSessions.map((session) => {
+                  const isExpanded = expandedRows.has(session.id);
+                  const sessionPrice = getSessionPrice(session);
+                  const isPaid = isPaidSession(session);
 
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <IconCalendar size={12} />
-                      <span>{formatDate(session.scheduledAt)}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <IconClock size={12} />
-                      <span>{session.duration} min</span>
-                    </div>
-                    <span className={`inline-flex px-2 py-0.5 text-[10px] sm:text-xs font-semibold rounded-sm ${
-                      session.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
-                      session.status === 'CONFIRMED' ? 'bg-green-100 text-green-700 border border-green-200' :
-                      session.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                      'bg-red-100 text-red-700 border border-red-200'
-                    }`}>
-                      {session.status}
-                    </span>
-                  </div>
-                </div>
+                  return (
+                    <>
+                      {/* Main Row */}
+                      <tr 
+                        key={session.id}
+                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => toggleRow(session.id)}
+                      >
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRow(session.id);
+                            }}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            {isExpanded ? (
+                              <IconChevronDown size={16} />
+                            ) : (
+                              <IconChevronRight size={16} />
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-gray-900 rounded flex items-center justify-center text-white flex-shrink-0">
+                              <span className="text-[10px] font-semibold">
+                                {session.subject?.split(' ').map(word => word[0]).join('').slice(0, 2) || 'SE'}
+                              </span>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-xs font-medium text-gray-900 truncate">
+                                {session.subject || 'General Session'}
+                              </div>
+                              {isPaid && (
+                                <span className="inline-flex items-center gap-1 text-[9px] text-green-600">
+                                  <IconCheck size={10} />
+                                  Paid
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="text-xs text-gray-900">
+                            {getUserDisplayName(session.tutor?.tutorProfile || undefined)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="text-xs text-gray-900">
+                            {formatDate(session.scheduledAt)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center gap-1 text-xs text-gray-900">
+                            <IconClock size={12} className="text-gray-400" />
+                            {session.duration} min
+                          </div>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold rounded ${
+                            session.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                            session.status === 'CONFIRMED' ? 'bg-green-100 text-green-700' :
+                            session.status === 'COMPLETED' ? 'bg-blue-100 text-blue-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {session.status}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            {session.status === 'CONFIRMED' && session.meetingLink && (
+                              <button
+                                onClick={() => handleJoinSession(session.id)}
+                                disabled={joiningId === session.id}
+                                className="flex items-center gap-1 px-2 py-1 bg-green-600 text-white text-[10px] font-semibold rounded hover:bg-green-700 transition-colors disabled:opacity-50"
+                              >
+                                {joiningId === session.id ? (
+                                  <IconLoader size={12} className="animate-spin" />
+                                ) : (
+                                  <IconVideo size={12} />
+                                )}
+                                Join
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
 
-                {/* Actions */}
-                <div className="flex sm:flex-col gap-2">
-                  {session.status === 'CONFIRMED' && session.meetingLink && (
-                    <button
-                      onClick={() => handleJoinSession(session.id)}
-                      disabled={joiningId === session.id}
-                      className="flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 text-white text-xs font-semibold rounded-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                    >
-                      {joiningId === session.id ? (
-                        <IconLoader size={14} className="animate-spin" />
-                      ) : (
-                        <IconVideo size={14} />
+                      {/* Expanded Details Row */}
+                      {isExpanded && (
+                        <tr key={`${session.id}-details`} className="bg-gray-50">
+                          <td colSpan={7} className="px-3 py-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                              {/* Left Column */}
+                              <div className="space-y-3">
+                                {/* Session Details */}
+                                <div className="bg-white rounded border border-gray-200 p-3">
+                                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                                    <IconBook size={14} className="text-blue-600" />
+                                    Session Details
+                                  </h4>
+                                  <div className="space-y-2">
+                                    {session.topic && (
+                                      <div>
+                                        <span className="text-gray-500">Topic:</span>
+                                        <span className="ml-2 text-gray-900 font-medium">{session.topic}</span>
+                                      </div>
+                                    )}
+                                    <div>
+                                      <span className="text-gray-500">Type:</span>
+                                      <span className="ml-2 text-gray-900 font-medium">
+                                        {session.sessionType === 'ONE_ON_ONE' ? 'One-on-One' : 
+                                         session.sessionType === 'ENROLLMENT' ? 'Course Enrollment' : 
+                                         session.sessionType}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Scheduled:</span>
+                                      <span className="ml-2 text-gray-900 font-medium">{formatDate(session.scheduledAt)}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-gray-500">Duration:</span>
+                                      <span className="ml-2 text-gray-900 font-medium">{session.duration} minutes</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Payment Details */}
+                                {isPaid && sessionPrice > 0 && (
+                                  <div className="bg-white rounded border border-green-200 p-3">
+                                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                                      <IconCurrencyDollar size={14} className="text-green-600" />
+                                      Payment Details
+                                    </h4>
+                                    <div className="space-y-2">
+                                      <div>
+                                        <span className="text-gray-500">Amount Paid:</span>
+                                        <span className="ml-2 text-green-600 font-bold text-sm">
+                                          ${sessionPrice.toFixed(2)}
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500">Payment Status:</span>
+                                        <span className="ml-2">
+                                          <span className="inline-flex items-center gap-1 text-green-600 font-medium">
+                                            <IconCheck size={12} />
+                                            Paid via Stripe
+                                          </span>
+                                        </span>
+                                      </div>
+                                      <div>
+                                        <span className="text-gray-500">Payment Method:</span>
+                                        <span className="ml-2 text-gray-900 font-medium">Card</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Right Column */}
+                              <div className="space-y-3">
+                                {/* Tutor Details */}
+                                <div className="bg-white rounded border border-gray-200 p-3">
+                                  <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                                    <IconUser size={14} className="text-purple-600" />
+                                    Tutor Information
+                                  </h4>
+                                  <div className="space-y-2">
+                                    <div>
+                                      <span className="text-gray-500">Name:</span>
+                                      <span className="ml-2 text-gray-900 font-medium">
+                                        {getUserDisplayName(session.tutor?.tutorProfile || undefined)}
+                                      </span>
+                                    </div>
+                                    {session.tutor?.email && (
+                                      <div>
+                                        <span className="text-gray-500">Email:</span>
+                                        <span className="ml-2 text-blue-600">{session.tutor.email}</span>
+                                      </div>
+                                    )}
+                                    {session.tutor?.tutorProfile?.hourlyRate && (
+                                      <div>
+                                        <span className="text-gray-500">Hourly Rate:</span>
+                                        <span className="ml-2 text-gray-900 font-medium">
+                                          ${session.tutor.tutorProfile.hourlyRate}/hr
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* Meeting Link */}
+                                {session.meetingLink && (
+                                  <div className="bg-white rounded border border-gray-200 p-3">
+                                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                                      <IconMapPin size={14} className="text-red-600" />
+                                      Meeting Link
+                                    </h4>
+                                    <div className="text-xs text-gray-600 break-all bg-gray-50 p-2 rounded">
+                                      {session.meetingLink}
+                                    </div>
+                                    {session.status === 'CONFIRMED' && (
+                                      <button
+                                        onClick={() => handleJoinSession(session.id)}
+                                        disabled={joiningId === session.id}
+                                        className="mt-2 w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-green-600 text-white text-xs font-semibold rounded hover:bg-green-700 transition-colors disabled:opacity-50"
+                                      >
+                                        {joiningId === session.id ? (
+                                          <>
+                                            <IconLoader size={14} className="animate-spin" />
+                                            Joining...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <IconVideo size={14} />
+                                            Join Video Session
+                                          </>
+                                        )}
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Special Requirements / Notes */}
+                                {(session.specialRequirements || session.notes) && (
+                                  <div className="bg-white rounded border border-gray-200 p-3">
+                                    <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-1">
+                                      <IconNote size={14} className="text-orange-600" />
+                                      Additional Information
+                                    </h4>
+                                    <div className="space-y-2">
+                                      {session.specialRequirements && (
+                                        <div>
+                                          <span className="text-gray-500">Special Requirements:</span>
+                                          <p className="mt-1 text-gray-900 text-xs">{session.specialRequirements}</p>
+                                        </div>
+                                      )}
+                                      {session.cancellationReason && (
+                                        <div>
+                                          <span className="text-red-500 flex items-center gap-1">
+                                            <IconX size={12} />
+                                            Cancellation Reason:
+                                          </span>
+                                          <p className="mt-1 text-gray-900 text-xs">{session.cancellationReason}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
                       )}
-                      <span>Join Class</span>
-                    </button>
-                  )}
-                  {session.status === 'PENDING' && (
-                    <div className="px-3 py-2 bg-yellow-50 text-yellow-700 text-xs font-medium rounded-sm border border-yellow-200 whitespace-nowrap">
-                      Waiting for tutor
-                    </div>
-                  )}
-                  {session.status === 'COMPLETED' && (
-                    <div className="px-3 py-2 bg-blue-50 text-blue-700 text-xs font-medium rounded-sm border border-blue-200 whitespace-nowrap">
-                      Completed
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+                    </>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

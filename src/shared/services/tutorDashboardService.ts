@@ -413,6 +413,7 @@ export interface Payment {
   amount: number;
   status: 'completed' | 'pending' | 'failed' | 'refunded';
   paymentMethod: string;
+  type?: 'enrollment' | 'session';
   transactionId: string;
   createdAt: string;
   completedAt?: string | null;

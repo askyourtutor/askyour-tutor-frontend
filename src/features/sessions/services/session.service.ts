@@ -36,6 +36,7 @@ export interface Session {
       firstName: string;
       lastName: string;
       profilePicture: string | null;
+      hourlyRate?: number;
     } | null;
     studentProfile: {
       firstName: string;

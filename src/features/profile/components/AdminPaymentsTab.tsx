@@ -8,7 +8,9 @@ import {
   IconCheck,
   IconClock,
   IconX,
-  IconRefresh
+  IconRefresh,
+  IconBook,
+  IconVideo
 } from '@tabler/icons-react';
 import tutorDashboardService, { type Payment, type PaymentStats } from '../../../shared/services/tutorDashboardService';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
@@ -237,7 +239,28 @@ const AdminPaymentsTab: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-gray-900">{payment.courseName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-gray-900">{payment.courseName}</p>
+                        {payment.type && (
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium ${
+                            payment.type === 'enrollment' 
+                              ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                              : 'bg-purple-100 text-purple-700 border border-purple-200'
+                          }`}>
+                            {payment.type === 'enrollment' ? (
+                              <>
+                                <IconBook size={12} />
+                                Course
+                              </>
+                            ) : (
+                              <>
+                                <IconVideo size={12} />
+                                Session
+                              </>
+                            )}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <p className="font-semibold text-gray-900">${payment.amount.toFixed(2)}</p>
