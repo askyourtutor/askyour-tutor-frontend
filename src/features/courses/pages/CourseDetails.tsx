@@ -54,7 +54,6 @@ const CourseDetails: React.FC = () => {
     handleSaveToggle,
     handleShare,
     handleEnroll,
-    handleMessageTutor,
   } = useCourseDetails(id);
 
   const renderStars = (rating: number) => {
