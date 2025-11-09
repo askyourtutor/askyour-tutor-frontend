@@ -18,13 +18,36 @@ export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { email: '', password: '', rememberMe: false },
   });
 
+  const handleResendVerification = async () => {
+    if (!verificationEmail) return;
+    
+    setIsResendingVerification(true);
+    setResendSuccess(false);
+    try {
+      await AuthAPI.resendVerification({ email: verificationEmail });
+      setResendSuccess(true);
+      setError(null);
+    } catch (e) {
+      setError('Failed to resend verification email. Please try again.');
+    } finally {
+      setIsResendingVerification(false);
+    }
+  };
+
   const onSubmit = async (values: FormValues) => {
     setError(null);
+    setVerificationEmail(null);
+    setResendSuccess(false);
+    
     try {
       await login(values.email, values.password, values.rememberMe);
       // Fetch fresh user to decide redirect based on role and profile completeness
@@ -63,6 +86,11 @@ export default function Login() {
     } catch (e: unknown) {
       const msg = e && typeof e === 'object' && 'message' in e ? String((e as { message?: string }).message) : 'Login failed';
       setError(msg);
+      
+      // If it's an email verification error, store the email for resend option
+      if (msg.toLowerCase().includes('verify your email')) {
+        setVerificationEmail(values.email);
+      }
     }
   };
 
@@ -77,7 +105,35 @@ export default function Login() {
 
         {error && (
           <div className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
+            <div className="flex items-start gap-2">
+              <svg className="h-5 w-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <div className="flex-1">
+                <p>{error}</p>
+                {verificationEmail && (
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={isResendingVerification}
+                    className="mt-2 text-sm font-medium text-red-800 hover:text-red-900 underline disabled:opacity-50"
+                  >
+                    {isResendingVerification ? 'Sending...' : 'Resend verification email'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {resendSuccess && (
+          <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+            <div className="flex items-start gap-2">
+              <svg className="h-5 w-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <p>Verification email sent! Please check your inbox and verify your email.</p>
+            </div>
           </div>
         )}
 

@@ -51,10 +51,17 @@ export class ApiError extends Error {
 }
 
 // Helper to determine if 401 error is expected
-const isExpected401 = (path: string): boolean => {
+const isExpected401 = (path: string, message: string): boolean => {
   // These endpoints commonly return 401 for unauthenticated users
   const publicEndpoints = ['/auth/me', '/auth/refresh'];
-  return publicEndpoints.some(endpoint => path.includes(endpoint));
+  const isPublicEndpoint = publicEndpoints.some(endpoint => path.includes(endpoint));
+  
+  // Email verification and invalid credentials are expected auth failures
+  const isExpectedAuthFailure = message.toLowerCase().includes('verify your email') ||
+                                message.toLowerCase().includes('invalid email or password') ||
+                                message.toLowerCase().includes('account is not active');
+  
+  return isPublicEndpoint || isExpectedAuthFailure;
 };
 
 // Helper to determine if 403 error is expected (role-based restrictions)
@@ -200,7 +207,7 @@ export async function apiFetch<T = unknown>(path: string, options: RequestInit =
     }
     
     // Create enhanced error with context
-    const isExpected = (res.status === 401 && isExpected401(path)) || 
+    const isExpected = (res.status === 401 && isExpected401(path, message)) || 
                       (res.status === 403 && isExpected403(path)) ||
                       (res.status === 404 && isExpected404(path));
     const apiError = new ApiError(message, res.status, path, isExpected);
