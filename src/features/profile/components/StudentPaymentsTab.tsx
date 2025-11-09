@@ -59,13 +59,18 @@ function StudentPaymentsTab() {
       interface PaymentResponse {
         id: string;
         stripeSessionId?: string;
+        title?: string; // Can be course title or session subject
         course?: {
           title?: string;
         };
+        subject?: string; // For session bookings
+        duration?: number; // For session bookings
+        tutorName?: string; // For session bookings
         amount: number;
         currency?: string;
         status: 'completed' | 'pending' | 'failed';
         paymentMethod?: string;
+        type?: 'enrollment' | 'session';
         createdAt: string;
         receiptUrl?: string;
       }
@@ -76,7 +81,7 @@ function StudentPaymentsTab() {
       const transformedPayments: Payment[] = paymentsData.map((payment: PaymentResponse) => ({
         id: payment.id,
         transactionId: payment.stripeSessionId || payment.id,
-        courseTitle: payment.course?.title || 'Unknown Course',
+        courseTitle: payment.title || payment.course?.title || payment.subject || 'Unknown',
         amount: payment.amount,
         currency: payment.currency || 'USD',
         status: payment.status,

@@ -322,6 +322,8 @@ const CourseDetails: React.FC = () => {
           courseId={course.id}
           courseTitle={course.title}
           defaultSubject={course.subject}
+          requiresPayment={true}
+          sessionPrice={50} // Default session price - can be customized per tutor
         />
       )}
 

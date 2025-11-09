@@ -1,20 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router';
-import { IconCheck, IconBook } from '@tabler/icons-react';
-import { verifyPayment } from '../../courses/services/payment.service';
+import { IconCheck, IconBook, IconCalendar } from '@tabler/icons-react';
+import { verifyPayment, verifySessionPayment } from '../../courses/services/payment.service';
 
 const PaymentSuccessPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [isVerifying, setIsVerifying] = useState(true);
+  const [paymentType, setPaymentType] = useState<'course' | 'session'>('course');
   const [enrollmentData, setEnrollmentData] = useState<{
     courseId: string;
+    message: string;
+  } | null>(null);
+  const [sessionData, setSessionData] = useState<{
+    sessionId: string;
     message: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
+    const type = searchParams.get('type');
     
     if (!sessionId) {
       setError('Invalid payment session');
@@ -25,15 +31,33 @@ const PaymentSuccessPage = () => {
     const verify = async () => {
       try {
         setIsVerifying(true);
-        const result = await verifyPayment(sessionId);
         
-        if (result.success && result.enrolled) {
-          setEnrollmentData({
-            courseId: result.courseId,
-            message: result.message,
-          });
+        if (type === 'session') {
+          // Verify session booking payment
+          setPaymentType('session');
+          const result = await verifySessionPayment(sessionId);
+          
+          if (result.success && result.sessionConfirmed) {
+            setSessionData({
+              sessionId: result.sessionId,
+              message: result.message,
+            });
+          } else {
+            setError('Payment verification failed');
+          }
         } else {
-          setError('Payment verification failed');
+          // Verify course enrollment payment
+          setPaymentType('course');
+          const result = await verifyPayment(sessionId);
+          
+          if (result.success && result.enrolled) {
+            setEnrollmentData({
+              courseId: result.courseId,
+              message: result.message,
+            });
+          } else {
+            setError('Payment verification failed');
+          }
         }
       } catch (err) {
         console.error('Verification error:', err);
@@ -55,7 +79,7 @@ const PaymentSuccessPage = () => {
             <div className="absolute inset-0 border-4 border-green-600 rounded-full border-t-transparent animate-spin"></div>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Verifying Payment</h2>
-          <p className="text-gray-600">Please wait while we confirm your enrollment...</p>
+          <p className="text-gray-600">Please wait while we confirm your {paymentType === 'session' ? 'session booking' : 'enrollment'}...</p>
         </div>
       </div>
     );
@@ -91,6 +115,87 @@ const PaymentSuccessPage = () => {
     );
   }
 
+  // Session booking success
+  if (paymentType === 'session' && sessionData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-gray-50 flex items-center justify-center px-3 sm:px-4 py-4">
+        <div className="max-w-lg w-full">
+          {/* Success Card */}
+          <div className="bg-white rounded-lg shadow-md border border-green-200 overflow-hidden">
+            {/* Success Header */}
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-4 sm:px-6 py-4 sm:py-5 text-center">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full flex items-center justify-center mx-auto mb-2.5 sm:mb-3">
+                <IconCheck size={24} className="sm:w-7 sm:h-7 text-green-600" />
+              </div>
+              <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Payment Successful</h1>
+              <p className="text-green-50 text-xs sm:text-sm">Your session is confirmed</p>
+            </div>
+
+            {/* Success Body */}
+            <div className="px-4 sm:px-6 py-4">
+              <p className="text-gray-600 text-xs sm:text-sm text-center mb-4">
+                Your one-on-one session has been booked and confirmed. The tutor has been notified.
+              </p>
+              
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                <h3 className="font-semibold text-gray-900 mb-2 text-xs sm:text-sm">What's Next?</h3>
+                <ul className="space-y-1.5 sm:space-y-2 text-gray-700 text-xs">
+                  <li className="flex items-start gap-2">
+                    <IconCheck size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>Check your dashboard for session details</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <IconCheck size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>Wait for tutor to accept the session</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <IconCheck size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>You'll receive email confirmation</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <IconCheck size={14} className="text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>Join the session at scheduled time</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <button
+                  onClick={() => navigate('/student/dashboard')}
+                  className="w-full bg-green-600 text-white px-4 py-2 sm:py-2.5 rounded-lg font-medium hover:bg-green-700 transition-all flex items-center justify-center gap-1.5 text-xs sm:text-sm"
+                >
+                  <IconCalendar size={16} />
+                  View My Sessions
+                </button>
+                
+                <Link
+                  to="/courses"
+                  className="block w-full border border-green-300 text-green-700 px-4 py-2 sm:py-2.5 rounded-lg font-medium hover:bg-green-50 transition-all text-center text-xs sm:text-sm"
+                >
+                  Browse More Courses
+                </Link>
+              </div>
+
+              <div className="text-center pt-3 mt-3 border-t border-gray-200">
+                <p className="text-[10px] sm:text-xs text-gray-500">
+                  Confirmation email sent to your address
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Info */}
+          <div className="mt-3 text-center">
+            <p className="text-gray-600 text-[10px] sm:text-xs">
+              Need help? <a href="mailto:support@askyourtutor.com" className="text-green-600 hover:underline font-medium">Contact Support</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Course enrollment success
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-gray-50 flex items-center justify-center px-3 sm:px-4 py-4">
       <div className="max-w-lg w-full">
@@ -101,8 +206,8 @@ const PaymentSuccessPage = () => {
             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-full flex items-center justify-center mx-auto mb-2.5 sm:mb-3">
               <IconCheck size={24} className="sm:w-7 sm:h-7 text-green-600" />
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white mb-1 !text-white">Payment Successful</h1>
-            <p className="text-green-50 text-xs sm:text-sm !text-green-50">You're enrolled in the course</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Payment Successful</h1>
+            <p className="text-green-50 text-xs sm:text-sm">You're enrolled in the course</p>
           </div>
 
           {/* Success Body */}

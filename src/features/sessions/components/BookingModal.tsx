@@ -9,10 +9,12 @@ import {
   IconMessageCircle,
   IconCheck,
   IconLoader,
-  IconUser
+  IconUser,
+  IconCurrencyDollar
 } from '@tabler/icons-react';
 import { createSession, getTutorAvailability, type CreateSessionRequest } from '../services/session.service';
 import { toast } from '../../../shared/utils/toast';
+import { apiFetch } from '../../../shared/services/api';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ interface BookingModalProps {
   courseId?: string;
   courseTitle?: string;
   defaultSubject?: string;
+  requiresPayment?: boolean; // New prop
+  sessionPrice?: number; // New prop - price per session
 }
 
 const BookingModal: React.FC<BookingModalProps> = ({
@@ -32,8 +36,11 @@ const BookingModal: React.FC<BookingModalProps> = ({
   courseId,
   courseTitle,
   defaultSubject,
+  requiresPayment = false,
+  sessionPrice = 0,
 }) => {
-  const [step, setStep] = useState<'form' | 'loading' | 'success'>('form');
+  const [step, setStep] = useState<'form' | 'loading' | 'success' | 'payment'>('form');
+  const [createdSessionId, setCreatedSessionId] = useState<string | null>(null);
   const [subject, setSubject] = useState(defaultSubject || '');
   const [topic, setTopic] = useState('');
   const [duration, setDuration] = useState(60);
@@ -91,26 +98,73 @@ const BookingModal: React.FC<BookingModalProps> = ({
         specialRequirements: specialRequirements || undefined,
       };
 
-      await createSession(sessionData);
-      setStep('success');
-      toast.success('Session booking request sent successfully!');
-      
-      // Close modal after 2 seconds
-      setTimeout(() => {
-        onClose();
-        // Reset form
-        setStep('form');
-        setSubject(defaultSubject || '');
-        setTopic('');
-        setDuration(60);
-        setScheduledDate('');
-        setScheduledTime('');
-        setSpecialRequirements('');
-      }, 2000);
+      const response = await createSession(sessionData);
+      const sessionId = response.session.id;
+      setCreatedSessionId(sessionId);
+
+      // If payment is required, proceed to payment step
+      if (requiresPayment && sessionPrice > 0) {
+        setStep('payment');
+        toast.success('Session created! Proceeding to payment...');
+      } else {
+        // Free session - just show success
+        setStep('success');
+        toast.success('Session booking request sent successfully!');
+        
+        // Close modal after 2 seconds
+        setTimeout(() => {
+          resetAndClose();
+        }, 2000);
+      }
     } catch (error) {
       setStep('form');
       toast.error(error instanceof Error ? error.message : 'Failed to book session');
     }
+  };
+
+  const handleProceedToPayment = async () => {
+    if (!createdSessionId) return;
+
+    try {
+      setStep('loading');
+      
+      // Create payment checkout session
+      const paymentResponse = await apiFetch<{
+        sessionId: string;
+        sessionUrl: string;
+      }>('/payments/create-session-payment', {
+        method: 'POST',
+        body: JSON.stringify({
+          bookingSessionId: createdSessionId,
+          amount: sessionPrice,
+        }),
+      });
+
+      // Redirect to Stripe checkout
+      if (paymentResponse.sessionUrl) {
+        window.location.href = paymentResponse.sessionUrl;
+      } else {
+        throw new Error('Payment URL not received');
+      }
+    } catch (error) {
+      setStep('payment');
+      toast.error(error instanceof Error ? error.message : 'Failed to initiate payment');
+    }
+  };
+
+  const resetAndClose = () => {
+    onClose();
+    // Reset form
+    setTimeout(() => {
+      setStep('form');
+      setCreatedSessionId(null);
+      setSubject(defaultSubject || '');
+      setTopic('');
+      setDuration(60);
+      setScheduledDate('');
+      setScheduledTime('');
+      setSpecialRequirements('');
+    }, 300);
   };
 
   if (!isOpen) return null;
@@ -171,6 +225,41 @@ const BookingModal: React.FC<BookingModalProps> = ({
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Request Sent!</h3>
               <p className="text-gray-600">Your tutor will review and confirm your session.</p>
+            </div>
+          )}
+
+          {step === 'payment' && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-blue-100 rounded-sm flex items-center justify-center mx-auto mb-6">
+                <IconCurrencyDollar size={32} className="text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Complete Payment</h3>
+              <p className="text-gray-600 mb-6">
+                Session created successfully! Please complete the payment to confirm your booking.
+              </p>
+              <div className="bg-gray-50 rounded-sm p-4 mb-6 max-w-sm mx-auto">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-gray-600">Session Duration:</span>
+                  <span className="font-semibold text-gray-900">{duration} minutes</span>
+                </div>
+                <div className="flex items-center justify-between text-lg font-bold border-t border-gray-200 pt-2 mt-2">
+                  <span className="text-gray-900">Total Amount:</span>
+                  <span className="text-blue-600">${sessionPrice.toFixed(2)}</span>
+                </div>
+              </div>
+              <button
+                onClick={handleProceedToPayment}
+                className="px-8 py-3 bg-blue-600 text-white rounded-sm hover:bg-blue-700 font-semibold transition-colors inline-flex items-center gap-2"
+              >
+                <IconCurrencyDollar size={20} />
+                Proceed to Payment
+              </button>
+              <button
+                onClick={resetAndClose}
+                className="mt-3 block mx-auto text-sm text-gray-500 hover:text-gray-700"
+              >
+                Cancel
+              </button>
             </div>
           )}
 

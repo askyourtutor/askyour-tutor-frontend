@@ -12,6 +12,13 @@ interface VerifyPaymentResponse {
   message: string;
 }
 
+interface VerifySessionPaymentResponse {
+  success: boolean;
+  sessionConfirmed: boolean;
+  sessionId: string;
+  message: string;
+}
+
 /**
  * Create a Stripe checkout session for course enrollment
  */
@@ -27,6 +34,15 @@ export async function createCheckoutSession(courseId: string): Promise<CreateChe
  */
 export async function verifyPayment(sessionId: string): Promise<VerifyPaymentResponse> {
   return apiFetch<VerifyPaymentResponse>(`/payments/verify-session/${sessionId}`, {
+    method: 'GET'
+  });
+}
+
+/**
+ * Verify payment for session booking
+ */
+export async function verifySessionPayment(stripeSessionId: string): Promise<VerifySessionPaymentResponse> {
+  return apiFetch<VerifySessionPaymentResponse>(`/payments/verify-session/${stripeSessionId}`, {
     method: 'GET'
   });
 }
