@@ -228,7 +228,7 @@ class AdminService {
       pagination: PaginationInfo;
     }
 
-    const response = await apiFetch<CoursesApiResponse>(`/courses?${searchParams.toString()}`);
+    const response = await apiFetch<CoursesApiResponse>(`/admin/courses?${searchParams.toString()}`);
     
     return {
       courses: response.data || [],
