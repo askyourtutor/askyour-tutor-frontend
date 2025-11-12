@@ -242,6 +242,20 @@ class AdminService {
       }
     };
   }
+
+  async updateCourseStatus(courseId: string, isActive: boolean): Promise<AdminCourse> {
+    const response = await apiFetch<{ course: AdminCourse }>(`/admin/courses/${courseId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive })
+    });
+    return response.course;
+  }
+
+  async deleteCourse(courseId: string): Promise<void> {
+    await apiFetch(`/admin/courses/${courseId}`, {
+      method: 'DELETE'
+    });
+  }
 }
 
 export const adminService = new AdminService();

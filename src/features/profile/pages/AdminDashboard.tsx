@@ -32,6 +32,7 @@ import AdminSessionsTab from '../components/AdminSessionsTab';
 import CreateCourseModal from '../components/CreateCourseModal';
 import EditCourseModal from '../components/EditCourseModal';
 import AdminProfileSettings from '../components/AdminProfileSettings';
+import ConfirmationModal from '../../../shared/components/ConfirmationModal';
 import tutorDashboardService, { type CourseWithStats } from '../../../shared/services/tutorDashboardService';
 import { fetchWithCache, cache } from '../../../shared/lib/cache';
 
@@ -66,6 +67,19 @@ function AdminDashboard() {
   const [isCreateCourseModalOpen, setIsCreateCourseModalOpen] = useState(false);
   const [isEditCourseModalOpen, setIsEditCourseModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<CourseWithStats | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    variant?: 'danger' | 'warning' | 'info';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    variant: 'danger'
+  });
 
   // Save activeTab to localStorage whenever it changes
   useEffect(() => {
@@ -226,25 +240,75 @@ function AdminDashboard() {
 
   // Course management functions
   const handleCourseStatusUpdate = async (courseId: string, status: 'ACTIVE' | 'INACTIVE') => {
+    const isActive = status === 'ACTIVE';
+    
+    // Optimistically update UI immediately
+    setCourses(prev => prev.map(c => 
+      c.id === courseId ? { ...c, isActive } : c
+    ));
+    
     try {
-      // TODO: Implement actual API call when courses endpoint is available
-      console.log('Course status update:', courseId, status);
-      setCourses(prev => prev.map(course => 
-        course.id === courseId ? { ...course, status } : course
-      ));
+      // Make API call in background
+      await adminService.updateCourseStatus(courseId, isActive);
+      
+      // Update stats after successful update
+      const dashboardStats = await adminService.getDashboardStats();
+      setStats(dashboardStats);
     } catch (error) {
       console.error('Error updating course status:', error);
+      
+      // Revert optimistic update on error
+      setCourses(prev => prev.map(c => 
+        c.id === courseId ? { ...c, isActive: !isActive } : c
+      ));
+      
+      // Show error modal
+      setConfirmModal({
+        isOpen: true,
+        title: 'Error',
+        message: 'Failed to update course status. Please try again.',
+        variant: 'danger',
+        onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+      });
     }
   };
 
   const handleCourseDelete = async (courseId: string) => {
-    try {
-      // TODO: Implement actual API call when courses endpoint is available
-      console.log('Course delete:', courseId);
-      setCourses(prev => prev.filter(course => course.id !== courseId));
-    } catch (error) {
-      console.error('Error deleting course:', error);
-    }
+    const course = courses.find(c => c.id === courseId);
+    
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Course',
+      message: `Are you sure you want to delete "${course?.title}"? This action cannot be undone and will remove all associated data.`,
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          await adminService.deleteCourse(courseId);
+          
+          // Refresh courses data
+          const coursesResponse = await adminService.getCourses({ limit: ADMIN_CONSTANTS.COURSES_PAGE_SIZE });
+          setCourses(coursesResponse.courses);
+          
+          // Update stats
+          const dashboardStats = await adminService.getDashboardStats();
+          setStats(dashboardStats);
+          
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        } catch (error) {
+          console.error('Error deleting course:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Failed to delete course';
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+          // Show error modal
+          setConfirmModal({
+            isOpen: true,
+            title: 'Cannot Delete Course',
+            message: errorMessage,
+            variant: 'danger',
+            onConfirm: () => setConfirmModal(prev => ({ ...prev, isOpen: false }))
+          });
+        }
+      }
+    });
   };
 
   // Admin's own course management (as a tutor)
@@ -324,19 +388,36 @@ function AdminDashboard() {
             setSelectedCourse(null);
           }}
           onSuccess={async () => {
-            // Invalidate cache and refresh
+            // Refresh both All Courses and My Courses
+            const coursesResponse = await adminService.getCourses({ limit: ADMIN_CONSTANTS.COURSES_PAGE_SIZE });
+            setCourses(coursesResponse.courses);
+            
+            // Invalidate cache and refresh my courses
             cache.delete('admin:my-courses');
             const myCoursesData = await fetchWithCache(
               'admin:my-courses',
               () => tutorDashboardService.getTutorCourses()
             );
             setMyCourses(myCoursesData);
+            
             setIsEditCourseModalOpen(false);
             setSelectedCourse(null);
           }}
           course={selectedCourse}
         />
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        confirmText="Confirm"
+        cancelText="Cancel"
+      />
 
       {/* Top Header */}
       <div className="fixed top-0 left-0 right-0 h-16 bg-gray-900 z-30 flex items-center px-6">

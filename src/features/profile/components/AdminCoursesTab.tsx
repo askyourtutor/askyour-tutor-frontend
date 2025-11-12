@@ -213,9 +213,6 @@ function AdminCoursesTab({ courses, onUpdateStatus, onDeleteCourse }: AdminCours
                       >
                         {getCourseStatus(course) === 'ACTIVE' ? 'Deactivate' : 'Activate'}
                       </button>
-                      <button className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-sm hover:bg-gray-200 border border-gray-200 transition-colors">
-                        Edit
-                      </button>
                       <button 
                         onClick={() => onDeleteCourse(course.id)}
                         className="px-3 py-1 bg-red-100 text-red-700 text-xs rounded-sm hover:bg-red-200 border border-red-200 transition-colors"
