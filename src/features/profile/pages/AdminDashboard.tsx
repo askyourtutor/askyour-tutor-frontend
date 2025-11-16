@@ -59,7 +59,10 @@ function AdminDashboard() {
     verifiedTutors: 0,
     unverifiedEmails: 0,
     monthlyRevenue: 0,
-    userGrowth: 0
+    userGrowth: 0,
+    pendingQuestions: 0,
+    totalPayments: 0,
+    pendingTutors: 0
   });
   const [loading, setLoading] = useState(true);
   const [selectedTutor, setSelectedTutor] = useState<AdminTutor | null>(null);
@@ -130,7 +133,10 @@ function AdminDashboard() {
         verifiedTutors: 0,
         unverifiedEmails: 0,
         monthlyRevenue: 0,
-        userGrowth: 0
+        userGrowth: 0,
+        pendingQuestions: 0,
+        totalPayments: 0,
+        pendingTutors: 0
       });
       setUsers([]);
       setTutors([]);
@@ -494,11 +500,18 @@ function AdminDashboard() {
                 <IconBook size={18} className="mr-3 flex-shrink-0" />
                 <span>Tutors</span>
               </div>
-              {pendingTutors.length > 0 && (
-                <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-sm font-medium">
-                  {pendingTutors.length}
+              <div className="flex items-center gap-1">
+                {stats.pendingTutors > 0 && (
+                  <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-sm font-medium">
+                    {stats.pendingTutors}
+                  </span>
+                )}
+                <span className={`text-xs px-2 py-0.5 rounded-sm font-medium ${
+                  activeTab === 'tutors' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {stats.totalTutors}
                 </span>
-              )}
+              </div>
             </button>
             
             <button
@@ -560,26 +573,40 @@ function AdminDashboard() {
 
             <button
               onClick={() => setActiveTab('qna')}
-              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
                 activeTab === 'qna' 
                   ? 'bg-gray-900 text-white' 
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <IconMessageCircle size={18} className="mr-3 flex-shrink-0" />
-              <span>Q&A</span>
+              <div className="flex items-center min-w-0 flex-1">
+                <IconMessageCircle size={18} className="mr-3 flex-shrink-0" />
+                <span>Q&A</span>
+              </div>
+              {stats.pendingQuestions > 0 && (
+                <span className="bg-orange-600 text-white text-xs px-2 py-0.5 rounded-sm font-medium">
+                  {stats.pendingQuestions}
+                </span>
+              )}
             </button>
 
             <button
               onClick={() => setActiveTab('payments')}
-              className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+              className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
                 activeTab === 'payments' 
                   ? 'bg-gray-900 text-white' 
                   : 'text-gray-700 hover:bg-gray-100'
               }`}
             >
-              <IconCurrencyDollar size={18} className="mr-3 flex-shrink-0" />
-              <span>Payments</span>
+              <div className="flex items-center min-w-0 flex-1">
+                <IconCurrencyDollar size={18} className="mr-3 flex-shrink-0" />
+                <span>Payments</span>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-sm font-medium ${
+                activeTab === 'payments' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'
+              }`}>
+                {stats.totalPayments}
+              </span>
             </button>
             
             <div className="pt-4 mt-4 border-t border-gray-200">

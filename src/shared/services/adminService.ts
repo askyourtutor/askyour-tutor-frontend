@@ -11,6 +11,9 @@ export interface DashboardStats {
   unverifiedEmails: number;
   monthlyRevenue: number;
   userGrowth: number;
+  pendingQuestions: number;
+  totalPayments: number;
+  pendingTutors: number;
 }
 
 export interface AdminUser {
