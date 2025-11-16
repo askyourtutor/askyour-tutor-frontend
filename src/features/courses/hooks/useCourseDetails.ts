@@ -158,7 +158,9 @@ export function useCourseDetails(courseId: string | undefined) {
     if (!courseId) return;
     if (isEnrolled) return;
     if (!user) {
-      navigate('/login', { replace: false });
+      // Save current URL to redirect back after login
+      const currentPath = window.location.pathname;
+      navigate('/login', { state: { from: currentPath } });
       return;
     }
     

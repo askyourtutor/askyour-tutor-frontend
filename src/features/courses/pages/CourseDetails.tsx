@@ -110,7 +110,7 @@ const CourseDetails: React.FC = () => {
         onSave={handleSaveToggle}
         onShare={handleShare}
         onEnroll={handleEnroll}
-        showEnrollmentFeatures={user?.role === 'STUDENT'}
+        showEnrollmentFeatures={true}
       />
 
       {/* Main Content Container */}
@@ -270,7 +270,7 @@ const CourseDetails: React.FC = () => {
                     isEnrolled={isEnrolled}
                     isEnrolling={isEnrolling}
                     onEnroll={handleEnroll}
-                    showEnrollmentFeatures={user?.role === 'STUDENT'}
+                    showEnrollmentFeatures={true}
                   />
                 )}
               </div>
@@ -294,7 +294,7 @@ const CourseDetails: React.FC = () => {
                 }}
                 isVideoPlaying={isVideoPlaying}
                 onTogglePlayPause={() => setIsVideoPlaying(!isVideoPlaying)}
-                showEnrollmentFeatures={user?.role === 'STUDENT'}
+                showEnrollmentFeatures={true}
               />
 
             </div>
@@ -302,15 +302,13 @@ const CourseDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile CTA - Fixed Bottom - Only for Students */}
-      {user?.role === 'STUDENT' && (
-        <MobileEnrollBar 
-          price={course.price}
-          isEnrolled={isEnrolled}
-          isEnrolling={isEnrolling}
-          onEnroll={handleEnroll}
-        />
-      )}
+      {/* Mobile CTA - Fixed Bottom - Show for all users including non-logged-in */}
+      <MobileEnrollBar 
+        price={course.price}
+        isEnrolled={isEnrolled}
+        isEnrolling={isEnrolling}
+        onEnroll={handleEnroll}
+      />
 
       {/* Booking Modal */}
       {course && (
