@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router';
 import { 
   IconBook, 
   IconCheck, 
@@ -9,10 +8,7 @@ import {
   IconFlame,
   IconStar,
   IconCrown,
-  IconBolt,
   IconUsers,
-  IconPlayerPlay,
-  IconShoppingCart,
   IconChevronRight
 } from '@tabler/icons-react';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
@@ -64,8 +60,8 @@ interface StatCard {
 }
 
 function StudentOverviewTab() {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [showAllStudents, setShowAllStudents] = useState(false);
   const [stats, setStats] = useState<StudentStats>({
     totalCourses: 0,
     inProgressCourses: 0,
@@ -258,7 +254,7 @@ function StudentOverviewTab() {
 
           <div className="p-3 sm:p-4">
             <div className="space-y-2 sm:space-y-3">
-              {[1, 2, 3].map((rank) => {
+              {(showAllStudents ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] : [1, 2, 3]).map((rank) => {
                 const isCurrentUser = rank === 2;
                 return (
                   <div 
@@ -270,7 +266,8 @@ function StudentOverviewTab() {
                     <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-sm flex items-center justify-center font-bold text-xs sm:text-sm ${
                       rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white' :
                       rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
-                      'bg-gradient-to-br from-orange-400 to-red-500 text-white'
+                      rank === 3 ? 'bg-gradient-to-br from-orange-400 to-red-500 text-white' :
+                      'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-700'
                     }`}>
                       #{rank}
                     </div>
@@ -278,7 +275,7 @@ function StudentOverviewTab() {
                       <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">
                         {isCurrentUser ? 'You' : `Student ${rank}`}
                       </p>
-                      <p className="text-[10px] sm:text-xs text-gray-500">{5 - rank} courses</p>
+                      <p className="text-[10px] sm:text-xs text-gray-500">{Math.max(1, 11 - rank)} courses</p>
                     </div>
                     {rank === 1 && <IconCrown size={16} className="text-yellow-500 sm:w-4 sm:h-4" />}
                     {isCurrentUser && <IconStar size={16} className="text-blue-500 sm:w-4 sm:h-4" />}
@@ -288,71 +285,17 @@ function StudentOverviewTab() {
             </div>
 
             <button 
-              onClick={() => navigate('/leaderboard')}
+              onClick={() => setShowAllStudents(!showAllStudents)}
               className="w-full mt-3 sm:mt-4 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-2 px-3 sm:px-4 rounded-sm transition-all flex items-center justify-center gap-2 text-sm"
             >
-              <span>View Full Ranking</span>
-              <IconChevronRight size={16} className="sm:w-4 sm:h-4" />
+              <span>{showAllStudents ? 'Show Less' : 'View Full Ranking'}</span>
+              <IconChevronRight size={16} className={`sm:w-4 sm:h-4 transition-transform ${showAllStudents ? 'rotate-90' : ''}`} />
             </button>
           </div>
         </div>
 
-        {/* Quick Actions & Recent Activity - Left side */}
+        {/* Recent Activity - Left side */}
         <div className="lg:col-span-2 lg:order-1 space-y-3 sm:space-y-4">
-          {/* Quick Actions */}
-          <div className="bg-white rounded-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
-            <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50">
-              <div className="flex items-center gap-2">
-                <IconBolt size={18} className="text-blue-600 sm:w-5 sm:h-5" />
-                <h3 className="text-sm sm:text-base font-bold text-gray-900">Quick Actions</h3>
-              </div>
-            </div>
-
-            <div className="p-3 sm:p-4 space-y-2">
-              <button 
-                onClick={() => navigate('/courses')}
-                className="w-full flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-sm transition-all group border border-blue-200"
-              >
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-blue-500 rounded-sm flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                  <IconPlayerPlay size={18} className="text-white sm:w-5 sm:h-5" />
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">Continue Learning</p>
-                  <p className="text-[10px] sm:text-xs text-gray-600">{stats.inProgressCourses} courses</p>
-                </div>
-                <IconChevronRight size={16} className="text-gray-400 flex-shrink-0 sm:w-4 sm:h-4" />
-              </button>
-
-              <button 
-                onClick={() => navigate('/sessions')}
-                className="w-full flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-sm transition-all group border border-purple-200"
-              >
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-purple-500 rounded-sm flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                  <IconCalendar size={18} className="text-white sm:w-5 sm:h-5" />
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">Book Session</p>
-                  <p className="text-[10px] sm:text-xs text-gray-600">{stats.upcomingSessions} upcoming</p>
-                </div>
-                <IconChevronRight size={16} className="text-gray-400 flex-shrink-0 sm:w-4 sm:h-4" />
-              </button>
-
-              <button 
-                onClick={() => navigate('/courses')}
-                className="w-full flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 rounded-sm transition-all group border border-orange-200"
-              >
-                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-orange-500 rounded-sm flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                  <IconShoppingCart size={18} className="text-white sm:w-5 sm:h-5" />
-                </div>
-                <div className="flex-1 text-left min-w-0">
-                  <p className="text-xs sm:text-sm font-bold text-gray-900 truncate">Browse Courses</p>
-                  <p className="text-[10px] sm:text-xs text-gray-600">Discover new topics</p>
-                </div>
-                <IconChevronRight size={16} className="text-gray-400 flex-shrink-0 sm:w-4 sm:h-4" />
-              </button>
-            </div>
-          </div>
-
           {/* Recent Activity */}
           <div className="bg-white rounded-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
             <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
