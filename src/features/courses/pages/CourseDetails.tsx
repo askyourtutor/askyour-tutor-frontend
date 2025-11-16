@@ -126,8 +126,9 @@ const CourseDetails: React.FC = () => {
               onTogglePlay={(p) => setIsVideoPlaying(p)}
               src={videoSrc}
               poster={videoThumb}
-              totalDurationMin={totalDuration}
-              lessonsCount={course.lessons.length}
+              activeLessonDuration={activeLesson?.duration}
+              activeLessonTitle={activeLesson?.title}
+              totalLessonsCount={course.lessons.length}
               rating={course.rating}
               renderStars={renderStars}
             />
@@ -173,7 +174,7 @@ const CourseDetails: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2">
                   <IconClock size={14} className="sm:w-4 sm:h-4" />
-                  <span>{totalDuration} Minutes</span>
+                  <span>{totalDuration}min Total</span>
                 </div>
                 {typeof course.studentsCount === 'number' && (
                   <div className="flex items-center gap-1.5 sm:gap-2">

@@ -6,8 +6,9 @@ interface VideoPlayerProps {
   onTogglePlay: (playing: boolean) => void;
   src?: string;
   poster?: string;
-  totalDurationMin: number;
-  lessonsCount: number;
+  activeLessonDuration?: number | null;
+  activeLessonTitle?: string | null;
+  totalLessonsCount: number;
   rating: number;
   renderStars: (rating: number) => React.ReactNode;
 }
@@ -17,8 +18,9 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onTogglePlay,
   src,
   poster,
-  totalDurationMin,
-  lessonsCount,
+  activeLessonDuration,
+  activeLessonTitle,
+  totalLessonsCount,
   rating,
   renderStars,
 }) => {
@@ -58,14 +60,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
             <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 lg:p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-2 sm:gap-0">
                 <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-                  <div className="flex items-center gap-1.5 sm:gap-2 bg-black/40 backdrop-blur-md rounded-sm px-2 sm:px-3 py-1.5 sm:py-2">
-                    <IconClock size={16} className="sm:w-[18px] sm:h-[18px]" />
-                    <span className="font-medium text-xs sm:text-sm">{totalDurationMin} min</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 sm:gap-2 bg-black/40 backdrop-blur-md rounded-sm px-2 sm:px-3 py-1.5 sm:py-2">
-                    <IconBook size={16} className="sm:w-[18px] sm:h-[18px]" />
-                    <span className="font-medium text-xs sm:text-sm">{lessonsCount} lessons</span>
-                  </div>
+                  {activeLessonDuration ? (
+                    <>
+                      <div className="flex items-center gap-1.5 sm:gap-2 bg-black/40 backdrop-blur-md rounded-sm px-2 sm:px-3 py-1.5 sm:py-2">
+                        <IconClock size={16} className="sm:w-[18px] sm:h-[18px]" />
+                        <span className="font-medium text-xs sm:text-sm">{activeLessonDuration}m</span>
+                      </div>
+                      {activeLessonTitle && (
+                        <div className="flex items-center gap-1.5 sm:gap-2 bg-black/40 backdrop-blur-md rounded-sm px-2 sm:px-3 py-1.5 sm:py-2">
+                          <IconBook size={16} className="sm:w-[18px] sm:h-[18px]" />
+                          <span className="font-medium text-xs sm:text-sm truncate max-w-[200px]">{activeLessonTitle}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-1.5 sm:gap-2 bg-black/40 backdrop-blur-md rounded-sm px-2 sm:px-3 py-1.5 sm:py-2">
+                      <IconBook size={16} className="sm:w-[18px] sm:h-[18px]" />
+                      <span className="font-medium text-xs sm:text-sm">{totalLessonsCount} lessons</span>
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5 sm:gap-2 bg-black/40 backdrop-blur-md rounded-sm px-2 sm:px-3 py-1.5 sm:py-2">
                   <div className="flex gap-0.5">{renderStars(rating)}</div>
