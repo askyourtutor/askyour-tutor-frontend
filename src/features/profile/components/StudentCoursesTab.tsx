@@ -182,7 +182,7 @@ function StudentCoursesTab() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
           {filteredCourses.map((course) => {
             const statusColors = {
               'completed': { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', icon: IconCheck },

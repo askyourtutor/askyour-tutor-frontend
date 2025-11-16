@@ -13,7 +13,8 @@ import {
   IconMapPin,
   IconNote,
   IconCheck,
-  IconX
+  IconX,
+  IconAlertCircle
 } from '@tabler/icons-react';
 import { getSessions, type Session } from '../../sessions/services/session.service';
 import { joinVideoSession } from '../../sessions/services/videoSession.service';
@@ -45,6 +46,7 @@ function StudentSessionsTab() {
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   const toggleRow = (sessionId: string) => {
     const newExpanded = new Set(expandedRows);
@@ -96,12 +98,13 @@ function StudentSessionsTab() {
   const handleJoinSession = async (sessionId: string) => {
     try {
       setJoiningId(sessionId);
+      setJoinError(null);
       const videoRoom = await joinVideoSession(sessionId);
       // Open the video room in a new window
       window.open(videoRoom.roomUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('Failed to join session:', error);
-      alert('Failed to join video room. The tutor may not have started the session yet.');
+      setJoinError('Unable to join the video room. The tutor may not have started the session yet.');
     } finally {
       setJoiningId(null);
     }
@@ -135,6 +138,23 @@ function StudentSessionsTab() {
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900">My Booked Sessions</h2>
         <p className="text-xs sm:text-sm text-gray-600 mt-1">View and manage your learning sessions</p>
       </div>
+
+      {/* Error Message */}
+      {joinError && (
+        <div className="bg-amber-50 border border-amber-200 rounded-sm p-3 flex items-start gap-3">
+          <IconAlertCircle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-amber-900">Unable to Join Session</p>
+            <p className="text-xs text-amber-700 mt-0.5">{joinError}</p>
+          </div>
+          <button
+            onClick={() => setJoinError(null)}
+            className="text-amber-600 hover:text-amber-700 transition-colors"
+          >
+            <IconX size={16} />
+          </button>
+        </div>
+      )}
 
       {/* Session Statistics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
