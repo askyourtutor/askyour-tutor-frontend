@@ -287,34 +287,34 @@ function AdminDashboardTab({
           <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-50 to-blue-100 rounded-sm min-w-0">
             <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
               <IconCoin size={14} className="text-blue-600 sm:w-4 sm:h-4 flex-shrink-0" />
-              <p className="text-[10px] sm:text-xs text-blue-700 font-medium truncate">Total Revenue</p>
+              <p className="text-[10px] sm:text-xs text-blue-700 font-medium truncate">All Time Revenue</p>
             </div>
-            <p className="text-lg sm:text-xl font-bold text-blue-700 truncate">${stats.monthlyRevenue.toLocaleString()}</p>
-            <p className="text-[10px] sm:text-xs text-blue-600 mt-0.5 sm:mt-1 truncate">This month</p>
+            <p className="text-lg sm:text-xl font-bold text-blue-700 truncate">${stats.totalRevenue.toLocaleString()}</p>
+            <p className="text-[10px] sm:text-xs text-blue-600 mt-0.5 sm:mt-1 truncate">Total earnings</p>
           </div>
           <div className="p-2 sm:p-3 bg-gradient-to-br from-green-50 to-green-100 rounded-sm min-w-0">
             <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
-              <IconSchool size={14} className="text-green-600 sm:w-4 sm:h-4 flex-shrink-0" />
-              <p className="text-[10px] sm:text-xs text-green-700 font-medium truncate">Course Sales</p>
+              <IconTrendingUp size={14} className="text-green-600 sm:w-4 sm:h-4 flex-shrink-0" />
+              <p className="text-[10px] sm:text-xs text-green-700 font-medium truncate">This Month</p>
             </div>
-            <p className="text-lg sm:text-xl font-bold text-green-700 truncate">${Math.round(stats.monthlyRevenue * 0.6).toLocaleString()}</p>
-            <p className="text-[10px] sm:text-xs text-green-600 mt-0.5 sm:mt-1 truncate">60% of total</p>
+            <p className="text-lg sm:text-xl font-bold text-green-700 truncate">${stats.monthlyRevenue.toLocaleString()}</p>
+            <p className="text-[10px] sm:text-xs text-green-600 mt-0.5 sm:mt-1 truncate">Last 30 days</p>
           </div>
           <div className="p-2 sm:p-3 bg-gradient-to-br from-purple-50 to-purple-100 rounded-sm min-w-0">
             <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
               <IconCalendarEvent size={14} className="text-purple-600 sm:w-4 sm:h-4 flex-shrink-0" />
-              <p className="text-[10px] sm:text-xs text-purple-700 font-medium truncate">Session Fees</p>
+              <p className="text-[10px] sm:text-xs text-purple-700 font-medium truncate">Completed Sessions</p>
             </div>
-            <p className="text-lg sm:text-xl font-bold text-purple-700 truncate">${Math.round(stats.monthlyRevenue * 0.4).toLocaleString()}</p>
-            <p className="text-[10px] sm:text-xs text-purple-600 mt-0.5 sm:mt-1 truncate">40% of total</p>
+            <p className="text-lg sm:text-xl font-bold text-purple-700 truncate">{stats.totalPayments}</p>
+            <p className="text-[10px] sm:text-xs text-purple-600 mt-0.5 sm:mt-1 truncate">Paid sessions</p>
           </div>
           <div className="p-2 sm:p-3 bg-gradient-to-br from-amber-50 to-amber-100 rounded-sm min-w-0">
             <div className="flex items-center gap-1 sm:gap-2 mb-0.5 sm:mb-1">
               <IconActivity size={14} className="text-amber-600 sm:w-4 sm:h-4 flex-shrink-0" />
-              <p className="text-[10px] sm:text-xs text-amber-700 font-medium truncate">Avg per User</p>
+              <p className="text-[10px] sm:text-xs text-amber-700 font-medium truncate">Avg per Session</p>
             </div>
-            <p className="text-lg sm:text-xl font-bold text-amber-700 truncate">${(stats.monthlyRevenue / stats.totalUsers).toFixed(0)}</p>
-            <p className="text-[10px] sm:text-xs text-amber-600 mt-0.5 sm:mt-1 truncate">Per active user</p>
+            <p className="text-lg sm:text-xl font-bold text-amber-700 truncate">${stats.totalPayments > 0 ? (stats.totalRevenue / stats.totalPayments).toFixed(2) : '0.00'}</p>
+            <p className="text-[10px] sm:text-xs text-amber-600 mt-0.5 sm:mt-1 truncate">Per completed</p>
           </div>
         </div>
       </div>

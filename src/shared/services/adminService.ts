@@ -10,6 +10,7 @@ export interface DashboardStats {
   verifiedTutors: number;
   unverifiedEmails: number;
   monthlyRevenue: number;
+  totalRevenue: number;
   userGrowth: number;
   pendingQuestions: number;
   totalPayments: number;

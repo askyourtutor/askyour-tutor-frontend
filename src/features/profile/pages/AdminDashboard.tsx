@@ -59,10 +59,11 @@ function AdminDashboard() {
     verifiedTutors: 0,
     unverifiedEmails: 0,
     monthlyRevenue: 0,
+    totalRevenue: 0,
     userGrowth: 0,
     pendingQuestions: 0,
     totalPayments: 0,
-    pendingTutors: 0
+    pendingTutors: 0,
   });
   const [loading, setLoading] = useState(true);
   const [selectedTutor, setSelectedTutor] = useState<AdminTutor | null>(null);
@@ -133,10 +134,11 @@ function AdminDashboard() {
         verifiedTutors: 0,
         unverifiedEmails: 0,
         monthlyRevenue: 0,
+        totalRevenue: 0,
         userGrowth: 0,
         pendingQuestions: 0,
         totalPayments: 0,
-        pendingTutors: 0
+        pendingTutors: 0,
       });
       setUsers([]);
       setTutors([]);

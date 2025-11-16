@@ -82,7 +82,7 @@ function TutorDashboardTab({
             </div>
             <span className="w-2 h-2 bg-green-600 rounded-full mt-1"></span>
           </div>
-          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Sessions</p>
+          <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Upcoming Sessions</p>
           <p className="text-2xl font-bold text-green-600 mt-1">{stats.upcomingSessions}</p>
           <p className="text-xs text-gray-500 mt-1">
             {stats.completedSessions} completed, {stats.pendingSessions} pending
