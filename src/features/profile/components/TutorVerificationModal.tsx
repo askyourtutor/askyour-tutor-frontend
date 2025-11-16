@@ -380,8 +380,39 @@ function TutorVerificationModal({
                     {profile.availability && (
                       <div className="grid grid-cols-3 gap-4">
                         <div className="text-xs font-medium text-gray-500 pt-1">Availability</div>
-                        <div className="col-span-2 text-sm text-gray-700 whitespace-pre-wrap break-words">
-                          {profile.availability}
+                        <div className="col-span-2 text-sm text-gray-700">
+                          {(() => {
+                            try {
+                              const availability = JSON.parse(profile.availability);
+                              const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                              const dayLabels: Record<string, string> = {
+                                monday: 'Monday',
+                                tuesday: 'Tuesday',
+                                wednesday: 'Wednesday',
+                                thursday: 'Thursday',
+                                friday: 'Friday',
+                                saturday: 'Saturday',
+                                sunday: 'Sunday'
+                              };
+                              
+                              return (
+                                <div className="space-y-1.5">
+                                  {days.map(day => {
+                                    const slots = availability[day];
+                                    if (!slots || slots.length === 0) return null;
+                                    return (
+                                      <div key={day} className="flex items-start gap-2">
+                                        <span className="font-medium text-gray-900 min-w-[80px]">{dayLabels[day]}:</span>
+                                        <span className="text-gray-700">{slots.join(', ')}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            } catch {
+                              return <span className="text-gray-500 italic">Invalid format</span>;
+                            }
+                          })()}
                         </div>
                       </div>
                     )}
