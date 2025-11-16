@@ -424,35 +424,56 @@ function TutorDashboard() {
                   <IconCalendarEvent size={18} className="mr-3 flex-shrink-0" />
                   <span>Sessions</span>
                 </div>
-                {stats.pendingSessions > 0 && (
-                  <span className="bg-yellow-600 text-white text-xs px-2 py-0.5 rounded-sm font-medium">
-                    {stats.pendingSessions}
+                <div className="flex items-center gap-1">
+                  {stats.pendingSessions > 0 && (
+                    <span className="bg-yellow-600 text-white text-xs px-2 py-0.5 rounded-sm font-medium">
+                      {stats.pendingSessions}
+                    </span>
+                  )}
+                  <span className={`text-xs px-2 py-0.5 rounded-sm font-medium ${
+                    activeTab === 'sessions' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {stats.totalSessions}
                   </span>
-                )}
+                </div>
               </button>
               
               <button
                 onClick={() => setActiveTab('students')}
-                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
                   activeTab === 'students' 
                     ? 'bg-gray-900 text-white' 
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <IconUsers size={18} className="mr-3 flex-shrink-0" />
-                <span>All Students</span>
+                <div className="flex items-center min-w-0 flex-1">
+                  <IconUsers size={18} className="mr-3 flex-shrink-0" />
+                  <span>All Students</span>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-sm font-medium ${
+                  activeTab === 'students' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {stats.totalStudents}
+                </span>
               </button>
               
               <button
                 onClick={() => setActiveTab('payments')}
-                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
+                className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-sm transition-colors ${
                   activeTab === 'payments' 
                     ? 'bg-gray-900 text-white' 
                     : 'text-gray-700 hover:bg-gray-100'
                 }`}
               >
-                <IconCreditCard size={18} className="mr-3 flex-shrink-0" />
-                <span>Payments</span>
+                <div className="flex items-center min-w-0 flex-1">
+                  <IconCreditCard size={18} className="mr-3 flex-shrink-0" />
+                  <span>Payments</span>
+                </div>
+                <span className={`text-xs px-2 py-0.5 rounded-sm font-medium ${
+                  activeTab === 'payments' ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  {stats.completedSessions}
+                </span>
               </button>
               
               <button
