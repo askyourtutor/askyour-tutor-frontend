@@ -5,7 +5,6 @@ import {
   IconChartBar,
   IconTrendingUp,
   IconClock,
-  IconSchool,
   IconCoin,
   IconActivity,
   IconAlertCircle,

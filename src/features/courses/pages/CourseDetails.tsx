@@ -11,7 +11,6 @@ import {
   IconMessageCircle,
   IconFileText
 } from '@tabler/icons-react';
-import { useAuth } from '../../../shared/contexts/AuthContext';
 import MobileEnrollBar from './components/MobileEnrollBar';
 import SidebarSyllabus from './components/SidebarSyllabus';
 import TabNav, { type TabItem } from './components/TabNav';
@@ -31,7 +30,6 @@ import BookingModal from '../../sessions/components/BookingModal';
 const CourseDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   
   const {
