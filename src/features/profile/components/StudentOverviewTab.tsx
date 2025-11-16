@@ -5,13 +5,14 @@ import {
   IconCurrencyDollar,
   IconTrendingUp,
   IconCalendar,
-  IconTrophy,
   IconFlame,
   IconStar,
-  IconSparkles,
-  IconTarget,
+  IconCrown,
   IconBolt,
-  IconRocket
+  IconUsers,
+  IconPlayerPlay,
+  IconShoppingCart,
+  IconChevronRight
 } from '@tabler/icons-react';
 import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 import { apiFetch } from '../../../shared/services/api';
@@ -239,63 +240,155 @@ function StudentOverviewTab() {
         })}
       </div>
 
-      {/* Recent Activity - Modern Card Design */}
-      <div className="bg-white rounded-sm border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-        <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-sm flex items-center justify-center shadow-md">
-                <IconBolt size={20} className="text-white" />
-              </div>
+      {/* Quick Actions & Recent Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Leaderboard - Sticky on right */}
+        <div className="lg:order-2 lg:sticky lg:top-4 lg:self-start bg-white rounded-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+          <div className="bg-gradient-to-r from-yellow-400 to-orange-500 px-4 py-4">
+            <div className="flex items-center gap-2">
+              <IconCrown size={24} className="text-white" />
               <div>
-                <h3 className="text-base font-bold text-gray-900">Recent Activity</h3>
-                <p className="text-xs text-gray-500">Your latest achievements</p>
+                <h3 className="text-base font-bold text-white">Leaderboard</h3>
+                <p className="text-xs text-white/90">Top Learners</p>
               </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <IconSparkles size={16} className="text-yellow-500" />
-              <span className="text-xs font-semibold text-gray-600">{recentActivity.length}</span>
             </div>
           </div>
-        </div>
-        
-        <div className="divide-y divide-gray-100">
-          {recentActivity.length === 0 ? (
-            <div className="px-5 py-12 text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-sm flex items-center justify-center mx-auto mb-4 shadow-inner">
-                <IconBook size={28} className="text-gray-400" />
-              </div>
-              <p className="text-sm font-medium text-gray-900 mb-1">No activity yet</p>
-              <p className="text-xs text-gray-500">Start learning to see your progress here</p>
+
+          <div className="p-4">
+            <div className="space-y-3">
+              {[1, 2, 3].map((rank) => {
+                const isCurrentUser = rank === 2;
+                return (
+                  <div 
+                    key={rank}
+                    className={`flex items-center gap-3 p-2 rounded-sm transition-all ${
+                      isCurrentUser ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-300' : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-sm flex items-center justify-center font-bold text-sm ${
+                      rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white' :
+                      rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                      'bg-gradient-to-br from-orange-400 to-red-500 text-white'
+                    }`}>
+                      #{rank}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">
+                        {isCurrentUser ? 'You' : `Student ${rank}`}
+                      </p>
+                      <p className="text-xs text-gray-500">{5 - rank} courses</p>
+                    </div>
+                    {rank === 1 && <IconCrown size={18} className="text-yellow-500" />}
+                    {isCurrentUser && <IconStar size={18} className="text-blue-500" />}
+                  </div>
+                );
+              })}
             </div>
-          ) : (
-            recentActivity.map((activity, index) => (
-              <div 
-                key={activity.id} 
-                className="px-5 py-3 hover:bg-gradient-to-r hover:from-gray-50 hover:to-transparent transition-all duration-200 group cursor-pointer"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-purple-50 rounded-sm flex items-center justify-center flex-shrink-0 border border-gray-200 group-hover:border-blue-300 group-hover:scale-110 transition-all duration-200 shadow-sm">
-                    {getActivityIcon(activity.icon)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                      {activity.title}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
-                      {activity.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-sm">
-                      {formatTimestamp(activity.timestamp)}
-                    </span>
-                  </div>
-                </div>
+
+            <button className="w-full mt-4 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold py-2 px-4 rounded-sm transition-all flex items-center justify-center gap-2">
+              <span>View Full Ranking</span>
+              <IconChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Actions & Recent Activity - Left side */}
+        <div className="lg:col-span-2 lg:order-1 space-y-4">
+          {/* Quick Actions */}
+          <div className="bg-white rounded-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-cyan-50">
+              <div className="flex items-center gap-2">
+                <IconBolt size={20} className="text-blue-600" />
+                <h3 className="text-base font-bold text-gray-900">Quick Actions</h3>
               </div>
-            ))
-          )}
+            </div>
+
+            <div className="p-4 space-y-2">
+              <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 rounded-sm transition-all group border border-blue-200">
+                <div className="w-10 h-10 bg-blue-500 rounded-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <IconPlayerPlay size={20} className="text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-bold text-gray-900">Continue Learning</p>
+                  <p className="text-xs text-gray-600">{stats.inProgressCourses} courses</p>
+                </div>
+                <IconChevronRight size={18} className="text-gray-400" />
+              </button>
+
+              <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200 rounded-sm transition-all group border border-purple-200">
+                <div className="w-10 h-10 bg-purple-500 rounded-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <IconCalendar size={20} className="text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-bold text-gray-900">Book Session</p>
+                  <p className="text-xs text-gray-600">{stats.upcomingSessions} upcoming</p>
+                </div>
+                <IconChevronRight size={18} className="text-gray-400" />
+              </button>
+
+              <button className="w-full flex items-center gap-3 p-3 bg-gradient-to-r from-orange-50 to-orange-100 hover:from-orange-100 hover:to-orange-200 rounded-sm transition-all group border border-orange-200">
+                <div className="w-10 h-10 bg-orange-500 rounded-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <IconShoppingCart size={20} className="text-white" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-bold text-gray-900">Browse Courses</p>
+                  <p className="text-xs text-gray-600">Discover new topics</p>
+                </div>
+                <IconChevronRight size={18} className="text-gray-400" />
+              </button>
+            </div>
+          </div>
+
+          {/* Recent Activity */}
+          <div className="bg-white rounded-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+            <div className="px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <IconUsers size={20} className="text-gray-700" />
+                  <h3 className="text-base font-bold text-gray-900">Recent Activity</h3>
+                </div>
+                <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-3 py-1 rounded-sm">
+                  {recentActivity.length} events
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4">
+              {recentActivity.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 bg-gray-100 rounded-sm flex items-center justify-center mx-auto mb-3">
+                    <IconBook size={28} className="text-gray-400" />
+                  </div>
+                  <p className="text-sm font-medium text-gray-900">No activity yet</p>
+                  <p className="text-xs text-gray-500 mt-1">Start learning to see your progress</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {recentActivity.map((activity) => (
+                    <div 
+                      key={activity.id}
+                      className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-sm transition-all group cursor-pointer border border-transparent hover:border-gray-200"
+                    >
+                      <div className="w-9 h-9 bg-gradient-to-br from-blue-50 to-purple-50 rounded-sm flex items-center justify-center flex-shrink-0 border border-gray-200 group-hover:scale-110 transition-transform">
+                        {getActivityIcon(activity.icon)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 line-clamp-1">
+                          {activity.title}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+                          {activity.description}
+                        </p>
+                      </div>
+                      <span className="text-xs font-medium text-gray-400 whitespace-nowrap">
+                        {formatTimestamp(activity.timestamp)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
