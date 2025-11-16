@@ -28,6 +28,7 @@ import { getSubjects, type Subject } from '../../../shared/services/subjectsServ
 import videoUploadService, { type VideoUploadProgress } from '../../../shared/services/videoUploadService';
 import { uploadCourseImageForCourse } from '../../../shared/services/imageUploadService';
 import { uploadAndAddResource, getCourseResources, deleteResource, type Resource } from '../../../shared/services/resourceUploadService';
+import ConfirmationModal from '../../../shared/components/ConfirmationModal';
 
 interface Lesson {
   id?: string;
@@ -88,6 +89,11 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
   const [isLoadingLessons, setIsLoadingLessons] = useState(false);
   const [previewVideo, setPreviewVideo] = useState<{ url: string; title: string } | null>(null);
+  const [deleteVideoConfirm, setDeleteVideoConfirm] = useState<{ isOpen: boolean; lessonId: string | null; isDeleting: boolean }>({
+    isOpen: false,
+    lessonId: null,
+    isDeleting: false
+  });
 
   const fallbackSubjects = useMemo<Subject[]>(() => [
     { id: '1', name: 'Mathematics', category: 'Science' },
@@ -364,6 +370,35 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
   const removeVideo = (lessonId: string) => {
     updateLesson(lessonId, 'videoFile', null);
     updateLesson(lessonId, 'videoPreview', '');
+  };
+
+  const deleteExistingVideo = async (lessonId: string) => {
+    setDeleteVideoConfirm({ isOpen: true, lessonId, isDeleting: false });
+  };
+
+  const confirmDeleteVideo = async () => {
+    const { lessonId } = deleteVideoConfirm;
+    if (!lessonId) return;
+
+    setDeleteVideoConfirm(prev => ({ ...prev, isDeleting: true }));
+
+    try {
+      await videoUploadService.deleteVideo(lessonId);
+      
+      // Clear video data from lesson
+      updateLesson(lessonId, 'videoUrl', null);
+      updateLesson(lessonId, 'bunnyVideoId', null);
+      updateLesson(lessonId, 'thumbnailUrl', null);
+      updateLesson(lessonId, 'videoFile', null);
+      updateLesson(lessonId, 'videoPreview', '');
+      
+      console.log('✅ Video deleted successfully');
+      setDeleteVideoConfirm({ isOpen: false, lessonId: null, isDeleting: false });
+    } catch (error) {
+      console.error('❌ Failed to delete video:', error);
+      setSubmitError('Failed to delete video. Please try again.');
+      setDeleteVideoConfirm({ isOpen: false, lessonId: null, isDeleting: false });
+    }
   };
 
   const handleSubmit = async () => {
@@ -1033,6 +1068,13 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
                                                 className="hidden"
                                               />
                                             </label>
+                                            <button
+                                              onClick={() => deleteExistingVideo(lesson.id || '')}
+                                              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-sm transition-all duration-200"
+                                              title="Delete video"
+                                            >
+                                              <IconTrash size={14} />
+                                            </button>
                                           </div>
                                         </div>
                                       ) : lesson.videoFile ? (
@@ -1238,6 +1280,19 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
           </div>
         </div>
       )}
+
+      {/* Video Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteVideoConfirm.isOpen}
+        onClose={() => setDeleteVideoConfirm({ isOpen: false, lessonId: null, isDeleting: false })}
+        onConfirm={confirmDeleteVideo}
+        title="Delete Video"
+        message="Are you sure you want to delete this video? This will permanently remove it from Bunny.net CDN and cannot be undone."
+        confirmText="Delete Video"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={deleteVideoConfirm.isDeleting}
+      />
     </div>
   );
 }
