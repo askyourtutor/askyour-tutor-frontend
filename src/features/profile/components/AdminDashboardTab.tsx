@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { 
   IconUsers, 
   IconBook, 
@@ -10,7 +11,8 @@ import {
   IconAlertCircle,
   IconBriefcase,
   IconMessages,
-  IconStar
+  IconStar,
+  IconLoader
 } from '@tabler/icons-react';
 import type { DashboardStats, AdminTutor } from '../../../shared/services/adminService';
 
@@ -24,15 +26,16 @@ interface AdminDashboardTabProps {
   onNavigate: (tab: string) => void;
 }
 
-function AdminDashboardTab({ 
-  stats, 
-  pendingTutors, 
-  onViewTutor, 
-  onApproveTutor, 
+function AdminDashboardTab({
+  stats,
+  pendingTutors,
+  onViewTutor,
+  onApproveTutor,
   onRejectTutor,
   onBulkApprove,
-  onNavigate
+  onNavigate,
 }: AdminDashboardTabProps) {
+
   return (
     <div className="space-y-3 p-2 sm:p-4 max-w-full overflow-hidden">
       {/* Stats Grid */}

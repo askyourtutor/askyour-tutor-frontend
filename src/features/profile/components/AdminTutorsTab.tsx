@@ -1,4 +1,5 @@
-import { IconUsers, IconSearch } from '@tabler/icons-react';
+import { IconUsers, IconSearch, IconLoader } from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
 import type { AdminTutor } from '../../../shared/services/adminService';
 
 interface AdminTutorsTabProps {
@@ -18,6 +19,17 @@ function AdminTutorsTab({
   onRejectTutor,
   onBulkApprove
 }: AdminTutorsTabProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
+
+  const filteredTutors = tutors.filter(tutor => {
+    const matchesSearch = searchTerm === '' || 
+      `${tutor.tutorProfile.firstName} ${tutor.tutorProfile.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tutor.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'ALL' || tutor.tutorProfile.verificationStatus === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="space-y-4">
       {/* Header */}

@@ -14,6 +14,7 @@ import {
   IconChevronDown,
   IconChevronRight,
   IconUser,
+  IconLoader,
   IconMail,
   IconCalendar,
   IconReceipt
@@ -95,7 +96,11 @@ const AdminPaymentsTab: React.FC = () => {
   };
 
   if (loading) {
-    return <LoadingSpinner fullScreen message="Loading payments..." />;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <IconLoader className="animate-spin text-gray-600" size={32} />
+      </div>
+    );
   }
 
   return (

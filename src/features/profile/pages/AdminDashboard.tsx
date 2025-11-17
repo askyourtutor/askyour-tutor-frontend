@@ -19,7 +19,7 @@ import {
 } from '../../../shared/services/adminService';
 import { useAuth } from '../../../shared/contexts/AuthContext';
 import { ADMIN_CONSTANTS } from '../../../shared/constants/admin';
-import LoadingSpinner from '../../../shared/components/LoadingSpinner';
+
 import TutorVerificationModal from '../components/TutorVerificationModal';
 import AdminDashboardTab from '../components/AdminDashboardTab';
 import AdminUsersTab from '../components/AdminUsersTab';
@@ -33,6 +33,10 @@ import CreateCourseModal from '../components/CreateCourseModal';
 import EditCourseModal from '../components/EditCourseModal';
 import AdminProfileSettings from '../components/AdminProfileSettings';
 import ConfirmationModal from '../../../shared/components/ConfirmationModal';
+import AdminDashboardSkeleton from '../components/AdminDashboardSkeleton';
+import AdminUsersTabSkeleton from '../components/AdminUsersTabSkeleton';
+import AdminTutorsTabSkeleton from '../components/AdminTutorsTabSkeleton';
+import AdminCoursesTabSkeleton from '../components/AdminCoursesTabSkeleton';
 import tutorDashboardService, { type CourseWithStats } from '../../../shared/services/tutorDashboardService';
 import { fetchWithCache, cache } from '../../../shared/lib/cache';
 
@@ -45,6 +49,7 @@ function AdminDashboard() {
     return (savedTab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'sessions' | 'qna' | 'payments' | 'settings') || ADMIN_CONSTANTS.DEFAULT_TAB;
   });
   
+  const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [tutors, setTutors] = useState<AdminTutor[]>([]);
   const [courses, setCourses] = useState<AdminCourse[]>([]);
@@ -65,7 +70,7 @@ function AdminDashboard() {
     totalPayments: 0,
     pendingTutors: 0,
   });
-  const [loading, setLoading] = useState(true);
+
   const [selectedTutor, setSelectedTutor] = useState<AdminTutor | null>(null);
   const [showTutorModal, setShowTutorModal] = useState(false);
   const [isCreateCourseModalOpen, setIsCreateCourseModalOpen] = useState(false);
@@ -92,8 +97,8 @@ function AdminDashboard() {
 
   // Fetch dashboard data function
   const fetchDashboardData = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       // Fetch real dashboard stats
       const dashboardStats = await adminService.getDashboardStats();
       setStats(dashboardStats);
@@ -357,9 +362,7 @@ function AdminDashboard() {
     }
   };
 
-  if (loading) {
-    return <LoadingSpinner fullScreen message={ADMIN_CONSTANTS.LOADING_MESSAGE} />;
-  }
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -639,75 +642,91 @@ function AdminDashboard() {
       {/* Main Content */}
       <div className="flex-1 ml-60">
         <div className="px-4 py-4">
-          {activeTab === 'dashboard' && (
-            <AdminDashboardTab
-              stats={stats}
-              pendingTutors={pendingTutors}
-              onViewTutor={openTutorModal}
-              onApproveTutor={(id) => handleApprovalAction(id, 'approve')}
-              onRejectTutor={(id) => handleApprovalAction(id, 'reject', 'Rejected by admin')}
-              onBulkApprove={handleBulkApprove}
-              onNavigate={(tab) => setActiveTab(tab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'qna' | 'payments' | 'settings')}
-            />
-          )}
-          {activeTab === 'users' && (
-            <AdminUsersTab
-              users={users}
-              onUpdateStatus={handleUserStatusUpdate}
-              onDeleteUser={handleUserDelete}
-            />
-          )}
-          {activeTab === 'tutors' && (
-            <AdminTutorsTab
-              tutors={tutors}
-              pendingCount={pendingTutors.length}
-              onViewTutor={openTutorModal}
-              onApproveTutor={(id) => handleApprovalAction(id, 'approve')}
-              onRejectTutor={(id) => handleApprovalAction(id, 'reject', 'Rejected by admin')}
-              onBulkApprove={handleBulkApprove}
-            />
-          )}
-          {activeTab === 'courses' && (
-            <AdminCoursesTab
-              courses={courses}
-              onUpdateStatus={handleCourseStatusUpdate}
-              onDeleteCourse={handleCourseDelete}
-            />
-          )}
-          {activeTab === 'my-courses' && (
+          {loading ? (
             <>
-              {myCourses.length === 0 && !loading ? (
-                <div className="bg-white rounded-sm border border-gray-200 p-8">
-                  <div className="text-center py-12">
-                    <IconBook size={48} className="mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Courses Yet</h3>
-                    <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                      As an admin with tutor privileges, you can create and manage your own courses just like any tutor.
-                    </p>
-                    <button
-                      onClick={() => setIsCreateCourseModalOpen(true)}
-                      className="px-6 py-2.5 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      Create Your First Course
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <TutorCoursesTab
-                  courses={myCourses}
-                  onCreateCourse={() => setIsCreateCourseModalOpen(true)}
-                  onEditCourse={handleEditCourse}
-                  onDeleteCourse={handleDeleteMyCourse}
-                  onTogglePublish={handleTogglePublish}
+              {activeTab === 'dashboard' && <AdminDashboardSkeleton />}
+              {activeTab === 'users' && <AdminUsersTabSkeleton />}
+              {activeTab === 'tutors' && <AdminTutorsTabSkeleton />}
+              {activeTab === 'courses' && <AdminCoursesTabSkeleton />}
+              {activeTab === 'my-courses' && <AdminCoursesTabSkeleton />}
+              {activeTab === 'sessions' && <AdminUsersTabSkeleton />}
+              {activeTab === 'qna' && <AdminUsersTabSkeleton />}
+              {activeTab === 'payments' && <AdminUsersTabSkeleton />}
+              {activeTab === 'settings' && <div className="animate-pulse bg-white rounded-sm border border-gray-200 p-6 h-96"></div>}
+            </>
+          ) : (
+            <>
+              {activeTab === 'dashboard' && (
+                <AdminDashboardTab
+                  stats={stats}
+                  pendingTutors={pendingTutors}
+                  onViewTutor={openTutorModal}
+                  onApproveTutor={(id) => handleApprovalAction(id, 'approve')}
+                  onRejectTutor={(id) => handleApprovalAction(id, 'reject', 'Rejected by admin')}
+                  onBulkApprove={handleBulkApprove}
+                  onNavigate={(tab) => setActiveTab(tab as 'dashboard' | 'users' | 'tutors' | 'courses' | 'my-courses' | 'qna' | 'payments' | 'settings')}
                 />
               )}
+              {activeTab === 'users' && (
+                <AdminUsersTab
+                  users={users}
+                  onUpdateStatus={handleUserStatusUpdate}
+                  onDeleteUser={handleUserDelete}
+                />
+              )}
+              {activeTab === 'tutors' && (
+                <AdminTutorsTab
+                  tutors={tutors}
+                  pendingCount={pendingTutors.length}
+                  onViewTutor={openTutorModal}
+                  onApproveTutor={(id) => handleApprovalAction(id, 'approve')}
+                  onRejectTutor={(id) => handleApprovalAction(id, 'reject', 'Rejected by admin')}
+                  onBulkApprove={handleBulkApprove}
+                />
+              )}
+              {activeTab === 'courses' && (
+                <AdminCoursesTab
+                  courses={courses}
+                  onUpdateStatus={handleCourseStatusUpdate}
+                  onDeleteCourse={handleCourseDelete}
+                />
+              )}
+              {activeTab === 'my-courses' && (
+                <>
+                  {myCourses.length === 0 ? (
+                    <div className="bg-white rounded-sm border border-gray-200 p-8">
+                      <div className="text-center py-12">
+                        <IconBook size={48} className="mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Courses Yet</h3>
+                        <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                          As an admin with tutor privileges, you can create and manage your own courses just like any tutor.
+                        </p>
+                        <button
+                          onClick={() => setIsCreateCourseModalOpen(true)}
+                          className="px-6 py-2.5 bg-blue-600 text-white rounded-sm hover:bg-blue-700 transition-colors font-medium"
+                        >
+                          Create Your First Course
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <TutorCoursesTab
+                      courses={myCourses}
+                      onCreateCourse={() => setIsCreateCourseModalOpen(true)}
+                      onEditCourse={handleEditCourse}
+                      onDeleteCourse={handleDeleteMyCourse}
+                      onTogglePublish={handleTogglePublish}
+                    />
+                  )}
+                </>
+              )}
+              {activeTab === 'sessions' && <AdminSessionsTab />}
+              {activeTab === 'qna' && <AdminQnATab />}
+              {activeTab === 'payments' && <AdminPaymentsTab />}
+              {activeTab === 'settings' && (
+                <AdminProfileSettings onProfileUpdate={fetchDashboardData} />
+              )}
             </>
-          )}
-          {activeTab === 'sessions' && <AdminSessionsTab />}
-          {activeTab === 'qna' && <AdminQnATab />}
-          {activeTab === 'payments' && <AdminPaymentsTab />}
-          {activeTab === 'settings' && (
-            <AdminProfileSettings onProfileUpdate={fetchDashboardData} />
           )}
         </div>
       </div>

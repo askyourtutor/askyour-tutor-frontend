@@ -6,7 +6,8 @@ export default function ProtectedRoute() {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  // Skip loading spinner if user is already authenticated (for better UX)
+  if (loading && !user) {
     return <LoadingSpinner fullScreen message="Loading..." />;
   }
 

@@ -9,10 +9,10 @@ import {
   IconMail,
   IconBook,
   IconChevronDown,
-  IconChevronUp
+  IconChevronUp,
+  IconLoader
 } from '@tabler/icons-react';
 import tutorDashboardService, { type TutorQuestion } from '../../../shared/services/tutorDashboardService';
-import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 
 const AdminQnATab: React.FC = () => {
   const [questions, setQuestions] = useState<TutorQuestion[]>([]);
@@ -73,7 +73,11 @@ const AdminQnATab: React.FC = () => {
   });
 
   if (loading) {
-    return <LoadingSpinner fullScreen message="Loading questions..." />;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <IconLoader className="animate-spin text-gray-600" size={32} />
+      </div>
+    );
   }
 
   return (
