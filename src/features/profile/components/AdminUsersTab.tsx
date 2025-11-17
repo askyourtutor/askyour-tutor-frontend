@@ -1,5 +1,5 @@
-import { IconUsers, IconSearch, IconLoader } from '@tabler/icons-react';
-import { useState, useEffect } from 'react';
+import { IconUsers, IconSearch } from '@tabler/icons-react';
+import { useState } from 'react';
 import type { AdminUser } from '../../../shared/services/adminService';
 import ConfirmationModal from './ConfirmationModal';
 

@@ -1,5 +1,5 @@
-import { IconBook, IconSearch, IconCalendarEvent, IconChartBar, IconLoader } from '@tabler/icons-react';
-import { useState, useEffect } from 'react';
+import { IconBook, IconSearch, IconCalendarEvent, IconChartBar } from '@tabler/icons-react';
+import { useState } from 'react';
 import type { AdminCourse } from '../../../shared/services/adminService';
 
 // Helper to get tutor display name

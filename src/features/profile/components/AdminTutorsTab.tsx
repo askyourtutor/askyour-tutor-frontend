@@ -1,5 +1,5 @@
-import { IconUsers, IconSearch, IconLoader } from '@tabler/icons-react';
-import { useState, useEffect } from 'react';
+import { IconUsers, IconSearch } from '@tabler/icons-react';
+import { useState } from 'react';
 import type { AdminTutor } from '../../../shared/services/adminService';
 
 interface AdminTutorsTabProps {
@@ -48,11 +48,23 @@ function AdminTutorsTab({
                 Approve All ({pendingCount})
               </button>
             )}
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED')}
+              className="px-3 py-1.5 text-xs border border-gray-200 rounded-sm focus:outline-none focus:border-gray-400"
+            >
+              <option value="ALL">All Status</option>
+              <option value="PENDING">Pending</option>
+              <option value="APPROVED">Approved</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
             <div className="relative">
               <IconSearch size={14} className="absolute left-2 top-2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search tutors..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-7 pr-3 py-1.5 text-xs border border-gray-200 rounded-sm focus:outline-none focus:border-gray-400"
               />
             </div>
@@ -75,7 +87,7 @@ function AdminTutorsTab({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-100">
-              {tutors.map((tutor) => (
+              {filteredTutors.map((tutor) => (
                 <tr key={tutor.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-3">

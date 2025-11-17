@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { 
   IconUsers, 
   IconBook, 
@@ -11,8 +10,7 @@ import {
   IconAlertCircle,
   IconBriefcase,
   IconMessages,
-  IconStar,
-  IconLoader
+  IconStar
 } from '@tabler/icons-react';
 import type { DashboardStats, AdminTutor } from '../../../shared/services/adminService';
 

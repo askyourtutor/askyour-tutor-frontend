@@ -20,7 +20,6 @@ import {
   IconReceipt
 } from '@tabler/icons-react';
 import tutorDashboardService, { type Payment, type PaymentStats } from '../../../shared/services/tutorDashboardService';
-import LoadingSpinner from '../../../shared/components/LoadingSpinner';
 
 const AdminPaymentsTab: React.FC = () => {
   const [payments, setPayments] = useState<Payment[]>([]);
