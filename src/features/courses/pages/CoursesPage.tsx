@@ -31,6 +31,10 @@ const CoursesPage: React.FC = () => {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [courses, setCourses] = useState<CourseSummary[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCourses, setTotalCourses] = useState(0);
+  const coursesPerPage = 20;
   const [categories, setCategories] = useState<CategorySummary[]>([
     { id: 'all', name: 'All Categories', slug: 'all', courseCount: 0 }
   ]);
@@ -68,7 +72,7 @@ const CoursesPage: React.FC = () => {
         }
 
         // Always load courses (but with caching)
-        const cacheKey = `courses:list:${filters.category}:${filters.priceType}:${filters.level}:${filters.rating}:${filters.sortBy}:${searchQuery}`;
+        const cacheKey = `courses:list:${filters.category}:${filters.priceType}:${filters.level}:${filters.rating}:${filters.sortBy}:${searchQuery}:${currentPage}`;
         const coursesData = await fetchWithCache(cacheKey, () => getCourses({
           category: filters.category !== 'all' ? filters.category : undefined,
           priceType: filters.priceType !== 'all' ? filters.priceType : undefined,
@@ -76,11 +80,13 @@ const CoursesPage: React.FC = () => {
           rating: filters.rating > 0 ? filters.rating : undefined,
           search: searchQuery.trim() || undefined,
           sortBy: filters.sortBy,
-          page: 1,
-          limit: 100,
+          page: currentPage,
+          limit: coursesPerPage,
         }));
         
         setCourses(coursesData.data);
+        setTotalPages(coursesData.pagination.pages);
+        setTotalCourses(coursesData.pagination.total);
         setIsDataLoading(false);
       } catch (error) {
         console.error('Failed to load data:', error);
@@ -90,10 +96,16 @@ const CoursesPage: React.FC = () => {
     };
 
     loadData();
-  }, [filters, searchQuery, categories.length, courses.length]);
+  }, [filters, searchQuery, categories.length, currentPage]);
+
+  // Reset to page 1 when filters or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters.category, filters.priceType, filters.level, filters.rating, filters.sortBy, searchQuery]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
+    setCurrentPage(1);
     setFilters({
       category: 'all',
       priceType: 'all',
@@ -101,6 +113,11 @@ const CoursesPage: React.FC = () => {
       rating: 0,
       sortBy: 'popular',
     });
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const activeFiltersCount = 
@@ -436,27 +453,58 @@ const CoursesPage: React.FC = () => {
       </div>
 
       {/* Fixed Pagination */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-30 py-2">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-1.5">
-            <button className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50">
-              Prev
-            </button>
-            <button className="w-7 h-7 text-xs font-medium border border-blue-500 bg-blue-50 text-blue-600 rounded">
-              1
-            </button>
-            <button className="w-7 h-7 text-xs border border-gray-300 rounded hover:bg-gray-50">
-              2
-            </button>
-            <button className="w-7 h-7 text-xs border border-gray-300 rounded hover:bg-gray-50">
-              3
-            </button>
-            <button className="px-2.5 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">
-              Next
-            </button>
+      {!isDataLoading && totalCourses > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-30 py-3">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                Showing {((currentPage - 1) * coursesPerPage) + 1} - {Math.min(currentPage * coursesPerPage, totalCourses)} of {totalCourses} courses
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Prev
+                </button>
+                {totalPages > 1 && Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`w-8 h-8 text-sm font-medium rounded ${
+                        currentPage === pageNum
+                          ? 'border border-blue-500 bg-blue-50 text-blue-600'
+                          : 'border border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                <button 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
