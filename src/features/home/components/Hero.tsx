@@ -64,13 +64,13 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
               {/* Hero Titles - Clean & Bold */}
               <div className="hero-titles space-y-2 lg:space-y-4">
                 <h1 
-                  className="hero-title text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight whitespace-nowrap"
+                  className="hero-title text-3xl sm:text-4xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold leading-tight whitespace-nowrap"
                   style={{ color: 'var(--color-primary)' }}
                 >
                   {heroContent.title}
                 </h1>
                 <h2 
-                  className="hero-subtitle-large text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-medium leading-tight"
+                  className="hero-subtitle-large text-2xl sm:text-3xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-medium leading-tight"
                   style={{ color: 'var(--color-text-primary)' }}
                 >
                   {heroContent.subtitle}
@@ -141,7 +141,7 @@ const Hero: React.FC<HeroProps> = ({ className = '' }) => {
                 <img 
                   src="/assets/img/hero/tutor-2.png" 
                   alt="Online tutor teaching students" 
-                  className="w-full min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] xl:min-h-[800px] object-cover object-center scale-110"
+                  className="w-full min-h-[400px] sm:min-h-[500px] lg:min-h-[600px] xl:min-h-[800px] 2xl:min-h-[900px] object-cover object-center scale-110"
                 />
                 
                 {/* Statistics Counters */}
