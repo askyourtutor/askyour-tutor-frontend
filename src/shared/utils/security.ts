@@ -202,37 +202,8 @@ export class ProductionSecurity {
   private onDevToolsDetected() {
     if (!this.devToolsDetected) {
       this.devToolsDetected = true;
-      // Redirect or show warning
-      document.body.innerHTML = `
-        <div style="
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: #000;
-          color: #fff;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-family: Arial, sans-serif;
-          z-index: 999999;
-        ">
-          <div style="text-align: center;">
-            <h1>Access Restricted</h1>
-            <p>Developer tools are not allowed on this site.</p>
-            <button onclick="window.location.reload()" style="
-              background: #007bff;
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 5px;
-              cursor: pointer;
-              margin-top: 20px;
-            ">Reload Page</button>
-          </div>
-        </div>
-      `;
+      // Just mark as detected, don't show blocking message
+      // All the security restrictions are still active
     }
   }
 
