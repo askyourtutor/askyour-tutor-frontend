@@ -10,7 +10,12 @@ export function getImageUrl(imagePath: string | null | undefined): string | null
     return imagePath;
   }
   
-  // Construct URL from relative path
+  // If it's a local asset path, return as is
+  if (imagePath.startsWith('/assets/')) {
+    return imagePath;
+  }
+  
+  // Construct URL from relative path for API-served images
   const apiUrl = import.meta.env.VITE_API_URL as string || '/api';
   const baseUrl = apiUrl.replace('/api', '');
   
