@@ -166,119 +166,115 @@ const Header = () => {
         }
       `}</style>
       <header className="th-header header-layout-default relative z-[70]">
-      {/* Logo Background Half */}
-      <div 
-        className="logo-bg-half absolute h-5 w-56 xl:w-72 2xl:w-80 rounded-tr-[40px] top-3 left-0 z-10 xl:block hidden"
-        style={{ backgroundColor: 'var(--color-primary)' }}
-      ></div>
-      
-      {/* Header Top */}
-      <div 
-        className="header-top relative z-30 px-2 xs:px-3 sm:px-4 lg:px-6 xl:pl-[280px] xl:pr-[80px] py-0.5 sm:py-1"
-        style={{ 
-          backgroundColor: 'var(--color-primary)', 
-          color: 'white'
-        }}
-      >
-        {/* Background overlay for rounded corner effect */}
+      {/* Sticky Wrapper */}
+      <div className="sticky-wrapper">
+        {/* Main Menu Area */}
         <div 
-          className="absolute left-0 top-0 h-full rounded-br-[40px] z-[-1] xl:block hidden"
-          style={{ 
-            backgroundColor: 'var(--color-text-primary)',
-            width: 'calc(100% - 247px)'
-          }}
-        ></div>
-        
-        <div className="container-fluid px-0">
-          <div className="flex justify-between items-center">
-            {/* Left side - Contact info (responsive) */}
-            <div className="hidden sm:block">
-              <div className="header-links">
-                <ul className="flex items-center space-x-2 sm:space-x-3 lg:space-x-4 text-[10px] sm:text-xs">
-                  <li className="flex items-center space-x-1 sm:space-x-1.5 relative pr-2 sm:pr-2.5 lg:pr-4 mr-2 sm:mr-2.5 lg:mr-3">
-                    <IconPhone size={12} className="sm:w-3.5 sm:h-3.5" />
-                    <a href="tel:+11156456825" className="hover:opacity-80 transition-opacity whitespace-nowrap">
-                      +111 (564) 568 25
-                    </a>
-                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-2.5 sm:h-3 bg-white bg-opacity-20"></div>
-                  </li>
-                  <li className="hidden lg:flex items-center space-x-1.5 relative pr-4 mr-3">
-                    <IconMail size={13} />
-                    <a href="mailto:info@askyourtutor.com" className="hover:opacity-80 transition-opacity">info@askyourtutor.com</a>
-                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-px h-3 bg-white bg-opacity-20"></div>
-                  </li>
-                  <li className="flex items-center space-x-1 sm:space-x-1.5">
-                    <IconClock size={12} className="sm:w-3.5 sm:h-3.5" />
-                    <span className="whitespace-nowrap">Mon - Sat: 8:00 - 15:00</span>
-                  </li>
-                </ul>
+          className="menu-area relative z-20 px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8 2xl:px-12 py-2 sm:py-3"
+          style={{ backgroundColor: 'var(--color-primary)' }}
+        >
+          <div className="max-w-[1920px] mx-auto">
+            <div className="flex items-center justify-between gap-4 md:gap-6 lg:gap-8">
+              {/* Logo */}
+              <div className="header-logo flex-shrink-0">
+                <Link to="/" className="flex items-center gap-1 sm:gap-1.5">
+                  <div 
+                    className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-lg flex items-center justify-center text-white shadow-lg"
+                    style={{ backgroundColor: 'var(--color-primary)' }}
+                  >
+                    <IconSchool className="w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6" />
+                  </div>
+                  <span 
+                    className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white whitespace-nowrap tracking-wide"
+                  >
+                    ASKYOURTUTOR
+                  </span>
+                </Link>
               </div>
-            </div>
 
-            {/* Right side - Social links and mobile toggle */}
-            <div className="flex items-center justify-between lg:justify-end w-full sm:w-auto">
-              <div className="header-links header-right">
-                <ul className="flex items-center space-x-2 sm:space-x-3">
-                  <li>
-                    <div className="header-social flex items-center space-x-1.5 sm:space-x-2">
-                      <span className="social-title text-[10px] sm:text-xs font-normal hidden sm:inline">Follow Us:</span>
-                      <div className="flex items-center space-x-1.5 sm:space-x-2">
-                        <a href="https://www.facebook.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandFacebook size={11} className="sm:w-3 sm:h-3" />
-                        </a>
-                        <a href="https://www.twitter.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandTwitter size={11} className="sm:w-3 sm:h-3" />
-                        </a>
-                        <a href="https://www.linkedin.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandLinkedin size={11} className="sm:w-3 sm:h-3" />
-                        </a>
-                        <a href="https://www.youtube.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandYoutube size={11} className="sm:w-3 sm:h-3" />
-                        </a>
-                        <a href="https://www.instagram.com/" className="text-sm hover:opacity-60 transition-opacity">
-                          <IconBrandSkype size={11} className="sm:w-3 sm:h-3" />
-                        </a>
-                      </div>
-                    </div>
+              {/* Main Navigation (Desktop) - Centered */}
+              <nav className="main-menu hidden lg:flex flex-1 justify-center">
+                <ul className="flex items-center gap-1 xl:gap-3">
+                  <li className="relative group">
+                    <Link to="/" className="flex items-center font-semibold text-white hover:text-white/80 transition-colors px-2.5 xl:px-3.5 py-1.5 uppercase text-xs xl:text-sm">
+                      <span>Home</span>
+                    </Link>
                   </li>
-                  <li className="flex items-center space-x-1.5 sm:space-x-2 relative">
-                    {!user ? (
-                      <>
-                        <IconUser size={12} className="sm:w-3.5 sm:h-3.5" />
-                        <div className="flex items-center space-x-1 sm:space-x-1.5">
-                          <Link to="/login" className="hover:opacity-60 transition-opacity text-[10px] sm:text-xs">Login</Link>
-                          <span className="text-white/40 text-[10px] sm:text-xs">/</span>
-                          <Link to="/register" className="hover:opacity-60 transition-opacity text-[10px] sm:text-xs">Register</Link>
-                        </div>
-                      </>
-                    ) : (
-                      <div
-                        className="relative"
-                        onMouseEnter={handleUserHoverEnter}
-                        onMouseLeave={handleUserHoverLeave}
+                  
+                  {/* Show courses and teachers navigation for everyone (public pages) */}
+                  <li className="relative group">
+                    <Link to="/courses" className="flex items-center font-semibold text-white hover:text-white/80 transition-colors px-2.5 xl:px-3.5 py-1.5 uppercase text-xs xl:text-sm">
+                      <span>Courses</span>
+                    </Link>
+                  </li>
+                  <li className="relative group">
+                    <Link to="/teachers" className="flex items-center font-semibold text-white hover:text-white/80 transition-colors px-2.5 xl:px-3.5 py-1.5 uppercase text-xs xl:text-sm">
+                      <span>Teachers</span>
+                    </Link>
+                  </li>
+                  
+                  {/* Show Dashboard link for authenticated users */}
+                  {user && (
+                    <li className="relative group">
+                      <a 
+                        href="#"
+                        onClick={handleDashboardClick}
+                        className="flex items-center font-semibold text-white hover:text-white/80 transition-colors px-2.5 xl:px-3.5 py-1.5 uppercase text-xs xl:text-sm"
                       >
-                        <button
-                          type="button"
-                          className="flex items-center gap-1 sm:gap-1.5 rounded-full px-1.5 sm:px-2.5 py-0.5 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                          onClick={() => {
-                            if (!userMenuOpen && userBtnRef.current) {
-                              const rect = userBtnRef.current.getBoundingClientRect();
-                              const width = 224; const gap = 8;
-                              const left = Math.min(window.innerWidth - width - gap, Math.max(gap, rect.right - width));
-                              const top = rect.bottom + gap;
-                              setMenuPos({ top, left });
-                            }
-                            setUserMenuOpen((v) => !v);
-                          }}
-                          aria-haspopup="menu"
-                          aria-expanded={userMenuOpen}
-                          ref={userBtnRef}
-                        >
-                          <span className="inline-flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-white/20">
-                            <IconUser size={10} className="sm:w-3 sm:h-3" />
-                          </span>
-                          <span className="text-[10px] sm:text-xs max-w-[100px] sm:max-w-[150px] truncate hidden xs:inline">{user.email}</span>
-                          <IconChevronDown size={10} className="sm:w-3 sm:h-3" />
+                        <span>Dashboard</span>
+                      </a>
+                    </li>
+                  )}
+                </ul>
+              </nav>
+
+              {/* Right Section - Header Actions */}
+              <div className="hidden lg:flex flex-shrink-0 items-center gap-2 xl:gap-3">
+                {/* Login/Register or User Profile */}
+                {!user ? (
+                  <>
+                    <Link 
+                      to="/login" 
+                      className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-md font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
+                    >
+                      <IconUser className="w-4 h-4" />
+                      <span>Login</span>
+                    </Link>
+                    <Link 
+                      to="/register" 
+                      className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-md font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all text-xs xl:text-sm whitespace-nowrap shadow-sm"
+                    >
+                      <span>Register</span>
+                    </Link>
+                  </>
+                ) : (
+                  <div
+                    className="relative"
+                    onMouseEnter={handleUserHoverEnter}
+                    onMouseLeave={handleUserHoverLeave}
+                  >
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 rounded-md px-3 xl:px-4 py-1.5 xl:py-2 bg-white text-blue-600 hover:bg-gray-100 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-semibold text-xs xl:text-sm"
+                      onClick={() => {
+                        if (!userMenuOpen && userBtnRef.current) {
+                          const rect = userBtnRef.current.getBoundingClientRect();
+                          const width = 224; const gap = 8;
+                          const left = Math.min(window.innerWidth - width - gap, Math.max(gap, rect.right - width));
+                          const top = rect.bottom + gap;
+                          setMenuPos({ top, left });
+                        }
+                        setUserMenuOpen((v) => !v);
+                      }}
+                      aria-haspopup="menu"
+                      aria-expanded={userMenuOpen}
+                      ref={userBtnRef}
+                    >
+                      <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-blue-100">
+                        <IconUser className="w-2.5 h-2.5" />
+                      </span>
+                      <span className="font-semibold max-w-[100px] truncate text-xs">{user.email}</span>
+                      <IconChevronDown className="w-3 h-3" />
                         </button>
                         {userMenuOpen && menuPos && createPortal(
                           <div
@@ -295,7 +291,7 @@ const Header = () => {
                               {(() => {
                                 const profilePath = user?.role === 'TUTOR' ? '/tutor/profile' : 
                                                   user?.role === 'STUDENT' ? '/student/profile' : 
-                                                  '/admin/dashboard'; // Admin users go to dashboard instead
+                                                  '/admin/dashboard';
                                 return (
                                   <Link
                                     to={profilePath}
@@ -324,147 +320,46 @@ const Header = () => {
                         )}
                       </div>
                     )}
-                  </li>
-                </ul>
+
+                {/* Contact Us Button */}
+                <Link 
+                  to="/contact" 
+                  className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-md font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
+                >
+                  <span>Contact Us</span>
+                  <IconArrowRight className="w-3.5 h-3.5" />
+                </Link>
+
+                {/* Notifications */}
+                <button 
+                  className="relative w-9 h-9 xl:w-10 xl:h-10 flex items-center justify-center border-2 border-white/30 rounded-full hover:border-white hover:bg-white/10 transition-colors text-white"
+                  title="Notifications"
+                >
+                  <IconBell className="w-4.5 h-4.5" />
+                  {savedCount > 0 && (
+                    <span 
+                      className="badge absolute -top-1 -right-1 min-w-[1.25rem] h-5 rounded-full text-[10px] font-bold text-white flex items-center justify-center px-1.5"
+                      style={{ backgroundColor: 'var(--color-accent)' }}
+                    >
+                      {savedCount > 99 ? '99+' : savedCount}
+                    </span>
+                  )}
+                </button>
               </div>
 
-              {/* Mobile Menu Toggle - In Blue Header */}
+              {/* Mobile Menu Toggle */}
               <button
                 type="button"
-                className="th-menu-toggle block lg:hidden p-1 sm:p-1.5 text-white hover:opacity-80 hover:bg-white/10 rounded-md transition-all ml-2 sm:ml-3"
+                className="flex lg:hidden items-center justify-center w-10 h-10 text-white hover:bg-white/10 rounded-lg transition-all"
                 aria-label="Toggle mobile menu"
                 onClick={toggleMobileMenu}
               >
                 {isMobileMenuOpen ? (
-                  <IconX size={14} className="sm:w-4 sm:h-4" />
+                  <IconX className="w-6 h-6" />
                 ) : (
-                  <IconMenu2 size={14} className="sm:w-4 sm:h-4" />
+                  <IconMenu2 className="w-6 h-6" />
                 )}
               </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sticky Wrapper */}
-      <div className="sticky-wrapper">
-        {/* Main Menu Area */}
-        <div 
-          className="menu-area relative z-20 px-2 xs:px-3 sm:px-4 lg:px-6 xl:pl-[30px] xl:pr-[80px] overflow-visible"
-          style={{ backgroundColor: 'var(--color-primary)' }}
-        >
-          <div className="container-fluid px-0">
-            <div className="flex items-center justify-between w-full">
-              {/* Logo */}
-              <div className="header-logo py-2 lg:py-2.5 -mt-1.5 sm:-mt-2 lg:-mt-3 xl:mt-0 flex-shrink-0">
-                <Link to="/" className="flex items-center space-x-1.5 sm:space-x-2 lg:space-x-3">
-                  <div 
-                    className="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 xl:w-11 xl:h-11 rounded-lg flex items-center justify-center text-white shadow-lg"
-                    style={{ backgroundColor: 'var(--color-primary)' }}
-                  >
-                    <IconSchool size={14} className="xs:w-[18px] xs:h-[18px] sm:w-5 sm:h-5 lg:w-6 lg:h-6 xl:w-7 xl:h-7" />
-                  </div>
-                  <span 
-                    className="text-xs xs:text-sm sm:text-base lg:text-lg xl:text-xl 2xl:text-2xl font-bold text-white whitespace-nowrap tracking-wide"
-                  >
-                    ASKYOURTUTOR
-                  </span>
-                </Link>
-              </div>
-
-              {/* Main Navigation (Desktop) */}
-              <nav className="main-menu hidden lg:inline-block ml-15">
-                <ul className="flex items-center">
-                  <li className="menu-item-has-children relative group mx-3">
-                    <Link to="/" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-5 uppercase text-sm lg:text-base">
-                      <span>Home</span>
-                    </Link>
-                  </li>
-                  
-                  {/* Show courses and teachers navigation for everyone (public pages) */}
-                  <li className="menu-item-has-children relative group mx-2.5">
-                    <Link to="/courses" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
-                      <span>Courses</span>
-                    </Link>
-                  </li>
-                  <li className="menu-item-has-children relative group mx-2.5">
-                    <Link to="/teachers" className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm">
-                      <span>Teachers</span>
-                    </Link>
-                  </li>
-                  
-                  {/* Show Dashboard link for authenticated users */}
-                  {user && (
-                    <li className="menu-item-has-children relative group mx-2.5">
-                      <a 
-                        href="#"
-                        onClick={handleDashboardClick}
-                        className="flex items-center font-medium text-white hover:opacity-80 transition-colors py-3 uppercase text-xs lg:text-sm"
-                      >
-                        <span>Dashboard</span>
-                      </a>
-                    </li>
-                  )}
-                </ul>
-              </nav>
-
-              {/* Right Section - Header Actions */}
-              <div className="hidden lg:block flex-1 max-w-none">
-                <div className="flex items-center justify-end">
-                  <div className="header-button flex items-center space-x-1.5 xl:space-x-3 h-full">
-                    {/* Categories Menu with Search */}
-                    <div className="category-menu-wrap mr-1.5 xl:mr-2 relative flex border border-white/20 rounded-md overflow-hidden max-w-xs xl:max-w-none bg-white/10">
-                      <a 
-                        className="menu-expand flex items-center space-x-1 xl:space-x-1.5 px-1.5 xl:px-2.5 py-1.5 text-white hover:bg-white/20 transition-colors border-r border-white/20 min-w-[90px] xl:min-w-[140px] flex-shrink-0" 
-                        href="#"
-                      >
-                        <IconGrid3x3 size={13} className="xl:w-4 xl:h-4" />
-                        <span className="font-normal text-[10px] xl:text-xs hidden xl:inline">Categories</span>
-                        <IconChevronDown size={11} className="xl:w-3.5 xl:h-3.5 ml-auto" />
-                      </a>
-                      
-                      {/* Search Form */}
-                      <form className="search-form flex items-center flex-1">
-                        <input 
-                          type="text" 
-                          placeholder="Search..." 
-                          className="w-full min-w-0 px-2 xl:px-3 py-1.5 border-0 bg-transparent focus:outline-none text-white placeholder-white/60 text-[10px] xl:text-sm"
-                        />
-                        <button 
-                          type="submit" 
-                          className="px-2 xl:px-3 py-1.5 text-white hover:text-white/80 transition-colors bg-transparent border-0 flex-shrink-0"
-                        >
-                          <IconSearch size={13} className="xl:w-4 xl:h-4" />
-                        </button>
-                      </form>
-                    </div>
-
-                    {/* Notifications */}
-                    <button 
-                      className="icon-btn relative w-6 h-6 xl:w-8 xl:h-8 flex items-center justify-center border border-white/30 rounded-full hover:border-white hover:bg-white/10 transition-colors flex-shrink-0 text-white"
-                      title="Notifications"
-                    >
-                      <IconBell size={11} className="xl:w-3.5 xl:h-3.5" />
-                      <span 
-                        className="badge absolute -top-0.5 -right-0.5 min-w-[0.75rem] h-3 xl:w-3.5 xl:h-3.5 rounded-full text-[7px] xl:text-[9px] font-bold text-white flex items-center justify-center px-0.5"
-                        style={{ backgroundColor: 'var(--color-accent)' }}
-                      >
-                        {savedCount > 99 ? '99+' : savedCount}
-                      </span>
-                    </button>
-
-                    {/* Contact Us Button */}
-                    <Link 
-                      to="/contact" 
-                      className="th-btn ml-1.5 xl:ml-2 px-2.5 xl:px-5 py-1 xl:py-2 rounded-sm font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center space-x-1 xl:space-x-1.5 text-[10px] xl:text-xs whitespace-nowrap flex-shrink-0 shadow-sm"
-                    >
-                      <span className="hidden xl:inline">Contact Us</span>
-                      <span className="xl:hidden">Contact</span>
-                      <IconArrowRight size={11} className="xl:w-3.5 xl:h-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
           
@@ -480,23 +375,6 @@ const Header = () => {
           isMobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
         }`}>
           <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-            {/* Mobile Search */}
-            <div className="mb-3 sm:mb-4">
-              <form className="search-form flex border border-gray-300 rounded-lg overflow-hidden">
-                <input 
-                  type="text" 
-                  placeholder="Search For Course..." 
-                  className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 border-0 bg-transparent focus:outline-none text-gray-600 placeholder-gray-400 text-sm sm:text-base"
-                />
-                <button 
-                  type="submit" 
-                  className="px-3 sm:px-4 py-2.5 sm:py-3 text-gray-600 hover:text-gray-800 transition-colors bg-gray-50 flex-shrink-0"
-                >
-                  <IconSearch size={16} className="sm:w-[18px] sm:h-[18px]" />
-                </button>
-              </form>
-            </div>
-
             {/* Mobile Navigation Links */}
             <nav className="mobile-nav mb-3 sm:mb-4">
               <ul className="space-y-1 sm:space-y-2">
