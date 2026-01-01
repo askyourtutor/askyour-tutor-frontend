@@ -1,21 +1,11 @@
 
 import { 
-  IconPhone, 
-  IconMail, 
-  IconClock, 
-  IconBrandFacebook, 
-  IconBrandTwitter, 
-  IconBrandLinkedin, 
-  IconBrandYoutube, 
-  IconBrandSkype,
   IconUser,
   IconChevronDown,
-  IconSearch,
   IconBell,
   IconArrowRight,
   IconMenu2,
   IconSchool,
-  IconGrid3x3,
   IconX
 } from '@tabler/icons-react';
 import { useEffect, useRef, useState } from 'react';
