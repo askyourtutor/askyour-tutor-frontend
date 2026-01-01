@@ -160,7 +160,7 @@ const Header = () => {
       <div className="sticky-wrapper">
         {/* Main Menu Area */}
         <div 
-          className="menu-area relative z-20 px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8 2xl:px-12 py-2 sm:py-3"
+          className="menu-area relative z-20 px-3 sm:px-4 md:px-5 lg:px-6 xl:px-8 2xl:px-12 py-1.5 sm:py-2"
           style={{ backgroundColor: 'var(--color-primary)' }}
         >
           <div className="max-w-[1920px] mx-auto">
@@ -225,14 +225,14 @@ const Header = () => {
                   <>
                     <Link 
                       to="/login" 
-                      className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-md font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
+                      className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-[5px] font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
                     >
                       <IconUser className="w-4 h-4" />
                       <span>Login</span>
                     </Link>
                     <Link 
                       to="/register" 
-                      className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-md font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all text-xs xl:text-sm whitespace-nowrap shadow-sm"
+                      className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-[5px] font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all text-xs xl:text-sm whitespace-nowrap shadow-sm"
                     >
                       <span>Register</span>
                     </Link>
@@ -245,7 +245,7 @@ const Header = () => {
                   >
                     <button
                       type="button"
-                      className="flex items-center gap-1 rounded-md px-3 xl:px-4 py-1.5 xl:py-2 bg-white text-blue-600 hover:bg-gray-100 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-semibold text-xs xl:text-sm"
+                      className="flex items-center gap-1 rounded-[5px] px-3 xl:px-4 py-1.5 xl:py-2 bg-white text-blue-600 hover:bg-gray-100 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-semibold text-xs xl:text-sm"
                       onClick={() => {
                         if (!userMenuOpen && userBtnRef.current) {
                           const rect = userBtnRef.current.getBoundingClientRect();
@@ -314,7 +314,7 @@ const Header = () => {
                 {/* Contact Us Button */}
                 <Link 
                   to="/contact" 
-                  className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-md font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
+                  className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-[5px] font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
                 >
                   <span>Contact Us</span>
                   <IconArrowRight className="w-3.5 h-3.5" />
