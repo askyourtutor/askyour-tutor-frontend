@@ -172,7 +172,7 @@ const Header = () => {
                     className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center text-white shadow-lg"
                     style={{ backgroundColor: 'var(--color-primary)' }}
                   >
-                    <IconSchool className="w-4 h-4 sm:w-5 sm:h-5 md:w-5.5 md:h-5.5" />
+                    <IconSchool className="w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6" />
                   </div>
                   <span 
                     className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white whitespace-nowrap tracking-wide"
