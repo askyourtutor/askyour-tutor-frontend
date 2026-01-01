@@ -169,10 +169,10 @@ const Header = () => {
               <div className="header-logo flex-shrink-0">
                 <Link to="/" className="flex items-center gap-1 sm:gap-1.5">
                   <div 
-                    className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 rounded-lg flex items-center justify-center text-white shadow-lg"
+                    className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 rounded-lg flex items-center justify-center text-white shadow-lg"
                     style={{ backgroundColor: 'var(--color-primary)' }}
                   >
-                    <IconSchool className="w-5 h-5 sm:w-5.5 sm:h-5.5 md:w-6 md:h-6" />
+                    <IconSchool className="w-4 h-4 sm:w-5 sm:h-5 md:w-5.5 md:h-5.5" />
                   </div>
                   <span 
                     className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-white whitespace-nowrap tracking-wide"
@@ -225,14 +225,14 @@ const Header = () => {
                   <>
                     <Link 
                       to="/login" 
-                      className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-[5px] font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
+                      className="px-3 xl:px-4 py-1 xl:py-1.5 rounded-[5px] font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
                     >
                       <IconUser className="w-4 h-4" />
                       <span>Login</span>
                     </Link>
                     <Link 
                       to="/register" 
-                      className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-[5px] font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all text-xs xl:text-sm whitespace-nowrap shadow-sm"
+                      className="px-3 xl:px-4 py-1 xl:py-1.5 rounded-[5px] font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all text-xs xl:text-sm whitespace-nowrap shadow-sm"
                     >
                       <span>Register</span>
                     </Link>
@@ -245,7 +245,7 @@ const Header = () => {
                   >
                     <button
                       type="button"
-                      className="flex items-center gap-1 rounded-[5px] px-3 xl:px-4 py-1.5 xl:py-2 bg-white text-blue-600 hover:bg-gray-100 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-semibold text-xs xl:text-sm"
+                      className="flex items-center gap-1 rounded-[5px] px-3 xl:px-4 py-1 xl:py-1.5 bg-white text-blue-600 hover:bg-gray-100 transition-all shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-semibold text-xs xl:text-sm"
                       onClick={() => {
                         if (!userMenuOpen && userBtnRef.current) {
                           const rect = userBtnRef.current.getBoundingClientRect();
@@ -314,7 +314,7 @@ const Header = () => {
                 {/* Contact Us Button */}
                 <Link 
                   to="/contact" 
-                  className="px-3 xl:px-4 py-1.5 xl:py-2 rounded-[5px] font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
+                  className="px-3 xl:px-4 py-1 xl:py-1.5 rounded-[5px] font-semibold bg-white text-blue-600 hover:bg-gray-100 transition-all flex items-center gap-0.5 text-xs xl:text-sm whitespace-nowrap shadow-sm"
                 >
                   <span>Contact Us</span>
                   <IconArrowRight className="w-3.5 h-3.5" />
@@ -322,10 +322,10 @@ const Header = () => {
 
                 {/* Notifications */}
                 <button 
-                  className="relative w-9 h-9 xl:w-10 xl:h-10 flex items-center justify-center border-2 border-white/30 rounded-full hover:border-white hover:bg-white/10 transition-colors text-white"
+                  className="relative w-8 h-8 xl:w-9 xl:h-9 flex items-center justify-center border-2 border-white/30 rounded-full hover:border-white hover:bg-white/10 transition-colors text-white"
                   title="Notifications"
                 >
-                  <IconBell className="w-4.5 h-4.5" />
+                  <IconBell className="w-4 h-4 xl:w-4.5 xl:h-4.5" />
                   {savedCount > 0 && (
                     <span 
                       className="badge absolute -top-1 -right-1 min-w-[1.25rem] h-5 rounded-full text-[10px] font-bold text-white flex items-center justify-center px-1.5"
