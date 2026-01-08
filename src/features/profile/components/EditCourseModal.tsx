@@ -85,6 +85,8 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  // Tracks if the tutor has manually typed a code; until then we can auto-update on subject change
+  const [codeManuallyEdited, setCodeManuallyEdited] = useState<boolean>(false);
   const [submitError, setSubmitError] = useState<string>('');
   const [submitSuccess, setSubmitSuccess] = useState<string>('');
   const [isLoadingLessons, setIsLoadingLessons] = useState(false);
@@ -107,6 +109,39 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
     { id: '9', name: 'Economics', category: 'Business' },
     { id: '10', name: 'Psychology', category: 'Social Studies' }
   ], []);
+
+  const subjectCodeDefaults = useMemo<Record<string, string>>(() => ({
+    Mathematics: 'MATH101',
+    Physics: 'PHYS101',
+    Chemistry: 'CHEM101',
+    Biology: 'BIOL101',
+    'Computer Science': 'CS101',
+    'English Literature': 'ENGL101',
+    History: 'HIST101',
+    Geography: 'GEOG101',
+    Economics: 'ECON101',
+    Psychology: 'PSYC101',
+    'Abstract Algebra': 'MATH201',
+    'Machine Learning': 'ML101',
+  }), []);
+
+  const deriveCourseCode = useCallback((subjectName: string) => {
+    if (!subjectName) return '';
+    const trimmed = subjectName.trim();
+    const mapped = subjectCodeDefaults[trimmed];
+    if (mapped) return mapped;
+
+    const cleaned = trimmed.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+    if (!cleaned) return '';
+
+    const tokens = cleaned.split(/\s+/).slice(0, 2);
+    const prefix = tokens
+      .map((t) => t.slice(0, 3).toUpperCase())
+      .join('')
+      .padEnd(4, 'X')
+      .slice(0, 4);
+    return `${prefix}101`;
+  }, [subjectCodeDefaults]);
 
   const loadSubjects = useCallback(async () => {
     try {
@@ -692,7 +727,13 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
                       </label>
                       <select
                         value={formData.subject}
-                        onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                        onChange={(e) => {
+                          const nextSubject = e.target.value;
+                          setFormData(prev => {
+                            const autoCode = (!codeManuallyEdited || !prev.code) ? deriveCourseCode(nextSubject) : prev.code;
+                            return { ...prev, subject: nextSubject, code: autoCode };
+                          });
+                        }}
                         className={`w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all ${
                           errors.subject ? 'border-red-500' : 'border-gray-300'
                         }`}
@@ -710,7 +751,11 @@ function EditCourseModal({ isOpen, onClose, onSuccess, course }: EditCourseModal
                       <input
                         type="text"
                         value={formData.code}
-                        onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
+                        onChange={(e) => {
+                          const nextCode = e.target.value;
+                          setCodeManuallyEdited(true);
+                          setFormData(prev => ({ ...prev, code: nextCode }));
+                        }}
                         className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
                         placeholder="e.g., MATH 101"
                       />

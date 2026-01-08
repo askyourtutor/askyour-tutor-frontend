@@ -66,6 +66,7 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
     lessons: [],
     resourceFiles: []
   });
+  const [codeManuallyEdited, setCodeManuallyEdited] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -104,10 +105,54 @@ function CreateCourseModal({ isOpen, onClose, onSuccess }: CreateCourseModalProp
     }
   }, [isOpen, subjects.length, loadSubjects]);
 
+  const subjectCodeDefaults = useMemo<Record<string, string>>(() => ({
+    Mathematics: 'MATH101',
+    Physics: 'PHYS101',
+    Chemistry: 'CHEM101',
+    Biology: 'BIOL101',
+    'Computer Science': 'CS101',
+    'English Literature': 'ENGL101',
+    History: 'HIST101',
+    Geography: 'GEOG101',
+    Economics: 'ECON101',
+    Psychology: 'PSYC101',
+    'Abstract Algebra': 'MATH201',
+    'Machine Learning': 'ML101',
+  }), []);
+
+  const deriveCourseCode = useCallback((subjectName: string) => {
+    if (!subjectName) return '';
+    const trimmed = subjectName.trim();
+    const mapped = subjectCodeDefaults[trimmed];
+    if (mapped) return mapped;
+
+    const cleaned = trimmed.replace(/[^a-zA-Z0-9 ]/g, '').trim();
+    if (!cleaned) return '';
+
+    const tokens = cleaned.split(/\s+/).slice(0, 2);
+    const prefix = tokens
+      .map((t) => t.slice(0, 3).toUpperCase())
+      .join('')
+      .padEnd(4, 'X')
+      .slice(0, 4);
+    return `${prefix}101`;
+  }, [subjectCodeDefaults]);
+
   if (!isOpen) return null;
 
   const handleInputChange = (field: keyof CourseFormData, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'code') {
+      setCodeManuallyEdited(true);
+      setFormData(prev => ({ ...prev, code: value as string }));
+    } else if (field === 'subject') {
+      setFormData(prev => {
+        const nextSubject = value as string;
+        const autoCode = (!codeManuallyEdited || !prev.code) ? deriveCourseCode(nextSubject) : prev.code;
+        return { ...prev, subject: nextSubject, code: autoCode };
+      });
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
