@@ -71,12 +71,12 @@ export const PhoneInputField = ({ name, label, required }: PhoneInputFieldProps)
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
         {/* Country Code Dropdown */}
         <select
           value={selectedCode}
           onChange={(e) => handleCountryCodeChange(e.target.value)}
-          className={`px-3 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors min-w-[120px] ${
+          className={`w-full sm:w-32 px-3 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
             error ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-200' : 'border-gray-300'
           }`}
         >
@@ -94,18 +94,11 @@ export const PhoneInputField = ({ name, label, required }: PhoneInputFieldProps)
           value={phoneNumber}
           onChange={(e) => handlePhoneNumberChange(e.target.value)}
           placeholder="1234567890"
-          className={`flex-1 px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+          className={`flex-1 px-3 py-2.5 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
             error ? 'border-red-500 bg-red-50 focus:border-red-500 focus:ring-red-200' : 'border-gray-300'
           }`}
         />
       </div>
-      
-      {/* Preview */}
-      {(selectedCode && phoneNumber) && (
-        <p className="mt-1 text-xs text-gray-500">
-          Preview: <span className="font-medium">{selectedCode}{phoneNumber}</span>
-        </p>
-      )}
       
       {error && (
         <p className="mt-2 text-sm font-medium text-red-600 flex items-center">
