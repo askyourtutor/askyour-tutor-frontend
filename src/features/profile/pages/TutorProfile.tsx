@@ -12,12 +12,15 @@ import {
 import { useTutorProfileForm } from '../hooks/useTutorProfileForm';
 import { TagInputList } from '../components/TagInputList';
 import { SessionTypeSelector } from '../components/SessionTypeSelector';
+import { LanguageSelector } from '../components/LanguageSelector';
 import { ProfileHero } from '../components/ProfileHero';
 import { ProfileSectionCard } from '../components/ProfileSectionCard';
 import { FormInputField } from '../components/FormInputField';
 import { FormTextareaField } from '../components/FormTextareaField';
 import { FormSelectField } from '../components/FormSelectField';
 import { FileUploadCard } from '../components/FileUploadCard';
+import { ImageCropper } from '../components/ImageCropper';
+import { PhoneInputField } from '../components/PhoneInputField';
 import { saveProfile, uploadProfileImage } from '../services/profileService';
 import { degreeOptions, timezoneOptions } from '../constants/formOptions';
 import type { TutorProfileFormValues } from '../schemas/profileSchemas';
@@ -38,6 +41,8 @@ const TutorProfilePage = () => {
   const [serverCompletion, setServerCompletion] = useState<number | null>(null);
   const [loadedFullName, setLoadedFullName] = useState<string>('');
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showImageCropper, setShowImageCropper] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
   const displayCompletion = serverCompletion ?? profileCompletion;
 
   const watchedSubjects = watch('subjects') || [];
@@ -200,15 +205,28 @@ const TutorProfilePage = () => {
       return;
     }
 
-    // Store the file for upload
-    setProfileImageFile(file);
+    // Generate preview and open cropper
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setTempImageSrc(e.target?.result as string);
+      setShowImageCropper(true);
+    };
+    reader.readAsDataURL(file);
+  };
 
+  // Handle cropped image
+  const handleCropComplete = (croppedImage: File) => {
+    setProfileImageFile(croppedImage);
+    
     // Generate preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setProfileImage(e.target?.result as string);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(croppedImage);
+    
+    setShowImageCropper(false);
+    setTempImageSrc(null);
   };
 
   // Handle credentials file upload
@@ -238,27 +256,41 @@ const TutorProfilePage = () => {
 
   // Form submission
   const onSubmit = async (data: TutorProfileFormValues) => {
+    console.log('🚀 Form submission started');
+    console.log('📝 Form data:', data);
+    console.log('🖼️ Profile image file:', profileImageFile);
+    
     setIsSubmitting(true);
     try {
       // Step 1: Save profile data (without image)
-      await saveProfile(data);
+      console.log('💾 Saving profile data...');
+      const saveResult = await saveProfile(data);
+      console.log('✅ Profile saved:', saveResult);
 
       // Step 2: Upload profile image if changed
       if (profileImageFile) {
+        console.log('📤 Uploading profile image...');
         const uploadResult = await uploadProfileImage(profileImageFile);
+        console.log('📸 Image upload result:', uploadResult);
         
         if (!uploadResult.success) {
+          console.error('❌ Image upload failed:', uploadResult.error);
           alert(`Profile saved, but image upload failed: ${uploadResult.error}`);
+        } else {
+          console.log('✅ Image uploaded successfully');
         }
       }
 
+      console.log('🎉 Form submission completed successfully');
       setSubmitSuccess(true);
       setIsEditMode(false);
       setTimeout(() => setSubmitSuccess(false), 5000);
-    } catch {
-      // TODO: Show error to user via notification system
+    } catch (error) {
+      console.error('❌ Form submission error:', error);
+      alert(`Failed to save profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
+      console.log('🏁 Form submission finished');
     }
   };
 
@@ -289,6 +321,78 @@ const TutorProfilePage = () => {
           showImageUpload={false}
           isVerified={verifyStatus === 'VERIFIED'}
         />
+
+        {/* Edit Profile Button - Top Bar */}
+        <div className="mb-4 sm:mb-6 flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0 mx-2 sm:mx-4 lg:mx-0">
+          <div className="w-full lg:w-auto text-center lg:text-left">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+              {isEditMode ? 'Ready to Submit?' : 'Profile Settings'}
+            </h3>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
+              {isEditMode 
+                ? 'Review your information carefully before submitting your profile.' 
+                : 'View and manage your profile information.'}
+            </p>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row w-full lg:w-auto space-y-3 sm:space-y-0 sm:space-x-4">
+            {!isEditMode ? (
+              <button
+                type="button"
+                onClick={() => setIsEditMode(true)}
+                className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors text-sm sm:text-base flex items-center justify-center space-x-2"
+              >
+                <IconDeviceFloppy size={16} className="sm:w-5 sm:h-5" />
+                <span>Edit Profile</span>
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditMode(false);
+                    methods.reset();
+                  }}
+                  className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm sm:text-base"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="tutor-profile-form"
+                  onClick={() => {
+                    console.log('🔘 Save Changes button clicked!');
+                    console.log('📋 Form state:', {
+                      isSubmitting,
+                      isValid: methods.formState.isValid,
+                      errors: methods.formState.errors,
+                      hasImageFile: !!profileImageFile,
+                      isEditMode
+                    });
+                  }}
+                  disabled={isSubmitting || (!methods.formState.isValid && !profileImageFile)}
+                  className={`w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-lg font-medium flex items-center justify-center space-x-2 transition-all text-sm sm:text-base ${
+                    (isSubmitting || (!methods.formState.isValid && !profileImageFile))
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <IconDeviceFloppy size={16} className="sm:w-5 sm:h-5" />
+                      <span>Save Changes</span>
+                    </>
+                  )}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
 
         {/* Success Message */}
         {submitSuccess && (
@@ -323,11 +427,28 @@ const TutorProfilePage = () => {
         {/* Main Form */}
         <FormProvider {...methods}>
           {Object.keys(errors).length > 0 && (
-            <div className="mb-3 sm:mb-4 bg-red-50 border border-red-200 p-3 sm:p-4 rounded-lg sm:rounded-xl">
-              <p className="text-red-700 text-sm sm:text-base font-medium">Please fix the highlighted fields before submitting.</p>
+            <div className="mb-4 sm:mb-6 bg-red-50 border-2 border-red-500 p-4 sm:p-6 rounded-lg shadow-md">
+              <div className="flex items-start space-x-3">
+                <svg className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+                <div className="flex-1">
+                  <h3 className="text-base sm:text-lg font-semibold text-red-800 mb-2">Please Fix These Required Fields:</h3>
+                  <ul className="list-disc list-inside space-y-1 text-sm sm:text-base text-red-700">
+                    {Object.entries(errors).map(([field, error]) => (
+                      <li key={field} className="font-medium">
+                        {field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}: {(error as any)?.message || 'This field is required'}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-3 text-sm text-red-600 font-medium">
+                    → Scroll down to find fields with red borders and fill them in.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
-          <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="relative space-y-4 sm:space-y-6 lg:space-y-8">
+          <form id="tutor-profile-form" onSubmit={handleSubmit(onSubmit, onInvalid)} className="relative space-y-4 sm:space-y-6 lg:space-y-8">
           {isSubmitting && (
             <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10">
               <div className="flex items-center space-x-3 text-gray-700">
@@ -393,11 +514,9 @@ const TutorProfilePage = () => {
                   required 
                 />
                 
-                <FormInputField 
+                <PhoneInputField 
                   name="phone" 
                   label="Phone Number" 
-                  type="tel" 
-                  placeholder="+1234567890" 
                   required 
                 />
                 
@@ -533,14 +652,15 @@ const TutorProfilePage = () => {
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
                 {/* Languages */}
                 <div>
-                  <TagInputList
-                    label="Languages"
-                    items={watchedLanguages}
-                    placeholder="Enter a language (e.g., English, Spanish)"
-                    onAdd={(v) => addLanguage(v)}
-                    onRemove={(v) => removeLanguage(v)}
-                    emptyMessage="No languages added yet. Add at least one language."
-                    chipClassName="bg-purple-50 border-purple-200"
+                  <LanguageSelector
+                    selected={watchedLanguages}
+                    onToggle={(language) => {
+                      if (watchedLanguages.includes(language)) {
+                        removeLanguage(language);
+                      } else {
+                        addLanguage(language);
+                      }
+                    }}
                     error={errors.languages?.message as string | undefined}
                   />
                 </div>
@@ -594,71 +714,22 @@ const TutorProfilePage = () => {
             </div>
           </ProfileSectionCard>
           </fieldset>
-
-          {/* Submit Section */}
-          <div className="bg-white shadow-lg p-4 sm:p-6 lg:p-8 mx-1 sm:mx-0" style={{ borderRadius: '10px' }}>
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-              <div className="w-full lg:w-auto text-center lg:text-left">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900">
-                  {isEditMode ? 'Ready to Submit?' : 'Profile Information'}
-                </h3>
-                <p className="text-sm sm:text-base text-gray-600 mt-1">
-                  {isEditMode 
-                    ? 'Review your information carefully before submitting your profile.' 
-                    : 'View your profile information. Click Edit to make changes.'}
-                </p>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row w-full lg:w-auto space-y-3 sm:space-y-0 sm:space-x-4">
-                {!isEditMode ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditMode(true)}
-                    className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors text-sm sm:text-base flex items-center justify-center space-x-2"
-                  >
-                    <IconDeviceFloppy size={16} className="sm:w-5 sm:h-5" />
-                    <span>Edit Profile</span>
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditMode(false);
-                        methods.reset();
-                      }}
-                      className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors text-sm sm:text-base"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || (!methods.formState.isValid && !profileImageFile)}
-                      className={`w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 text-white rounded-lg font-medium flex items-center justify-center space-x-2 transition-all text-sm sm:text-base ${
-                        (isSubmitting || (!methods.formState.isValid && !profileImageFile))
-                          ? 'bg-gray-400 cursor-not-allowed'
-                          : 'bg-blue-600 hover:bg-blue-700 hover:shadow-lg'
-                      }`}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
-                          <span>Saving...</span>
-                        </>
-                      ) : (
-                        <>
-                          <IconDeviceFloppy size={16} className="sm:w-5 sm:h-5" />
-                          <span>Save Changes</span>
-                        </>
-                      )}
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
           </form>
         </FormProvider>
+
+        {/* Image Cropper Modal */}
+        {showImageCropper && tempImageSrc && (
+          <ImageCropper
+            imageSrc={tempImageSrc}
+            onCropComplete={handleCropComplete}
+            onCancel={() => {
+              setShowImageCropper(false);
+              setTempImageSrc(null);
+            }}
+            aspectRatio={1}
+            cropShape="round"
+          />
+        )}
       </div>
     </div>
   );

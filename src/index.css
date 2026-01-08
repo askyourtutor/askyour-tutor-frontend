@@ -221,3 +221,15 @@ button, a, input, textarea, select {
 .animate-slideIn {
   animation: slideIn 0.3s ease-out;
 }
+/* React Easy Crop Styles */
+@import 'react-easy-crop/react-easy-crop.css';
+
+.reactEasyCrop_Container {
+  background: #f3f4f6;
+}
+
+.reactEasyCrop_Image,
+.reactEasyCrop_Video {
+  max-width: 100%;
+  max-height: 100%;
+}
