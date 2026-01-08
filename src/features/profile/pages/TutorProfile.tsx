@@ -747,7 +747,6 @@ const TutorProfilePage = () => {
               setTempImageSrc(null);
             }}
             aspectRatio={1}
-            cropShape="round"
           />
         )}
       </div>

@@ -133,7 +133,7 @@ export const ImageCropper = ({
               onCropAreaChange={handleCropAreaChange}
               classes={{
                 containerClassName: "reactEasyCrop_Container h-full",
-                imageClassName: "reactEasyCrop_Image",
+                mediaClassName: "reactEasyCrop_Image",
                 cropAreaClassName: "reactEasyCrop_CropArea"
               }}
             />
@@ -147,7 +147,7 @@ export const ImageCropper = ({
                 <canvas
                   ref={previewRef}
                   className="w-full h-full object-cover"
-                  style={{ imageRendering: 'high-quality' }}
+                  style={{ imageRendering: 'auto' }}
                 />
               </div>
               {croppedAreaPixels && (
