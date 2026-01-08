@@ -168,6 +168,22 @@ export const tutorProfileSchema = z.object({
   timezone: z.string()
     .min(1, 'Timezone is required')
     .refine((val: string) => /^UTC[+-]\d{1,2}(:30)?$/.test(val), 'Invalid timezone format'),
+    
+  // Social Media (Optional)
+  linkedin: z.string()
+    .url('Invalid LinkedIn URL')
+    .optional()
+    .or(z.literal('')),
+    
+  facebook: z.string()
+    .url('Invalid Facebook URL')
+    .optional()
+    .or(z.literal('')),
+    
+  email_contact: z.string()
+    .email('Invalid email address')
+    .optional()
+    .or(z.literal('')),
 });
 
 // Student Profile Schema - simplified version for students
@@ -276,7 +292,10 @@ export const tutorProfileDefaultValues: TutorProfileFormValues = {
   },
   sessionTypes: [],
   languages: [],
-  timezone: ''
+  timezone: '',
+  linkedin: '',
+  facebook: '',
+  email_contact: ''
 };
 
 export const studentProfileDefaultValues: StudentProfileFormValues = {

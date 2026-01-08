@@ -82,6 +82,9 @@ const TutorProfilePage = () => {
             verificationStatus?: 'PENDING' | 'APPROVED' | 'REJECTED';
             verificationNotes?: string | null;
             verifiedAt?: string | null;
+            linkedin?: string | null;
+            facebook?: string | null;
+            email_contact?: string | null;
           };
           const fullName = [p.firstName, p.lastName].filter(Boolean).join(' ');
           setLoadedFullName(fullName);
@@ -151,6 +154,9 @@ const TutorProfilePage = () => {
             hourlyRate: p.hourlyRate || 0,
             bio: p.bio || '',
             timezone: p.timezone || '',
+            linkedin: p.linkedin || '',
+            facebook: p.facebook || '',
+            email_contact: p.email_contact || '',
           };
 
           // Reset form with explicit options to ensure inputs re-render
@@ -703,13 +709,27 @@ const TutorProfilePage = () => {
                   placeholder="Select your timezone" 
                   required 
                 />
-
-                {/* Only fields from the plan are kept */}
+                
+                <FormInputField
+                  name="linkedin"
+                  label="LinkedIn Profile (Optional)"
+                  placeholder="https://www.linkedin.com/in/yourprofile"
+                />
               </div>
 
               {/* Right Column */}
               <div className="space-y-4 sm:space-y-6">
-                {/* Removed optional social links per plan */}
+                <FormInputField
+                  name="facebook"
+                  label="Facebook Profile (Optional)"
+                  placeholder="https://www.facebook.com/yourprofile"
+                />
+                
+                <FormInputField
+                  name="email_contact"
+                  label="Contact Email (Optional)"
+                  placeholder="your.email@example.com"
+                />
               </div>
             </div>
           </ProfileSectionCard>

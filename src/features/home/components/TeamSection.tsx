@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback, useMemo, useRef, memo } from 'react';
 import { 
   IconBook,
   IconPlus,
-  IconBrandTwitter,
+  IconBrandLinkedin,
   IconBrandFacebook,
-  IconBrandInstagram,
+  IconMail,
   IconChevronLeft,
   IconChevronRight
 } from '@tabler/icons-react';
@@ -114,39 +114,43 @@ const TeamCard = memo(({ tutor }: TeamCardProps) => {
               ? 'opacity-100 visible translate-y-0' 
               : 'opacity-0 invisible translate-y-4'
           }`}>
-            <a 
-              href="#" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm xs:shadow-md sm:shadow-lg bg-white text-[#F20F10] hover:bg-[#F20F10] hover:text-white transition-all duration-300 ${
-                isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: isHovered ? '0.1s' : '0s' }}
-            >
-              <IconBrandTwitter size={12} className="sm:scale-125 md:scale-150" />
-            </a>
-            <a 
-              href="#" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm xs:shadow-md sm:shadow-lg bg-[#F20F10] text-white hover:bg-[#F20F10] hover:text-white transition-all duration-300 ${
-                isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: isHovered ? '0.2s' : '0s' }}
-            >
-              <IconBrandFacebook size={12} className="sm:scale-125 md:scale-150" />
-            </a>
-            <a 
-              href="#" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm xs:shadow-md sm:shadow-lg bg-white text-[#F20F10] border border-[#F20F10] hover:bg-[#F20F10] hover:text-white hover:border-transparent transition-all duration-300 ${
-                isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: isHovered ? '0.3s' : '0s' }}
-            >
-              <IconBrandInstagram size={12} className="sm:scale-125 md:scale-150" />
-            </a>
+            {tutor.tutorProfile.linkedin && (
+              <a 
+                href={tutor.tutorProfile.linkedin} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm xs:shadow-md sm:shadow-lg bg-white text-[#0077B5] hover:bg-[#0077B5] hover:text-white transition-all duration-300 ${
+                  isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: isHovered ? '0.1s' : '0s' }}
+              >
+                <IconBrandLinkedin size={12} className="sm:scale-125 md:scale-150" />
+              </a>
+            )}
+            {tutor.tutorProfile.facebook && (
+              <a 
+                href={tutor.tutorProfile.facebook} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm xs:shadow-md sm:shadow-lg bg-[#1877F2] text-white hover:bg-[#145DBF] transition-all duration-300 ${
+                  isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: isHovered ? '0.2s' : '0s' }}
+              >
+                <IconBrandFacebook size={12} className="sm:scale-125 md:scale-150" />
+              </a>
+            )}
+            {tutor.tutorProfile.email_contact && (
+              <a 
+                href={`mailto:${tutor.tutorProfile.email_contact}`} 
+                className={`w-3 h-3 xs:w-3.5 xs:h-3.5 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-sm xs:shadow-md sm:shadow-lg bg-white text-[#EA4335] border border-[#EA4335] hover:bg-[#EA4335] hover:text-white hover:border-transparent transition-all duration-300 ${
+                  isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: isHovered ? '0.3s' : '0s' }}
+              >
+                <IconMail size={12} className="sm:scale-125 md:scale-150" />
+              </a>
+            )}
           </div>
         </div>
       </div>
@@ -188,7 +192,7 @@ export default function TeamSection() {
     const fetchTutors = async () => {
       try {
         setLoading(true);
-        const response = await teacherService.getTutors({ limit: 8 });
+        const response = await teacherService.getTutors({ limit: 100 });
         
         // Sort to show admin tutors first
         const sortedTutors = response.data.sort((a, b) => {

@@ -38,6 +38,9 @@ export interface TutorSummary {
     sessionTypes?: string[];
     avatar?: string;
     verificationStatus: string;
+    linkedin?: string;
+    facebook?: string;
+    email_contact?: string;
   };
   rating?: number;
   totalStudents?: number;

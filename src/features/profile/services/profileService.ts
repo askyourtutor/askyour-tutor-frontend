@@ -91,6 +91,9 @@ type TutorPayload = {
   languages: string[];
   sessionTypes: string[];
   timezone: string | null;
+    linkedin: string | null;
+    facebook: string | null;
+    email_contact: string | null;
   // profileImage removed - uploaded separately via uploadProfileImage()
   credentialsFile: string | null; // URL (upload not implemented yet)
 };
@@ -153,6 +156,9 @@ export async function saveProfile(profileData: ProfileFormValues): Promise<SaveP
         languages: languagesArr,
         sessionTypes: sessionTypesArr,
         timezone: tutor.timezone ?? null,
+          linkedin: tutor.linkedin ?? null,
+          facebook: tutor.facebook ?? null,
+          email_contact: tutor.email_contact ?? null,
         // profileImage uploaded separately via uploadProfileImage()
         credentialsFile: null,
       };
