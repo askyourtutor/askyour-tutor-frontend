@@ -443,7 +443,11 @@ const TutorProfilePage = () => {
                   <ul className="list-disc list-inside space-y-1 text-sm sm:text-base text-red-700">
                     {Object.entries(errors).map(([field, error]) => (
                       <li key={field} className="font-medium">
-                        {field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}: {(error as any)?.message || 'This field is required'}
+                        {field.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}: {
+                          (typeof error === 'object' && error && 'message' in error
+                            ? (error as { message?: string }).message
+                            : undefined) || 'This field is required'
+                        }
                       </li>
                     ))}
                   </ul>

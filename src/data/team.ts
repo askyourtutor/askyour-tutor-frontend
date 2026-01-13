@@ -1,4 +1,6 @@
 // Team member interface and mock data
+export type Department = 'IT' | 'Business' | 'Science' | 'Law' | 'Arts';
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -13,6 +15,7 @@ export interface TeamMember {
   expertise?: string[];
   experience?: number;
   verified?: boolean;
+  department?: Department;
 }
 
 // Mock team data
@@ -30,7 +33,8 @@ export const mockTeamMembers: TeamMember[] = [
     },
     expertise: ['Leadership', 'Education Technology', 'Business Strategy'],
     experience: 10,
-    verified: true
+    verified: true,
+    department: 'Business'
   },
   {
     id: 'team-2',
@@ -45,7 +49,8 @@ export const mockTeamMembers: TeamMember[] = [
     },
     expertise: ['Mathematics', 'Physics', 'Chemistry'],
     experience: 3,
-    verified: true
+    verified: true,
+    department: 'Science'
   },
   {
     id: 'team-3',
@@ -60,7 +65,8 @@ export const mockTeamMembers: TeamMember[] = [
     },
     expertise: ['Advanced Mathematics', 'Engineering', 'Problem Solving'],
     experience: 8,
-    verified: true
+    verified: true,
+    department: 'Science'
   },
   {
     id: 'team-4',
@@ -75,7 +81,8 @@ export const mockTeamMembers: TeamMember[] = [
     },
     expertise: ['Biology', 'Life Sciences', 'Research Methods'],
     experience: 5,
-    verified: true
+    verified: true,
+    department: 'Science'
   }
 ];
 
@@ -100,4 +107,24 @@ export const getInstructors = (): TeamMember[] => {
   return mockTeamMembers.filter(member => 
     member.position.toLowerCase().includes('instructor')
   );
+};
+
+export const getTeamMembersByDepartment = (department: Department): TeamMember[] => {
+  return mockTeamMembers.filter(member => member.department === department);
+};
+
+export const getInstructorsByDepartment = (department: Department): TeamMember[] => {
+  return getTeamMembersByDepartment(department).filter(member =>
+    member.position.toLowerCase().includes('instructor')
+  );
+};
+
+export const getAllDepartments = (): Department[] => {
+  const departments = new Set<Department>();
+  mockTeamMembers.forEach(member => {
+    if (member.department) {
+      departments.add(member.department);
+    }
+  });
+  return Array.from(departments) as Department[];
 };

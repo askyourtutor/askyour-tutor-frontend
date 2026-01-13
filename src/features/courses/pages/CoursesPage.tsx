@@ -96,7 +96,7 @@ const CoursesPage: React.FC = () => {
     };
 
     loadData();
-  }, [filters, searchQuery, categories.length, currentPage]);
+  }, [filters, searchQuery, categories.length, currentPage, courses.length]);
 
   // Reset to page 1 when filters or search changes
   useEffect(() => {
