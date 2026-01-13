@@ -482,6 +482,34 @@ const TeacherDetailPage: React.FC = () => {
                             </div>
                           </div>
                         )}
+
+                        {tutorProfile.department && (
+                          <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                              tutorProfile.department === 'IT' ? 'bg-blue-100' :
+                              tutorProfile.department === 'Business' ? 'bg-green-100' :
+                              tutorProfile.department === 'Science' ? 'bg-purple-100' :
+                              tutorProfile.department === 'Law' ? 'bg-red-100' :
+                              tutorProfile.department === 'Arts' ? 'bg-amber-100' :
+                              'bg-gray-100'
+                            }`}>
+                              <span className={`text-sm sm:text-base font-bold ${
+                                tutorProfile.department === 'IT' ? 'text-blue-600' :
+                                tutorProfile.department === 'Business' ? 'text-green-600' :
+                                tutorProfile.department === 'Science' ? 'text-purple-600' :
+                                tutorProfile.department === 'Law' ? 'text-red-600' :
+                                tutorProfile.department === 'Arts' ? 'text-amber-600' :
+                                'text-gray-600'
+                              }`}>
+                                {tutorProfile.department.charAt(0)}
+                              </span>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="font-semibold text-gray-900 text-sm sm:text-base break-words">{tutorProfile.department} Department</h4>
+                              <p className="text-gray-600 text-xs sm:text-sm">Academic Department</p>
+                            </div>
+                          </div>
+                        )}
                         
                         {tutorProfile.teachingExperience !== null && tutorProfile.teachingExperience !== undefined && (
                           <div className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">

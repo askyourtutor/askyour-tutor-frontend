@@ -1,5 +1,13 @@
 // Form options and constants for profile forms
 
+export const departmentOptions = [
+  { value: 'IT', label: 'IT' },
+  { value: 'Business', label: 'Business' },
+  { value: 'Science', label: 'Science' },
+  { value: 'Law', label: 'Law' },
+  { value: 'Arts', label: 'Arts' }
+];
+
 export const degreeOptions = [
   { value: "Bachelor's", label: "Bachelor's Degree" },
   { value: "Master's", label: "Master's Degree" },

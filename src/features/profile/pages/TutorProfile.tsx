@@ -22,7 +22,7 @@ import { FileUploadCard } from '../components/FileUploadCard';
 import { ImageCropper } from '../components/ImageCropper';
 import { PhoneInputField } from '../components/PhoneInputField';
 import { saveProfile, uploadProfileImage } from '../services/profileService';
-import { degreeOptions, timezoneOptions } from '../constants/formOptions';
+import { degreeOptions, timezoneOptions, departmentOptions } from '../constants/formOptions';
 import type { TutorProfileFormValues } from '../schemas/profileSchemas';
 import { UsersAPI } from '../../../shared/services/api';
 
@@ -545,10 +545,11 @@ const TutorProfilePage = () => {
                   required 
                 />
                 
-                <FormInputField 
+                <FormSelectField 
                   name="department" 
                   label="Department" 
-                  placeholder="e.g., Physics, Chemistry, Mathematics" 
+                  options={departmentOptions} 
+                  placeholder="Select your department" 
                   required 
                 />
                 

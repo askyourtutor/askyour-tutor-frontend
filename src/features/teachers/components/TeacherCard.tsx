@@ -128,6 +128,24 @@ export const TeacherCard: React.FC<TeacherCardProps> = ({ teacher }) => {
             </div>
           )}
 
+          {/* Department Badge */}
+          {tutorProfile.department && (
+            <div className="mb-2">
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full font-medium ${
+                isAdmin ? 'text-sm' : 'text-xs'
+              } ${
+                tutorProfile.department === 'IT' ? 'bg-blue-100 text-blue-700' :
+                tutorProfile.department === 'Business' ? 'bg-green-100 text-green-700' :
+                tutorProfile.department === 'Science' ? 'bg-purple-100 text-purple-700' :
+                tutorProfile.department === 'Law' ? 'bg-red-100 text-red-700' :
+                tutorProfile.department === 'Arts' ? 'bg-amber-100 text-amber-700' :
+                'bg-gray-100 text-gray-700'
+              }`}>
+                {tutorProfile.department}
+              </span>
+            </div>
+          )}
+
           {/* Stats Row */}
           <div className={`flex items-center gap-4 ${
             isAdmin ? 'text-sm' : 'text-xs'
