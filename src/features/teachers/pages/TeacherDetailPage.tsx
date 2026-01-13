@@ -13,7 +13,10 @@ import {
   IconCalendar,
   IconShield,
   IconBookmark,
-  IconShare
+  IconShare,
+  IconBrandLinkedin,
+  IconBrandFacebook,
+  IconMail
 } from '@tabler/icons-react';
 import { useAuth } from '../../../shared/contexts/AuthContext';
 import type { TutorSummary, TutorCourse, TutorReview, TutorSession } from '../../../shared/types/teacher';
@@ -311,6 +314,43 @@ const TeacherDetailPage: React.FC = () => {
                       <IconBookmark size={14} className="sm:w-4 sm:h-4" />
                     </button>
                   </div>
+
+                  {/* Social Links */}
+                  {(tutorProfile.linkedin || tutorProfile.facebook || tutorProfile.email_contact) && (
+                    <div className="flex flex-wrap gap-2 justify-center sm:justify-start mt-3">
+                      {tutorProfile.linkedin && (
+                        <a
+                          href={tutorProfile.linkedin}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/30 text-white px-3 py-1.5 rounded-sm hover:bg-white/20 transition-all duration-200 text-xs"
+                        >
+                          <IconBrandLinkedin size={14} />
+                          <span>LinkedIn</span>
+                        </a>
+                      )}
+                      {tutorProfile.facebook && (
+                        <a
+                          href={tutorProfile.facebook}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/30 text-white px-3 py-1.5 rounded-sm hover:bg-white/20 transition-all duration-200 text-xs"
+                        >
+                          <IconBrandFacebook size={14} />
+                          <span>Facebook</span>
+                        </a>
+                      )}
+                      {tutorProfile.email_contact && (
+                        <a
+                          href={`mailto:${tutorProfile.email_contact}`}
+                          className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/30 text-white px-3 py-1.5 rounded-sm hover:bg-white/20 transition-all duration-200 text-xs"
+                        >
+                          <IconMail size={14} />
+                          <span>Email</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

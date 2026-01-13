@@ -31,6 +31,7 @@ export interface TutorSummary {
     lastName: string;
     professionalTitle?: string;
     university?: string;
+    department?: string;
     teachingExperience?: number;
     hourlyRate?: number;
     bio?: string;
